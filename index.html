@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ 整合包模组管理工具 · Modrinth</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        /* ===== 精简样式 ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #1a1a2e; --bg2: #16213e; --bg3: #0f3460;
+            --fg: #e0e0e0; --fg2: #a0aec0;
+            --accent: #00d4ff; --accent2: #7c3aed;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --card: #1e293b; --input_bg: #0f172a;
+            --radius: 8px; --font: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--fg);
+            padding: 12px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .header {
+            background: var(--bg2);
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 { font-size: 24px; color: var(--accent); margin-right: 12px; }
+        .header .sub { color: var(--fg2); font-size: 14px; }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 12px;
+            flex: 1;
+            min-height: 500px;
+        }
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        .panel {
+            background: var(--bg2);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .panel-title {
+            font-weight: bold;
+            color: var(--accent);
+            border-bottom: 1px solid var(--bg3);
+            padding-bottom: 8px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        input, select, button {
+            font-family: var(--font);
+            font-size: 13px;
+            background: var(--input_bg);
+            color: var(--fg);
+            border: 1px solid var(--bg3);
+            border-radius: 4px;
+            padding: 6px 10px;
+            outline: none;
+            transition: 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+        button {
+            background: var(--bg3);
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 6px 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        button:hover { opacity: 0.85; }
+        button.primary { background: var(--accent); color: #000; }
+        button.success { background: var(--success); }
+        button.danger { background: var(--danger); }
+        button.warning { background: var(--warning); }
+        button.accent2 { background: var(--accent2); }
+        .table-wrap {
+            flex: 1;
+            overflow: auto;
+            border: 1px solid var(--bg3);
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: var(--bg3);
+            color: var(--accent);
+            text-align: left;
+            padding: 8px 10px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        td {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--bg3);
+            vertical-align: middle;
+        }
+        tr:hover td { background: var(--card); }
+        .search-box { flex: 1; min-width: 150px; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 8px 12px;
+            align-items: center;
+        }
+        .info-grid label { color: var(--fg2); font-size: 13px; }
+        .info-grid input, .info-grid select { width: 100%; }
+        .compat-label { font-size: 13px; font-weight: bold; }
+        .log-box {
+            background: #0d1117;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #e6edf3;
+        }
+        .log-box .time { color: var(--fg2); }
+        .log-box .ok { color: var(--success); }
+        .log-box .err { color: var(--danger); }
+        .log-box .warn { color: var(--warning); }
+        .status-bar {
+            background: var(--bg2);
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .status-bar .status-text { color: var(--fg2); font-size: 13px; }
+        .scale-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scale-control input[type="range"] {
+            width: 120px;
+            accent-color: var(--accent);
+        }
+        .scale-control .scale-label {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 40px;
+        }
+        .truncate {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--bg2);
+            border-radius: var(--radius);
+            padding: 20px;
+            max-width: 900px;
+            width: 95%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+        .modal-body { flex: 1; overflow: auto; }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid var(--bg3);
+        }
+        .version-table th { position: sticky; top: 0; background: var(--bg3); }
+        .version-table td { padding: 4px 8px; }
+        .version-table tr { cursor: pointer; }
+        .version-table tr.selected { background: var(--accent); color: #000; }
+        .text-center { text-align: center; }
+        .text-sm { font-size: 13px; }
+        .text-danger { color: var(--danger); }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .hidden { display: none; }
+        /* 页脚样式 */
+        .footer {
+            text-align: center;
+            padding: 12px 0;
+            color: var(--fg2);
+            font-size: 13px;
+            border-top: 1px solid var(--bg3);
+            margin-top: 8px;
+        }
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- 头部 -->
+    <header class="header">
+        <h1>⚡ 整合包模组管理工具</h1>
+        <span class="sub">Modrinth · 纯前端版</span>
+        <span style="flex:1"></span>
+        <button class="primary" id="btnOpenFile">📂 打开 index.json</button>
+        <button class="primary" id="btnOpenMrpack">📦 打开 .mrpack</button>
+        <input type="file" id="fileInput" accept=".json" style="display:none">
+        <input type="file" id="mrpackInput" accept=".mrpack,.zip" style="display:none">
+    </header>
+
+    <!-- 主区域 -->
+    <div class="main-grid">
+        <!-- 左侧 -->
+        <div class="panel">
+            <div class="panel-title">📋 整合包信息</div>
+            <div class="info-grid">
+                <label>名称</label><input id="pkgName" value="我的整合包">
+                <label>版本</label><input id="pkgVersion" value="1.0.0">
+                <label>MC版本</label><input id="pkgMc" value="1.20.1">
+                <label>加载器</label>
+                <select id="pkgLoader">
+                    <option value="Fabric">Fabric</option>
+                    <option value="Forge">Forge</option>
+                    <option value="NeoForge">NeoForge</option>
+                </select>
+                <label>加载器版本</label><input id="pkgLoaderVer" value="0.15.11">
+                <span></span><span class="compat-label" id="compatLabel"></span>
+            </div>
+            <div class="row">
+                <button id="btnDownloadIndex" class="success">⬇ 下载 index.json</button>
+                <button id="btnRefreshMeta" class="warning">🔄 重新加载</button>
+            </div>
+
+            <div class="panel-title" style="margin-top:8px;">➕ 添加模组</div>
+            <div class="row">
+                <input id="modInput" placeholder="项目链接或 ID" style="flex:1; min-width:150px;">
+                <button id="btnFetchVersions" class="accent2">🔍 获取版本</button>
+            </div>
+
+            <div class="panel-title" style="margin-top:8px;">📦 模组列表</div>
+            <div class="row">
+                <input id="searchInput" class="search-box" placeholder="🔍 搜索模组...">
+                <button id="btnRefreshList" class="primary">🔄 刷新</button>
+                <button id="btnDeleteSelected" class="danger">🗑️ 删除</button>
+                <button id="btnBackup" class="warning">💾 备份</button>
+                <button id="btnCheckUpdates" class="warning">🧪 检查更新（实验性）</button>
+                <button id="btnPackMrpack" class="success">📦 打包 .mrpack</button>
+            </div>
+            <div class="table-wrap">
+                <table id="modTable">
+                    <thead><tr>
+                        <th style="width:30px;"><input type="checkbox" id="selectAll"></th>
+                        <th>项目名称</th><th>文件名</th><th>版本</th><th>路径</th>
+                    </tr></thead>
+                    <tbody id="modTableBody"><tr><td colspan="5" class="text-center text-sm" style="color:var(--fg2);">暂无模组，请打开或添加</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 右侧日志 -->
+        <div class="panel">
+            <div class="panel-title">📋 日志</div>
+            <div class="log-box" id="logBox">[系统] 就绪 ✅</div>
+        </div>
+    </div>
+
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <span class="status-text" id="statusText">就绪 ✅</span>
+        <div class="scale-control">
+            <span>缩放</span>
+            <input type="range" id="scaleSlider" min="0.8" max="2.0" step="0.05" value="1.0">
+            <span class="scale-label" id="scaleLabel">1.00x</span>
+        </div>
+    </div>
+
+    <!-- 页脚（新增） -->
+    <div class="footer">
+        <a href="https://github.com/Mace778/modpack-wizard" target="_blank">📦 查看源码 · GitHub</a>
+    </div>
+</div>
+
+<!-- Modal: 版本选择 -->
+<div class="modal-overlay" id="versionModal">
+    <div class="modal">
+        <div class="modal-title" id="modalTitle">选择版本</div>
+        <div class="modal-body">
+            <table class="version-table" id="versionTable">
+                <thead><tr><th>版本号</th><th>游戏版本</th><th>加载器</th><th>发布日期</th><th>推荐</th></tr></thead>
+                <tbody id="versionTableBody"></tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button id="modalSelectBtn" class="success">选择此版本</button>
+            <button id="modalToggleBtn" class="accent2">🔄 显示全部</button>
+            <button id="modalCloseBtn">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: 更新 -->
+<div class="modal-overlay" id="updateModal">
+    <div class="modal">
+        <div class="modal-title">🧪 检查更新（实验性）</div>
+        <div class="modal-body">
+            <p style="color: var(--warning); margin-bottom: 10px;">⚠️ 该功能为实验性，版本比较可能不准确，请以 Modrinth 页面为准。</p>
+            <table id="updateTable">
+                <thead><tr>
+                    <th style="width:30px;"><input type="checkbox" id="updateSelectAll"></th>
+                    <th>模组名称</th><th>当前版本</th><th>最新版本</th>
+                </tr></thead>
+                <tbody id="updateTableBody"></tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button id="updateApplyBtn" class="success">更新选中</button>
+            <button id="updateCloseBtn">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ============================================================
+        //  配置与常量
+        // ============================================================
+        const CONFIG = {
+            LOADER_KEYS: { Fabric: 'fabric-loader', Forge: 'forge', NeoForge: 'neoforge' },
+            LOADER_API:  { Fabric: 'fabric', Forge: 'forge', NeoForge: 'neoforge' },
+            API_BASE: 'https://api.modrinth.com/v2',
+            CONCURRENCY: 5,
+        };
+
+        // ============================================================
+        //  状态管理
+        // ============================================================
+        const state = {
+            data: null,                 // 当前 index 数据
+            allMods: [],               // { path, filename, version, display_name, project_id, raw_entry }
+            allVersionsCache: [],
+            modalMode: 'default',
+            updateList: [],            // 用于更新对话框
+        };
+
+        // ============================================================
+        //  DOM 引用
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const dom = {
+            fileInput: $('fileInput'),
+            mrpackInput: $('mrpackInput'),
+            btnOpenFile: $('btnOpenFile'),
+            btnOpenMrpack: $('btnOpenMrpack'),
+            pkgName: $('pkgName'),
+            pkgVersion: $('pkgVersion'),
+            pkgMc: $('pkgMc'),
+            pkgLoader: $('pkgLoader'),
+            pkgLoaderVer: $('pkgLoaderVer'),
+            compatLabel: $('compatLabel'),
+            modInput: $('modInput'),
+            btnFetchVersions: $('btnFetchVersions'),
+            searchInput: $('searchInput'),
+            btnRefreshList: $('btnRefreshList'),
+            btnDeleteSelected: $('btnDeleteSelected'),
+            btnBackup: $('btnBackup'),
+            btnCheckUpdates: $('btnCheckUpdates'),
+            btnPackMrpack: $('btnPackMrpack'),
+            btnDownloadIndex: $('btnDownloadIndex'),
+            btnRefreshMeta: $('btnRefreshMeta'),
+            modTableBody: $('modTableBody'),
+            selectAll: $('selectAll'),
+            logBox: $('logBox'),
+            statusText: $('statusText'),
+            scaleSlider: $('scaleSlider'),
+            scaleLabel: $('scaleLabel'),
+            versionModal: $('versionModal'),
+            modalTitle: $('modalTitle'),
+            versionTableBody: $('versionTableBody'),
+            modalSelectBtn: $('modalSelectBtn'),
+            modalToggleBtn: $('modalToggleBtn'),
+            modalCloseBtn: $('modalCloseBtn'),
+            updateModal: $('updateModal'),
+            updateTableBody: $('updateTableBody'),
+            updateSelectAll: $('updateSelectAll'),
+            updateApplyBtn: $('updateApplyBtn'),
+            updateCloseBtn: $('updateCloseBtn'),
+        };
+
+        // ============================================================
+        //  工具函数
+        // ============================================================
+        function extractVersion(filename) {
+            if (!filename) return '未知版本';
+            let text = filename;
+            if (text.includes('+')) text = text.split('+')[0];
+            text = text.replace(/-(?:fabric|forge|neoforge|universal|modern|mc\d+(?:\.\d+)?)(?:-[a-zA-Z0-9.]+)?$/, '');
+            text = text.replace(/[+-]mc\d+(?:\.\d+)?/, '');
+            const matches = text.match(/\b(\d+(?:\.\d+)+)\b/g);
+            if (!matches) return '未知版本';
+            matches.sort((a, b) => b.split('.').length - a.split('.').length || b.localeCompare(a));
+            return matches[0];
+        }
+
+        function parseProjectId(url) {
+            const m = url.match(/modrinth\.com\/(?:mod|project)\/([a-zA-Z0-9_-]+)/);
+            if (m) return m[1];
+            if (/^[a-zA-Z0-9_-]+$/.test(url)) return url;
+            return null;
+        }
+
+        function parseProjectIdFromUrl(url) {
+            const m = url.match(/cdn\.modrinth\.com\/data\/([^/]+)\//);
+            return m ? m[1] : null;
+        }
+
+        function compareVersions(v1, v2) {
+            const parse = v => v.split('.').map(s => parseInt(s.replace(/[^0-9]/g, '')) || 0);
+            const a = parse(v1),
+                b = parse(v2);
+            const len = Math.max(a.length, b.length);
+            for (let i = 0; i < len; i++) {
+                const n1 = a[i] || 0,
+                    n2 = b[i] || 0;
+                if (n1 !== n2) return n1 - n2;
+            }
+            return 0;
+        }
+
+        function getTimestamp() {
+            const now = new Date();
+            return now.getFullYear() +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                String(now.getDate()).padStart(2, '0') +
+                '_' +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0') +
+                String(now.getSeconds()).padStart(2, '0');
+        }
+
+        // ============================================================
+        //  日志与状态
+        // ============================================================
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warn' ? '⚠️' : 'ℹ️';
+            const cls = type === 'error' ? 'err' : type === 'success' ? 'ok' : type === 'warn' ? 'warn' : '';
+            dom.logBox.innerHTML += `<div><span class="time">[${time}]</span> <span class="${cls}">${prefix} ${msg}</span></div>`;
+            dom.logBox.scrollTop = dom.logBox.scrollHeight;
+        }
+
+        function setStatus(msg) {
+            dom.statusText.textContent = msg;
+        }
+
+        // ============================================================
+        //  API 封装
+        // ============================================================
+        async function fetchJSON(url, options = {}) {
+            const resp = await fetch(url, { ...options, headers: { ...options.headers, 'Accept': 'application/json' } });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+            return resp.json();
+        }
+
+        async function getProjectName(projectId) {
+            try {
+                const data = await fetchJSON(`${CONFIG.API_BASE}/project/${projectId}`);
+                return data.title || projectId;
+            } catch {
+                return projectId;
+            }
+        }
+
+        async function getVersions(projectId, mcVer, loaderApi) {
+            const url = `${CONFIG.API_BASE}/project/${projectId}/version?limit=100`;
+            const all = await fetchJSON(url);
+            // 按时间排序
+            all.sort((a, b) => new Date(b.date_published) - new Date(a.date_published));
+            // 兼容筛选（若未提供则返回全部）
+            if (mcVer && loaderApi) {
+                const compatible = all.filter(v =>
+                    v.game_versions.includes(mcVer) &&
+                    (!v.loaders || v.loaders.includes(loaderApi))
+                );
+                return compatible.length ? compatible : all;
+            }
+            return all;
+        }
+
+        async function getLatestVersion(projectId, mcVer, loaderApi) {
+            const all = await getVersions(projectId, mcVer, loaderApi);
+            return all.length ? all[0] : null;
+        }
+
+        // ============================================================
+        //  数据操作
+        // ============================================================
+        function gatherData() {
+            if (!state.data) {
+                state.data = {
+                    game: 'minecraft',
+                    formatVersion: 1,
+                    versionId: '1.0.0',
+                    name: '我的整合包',
+                    summary: '',
+                    files: [],
+                    dependencies: {}
+                };
+            }
+            const d = state.data;
+            d.name = dom.pkgName.value.trim() || '未命名';
+            d.versionId = dom.pkgVersion.value.trim() || '1.0.0';
+            const deps = d.dependencies || {};
+            deps.minecraft = dom.pkgMc.value.trim() || '1.20.1';
+            const loaderKey = CONFIG.LOADER_KEYS[dom.pkgLoader.value] || 'fabric-loader';
+            deps[loaderKey] = dom.pkgLoaderVer.value.trim() || '0.15.11';
+            d.dependencies = deps;
+            return d;
+        }
+
+        function loadData(data) {
+            state.data = data;
+            dom.pkgName.value = data.name || '未命名';
+            dom.pkgVersion.value = data.versionId || '1.0.0';
+            const deps = data.dependencies || {};
+            dom.pkgMc.value = deps.minecraft || '1.20.1';
+            let loaderKey = null,
+                loaderVer = '';
+            for (const key of ['fabric-loader', 'forge', 'neoforge']) {
+                if (deps[key] !== undefined) { loaderKey = key;
+                    loaderVer = deps[key]; break; }
+            }
+            if (!loaderKey) {
+                for (const key of ['fabric-loader', 'forge', 'neoforge']) {
+                    if (data[key] !== undefined) { loaderKey = key;
+                        loaderVer = data[key]; break; }
+                }
+            }
+            const loaderName = { 'forge': 'Forge', 'neoforge': 'NeoForge' } [loaderKey] || 'Fabric';
+            dom.pkgLoader.value = loaderName;
+            dom.pkgLoaderVer.value = loaderVer || '';
+            refreshModList();
+            updateCompatibility();
+            log('数据已加载', 'success');
+            setStatus('已加载');
+        }
+
+        // ============================================================
+        //  模组列表渲染
+        // ============================================================
+        function refreshModList() {
+            const data = gatherData();
+            const files = data.files || [];
+            state.allMods = files.map(entry => {
+                const path = entry.path || '';
+                const filename = path.split('/').pop() || '';
+                const version = extractVersion(filename);
+                let project_id = null;
+                if (entry.downloads && entry.downloads.length) {
+                    const pid = parseProjectIdFromUrl(entry.downloads[0]);
+                    if (pid) project_id = pid;
+                }
+                const display_name = project_id ? project_id : filename;
+                return { path, filename, version, display_name, project_id, raw_entry: entry };
+            });
+            // 异步获取名称
+            state.allMods.forEach(async (mod) => {
+                if (mod.project_id) {
+                    const name = await getProjectName(mod.project_id);
+                    if (name && name !== mod.display_name) {
+                        mod.display_name = name;
+                        renderTable();
+                    }
+                }
+            });
+            renderTable();
+            log(`加载了 ${state.allMods.length} 个模组`, 'success');
+        }
+
+        function renderTable() {
+            const keyword = dom.searchInput.value.trim().toLowerCase();
+            let filtered = state.allMods;
+            if (keyword) {
+                filtered = state.allMods.filter(e =>
+                    e.display_name.toLowerCase().includes(keyword) ||
+                    e.filename.toLowerCase().includes(keyword) ||
+                    e.path.toLowerCase().includes(keyword)
+                );
+            }
+            const tbody = dom.modTableBody;
+            tbody.innerHTML = '';
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-sm" style="color:var(--fg2);">没有匹配的模组</td></tr>`;
+                return;
+            }
+            const fragment = document.createDocumentFragment();
+            filtered.forEach((mod, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="mod-checkbox" data-index="${index}"></td>
+                    <td class="truncate" title="${mod.display_name}">${mod.display_name}</td>
+                    <td class="truncate" title="${mod.filename}">${mod.filename}</td>
+                    <td>${mod.version}</td>
+                    <td class="truncate" title="${mod.path}">${mod.path}</td>
+                `;
+                fragment.appendChild(tr);
+            });
+            tbody.appendChild(fragment);
+            dom.selectAll.checked = false;
+        }
+
+        // ============================================================
+        //  兼容性提示
+        // ============================================================
+        function updateCompatibility() {
+            if (dom.pkgLoader.value !== 'Fabric') {
+                dom.compatLabel.textContent = '';
+                return;
+            }
+            const mc = dom.pkgMc.value.trim(),
+                fab = dom.pkgLoaderVer.value.trim();
+            if (!mc || !fab) {
+                dom.compatLabel.textContent = '';
+                return;
+            }
+            dom.compatLabel.textContent = '✅ 兼容（本地检查）';
+            dom.compatLabel.style.color = 'var(--success)';
+        }
+
+        // ============================================================
+        //  添加模组（版本选择）
+        // ============================================================
+        async function fetchVersions() {
+            const input = dom.modInput.value.trim();
+            if (!input) { alert('请输入项目链接或 ID'); return; }
+            const projectId = parseProjectId(input);
+            if (!projectId) { alert('无法解析项目 ID'); return; }
+            setStatus('正在获取版本...');
+            log(`获取项目 ${projectId} 的版本...`);
+            try {
+                const mc = dom.pkgMc.value.trim();
+                const loaderApi = CONFIG.LOADER_API[dom.pkgLoader.value] || 'fabric';
+                const versions = await getVersions(projectId, mc, loaderApi);
+                if (!versions.length) { alert('该项目没有版本');
+                    setStatus('就绪'); return; }
+                state.allVersionsCache = versions;
+                // 默认显示推荐/兼容
+                let defaultDisplay = versions.filter(v => v.featured);
+                if (!defaultDisplay.length) defaultDisplay = versions.slice(0, 20); // 限制显示数量
+                state.modalMode = 'default';
+                showVersionModal(projectId, versions, defaultDisplay);
+                setStatus('就绪');
+            } catch (e) {
+                log('获取版本失败: ' + e.message, 'error');
+                alert('获取失败: ' + e.message);
+                setStatus('就绪');
+            }
+        }
+
+        function showVersionModal(projectId, allVersions, displayList) {
+            const modal = dom.versionModal;
+            dom.modalTitle.textContent = `选择版本 - ${projectId} (${displayList.length} 个)`;
+            const tbody = dom.versionTableBody;
+            tbody.innerHTML = '';
+            displayList.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.dataset.version = v.version_number;
+                tr.innerHTML = `
+                    <td>${v.version_number}</td>
+                    <td>${v.game_versions.join(', ')}</td>
+                    <td>${v.loaders ? v.loaders.join(', ') : ''}</td>
+                    <td>${v.date_published.slice(0,10)}</td>
+                    <td>${v.featured ? '⭐' : ''}</td>
+                `;
+                tr.addEventListener('click', function() {
+                    tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+                tbody.appendChild(tr);
+            });
+            window._allVersions = allVersions;
+            modal.classList.add('active');
+
+            // 绑定按钮（使用新函数避免重复绑定）
+            dom.modalSelectBtn.onclick = function() {
+                const selected = tbody.querySelector('tr.selected');
+                if (!selected) { alert('请先选择一个版本'); return; }
+                const ver = selected.dataset.version;
+                const matched = allVersions.find(v => v.version_number === ver);
+                if (matched) { addVersion(matched);
+                    modal.classList.remove('active'); } else alert('数据异常');
+            };
+            dom.modalToggleBtn.onclick = function() {
+                const all = window._allVersions;
+                if (state.modalMode === 'default') {
+                    showVersionModal(projectId, all, all);
+                    state.modalMode = 'all';
+                    dom.modalToggleBtn.textContent = '🔄 显示推荐/兼容';
+                } else {
+                    const mc = dom.pkgMc.value.trim();
+                    const loaderApi = CONFIG.LOADER_API[dom.pkgLoader.value] || 'fabric';
+                    let compatible = all.filter(v =>
+                        v.game_versions.includes(mc) &&
+                        (!v.loaders || v.loaders.includes(loaderApi))
+                    );
+                    const defaultDisplay = compatible.filter(v => v.featured) || compatible;
+                    showVersionModal(projectId, all, defaultDisplay);
+                    state.modalMode = 'default';
+                    dom.modalToggleBtn.textContent = '🔄 显示全部版本';
+                }
+            };
+            dom.modalCloseBtn.onclick = () => modal.classList.remove('active');
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('active');
+            });
+        }
+
+        function addVersion(versionData) {
+            const fileObj = versionData.files[0];
+            if (!fileObj) { alert('版本文件缺失'); return; }
+            const filename = fileObj.filename;
+            const entry = {
+                path: `mods/${filename}`,
+                hashes: { sha1: fileObj.hashes.sha1, sha512: fileObj.hashes.sha512 },
+                downloads: [fileObj.url],
+                fileSize: fileObj.size
+            };
+            const data = gatherData();
+            const files = data.files || [];
+            if (files.some(f => f.path === entry.path)) {
+                if (!confirm(`模组 ${filename} 已存在，是否仍然添加？`)) {
+                    log('取消添加（已存在）', 'warn');
+                    return;
+                }
+            }
+            files.push(entry);
+            data.files = files;
+            state.data = data;
+            refreshModList();
+            // 依赖提示
+            const deps = versionData.dependencies || [];
+            const depIds = deps.filter(d => d.project_id).map(d => d.project_id);
+            if (depIds.length) {
+                const msg = `模组 ${filename} 有以下依赖项，请手动添加：\n${depIds.join('\n')}`;
+                if (confirm(msg + '\n\n是否打开 Modrinth 页面查看？')) {
+                    depIds.forEach(id => window.open(`https://modrinth.com/mod/${id}`, '_blank'));
+                }
+            }
+            log(`✅ 添加 ${filename}`, 'success');
+            setStatus('已添加');
+        }
+
+        // ============================================================
+        //  删除
+        // ============================================================
+        function deleteSelected() {
+            const checked = document.querySelectorAll('.mod-checkbox:checked');
+            if (!checked.length) { alert('请至少选择一个模组'); return; }
+            if (!confirm(`确定删除选中的 ${checked.length} 个模组吗？`)) return;
+            const indices = Array.from(checked).map(cb => parseInt(cb.dataset.index));
+            const data = gatherData();
+            const files = data.files || [];
+            const toDeletePaths = indices.map(i => state.allMods[i].path);
+            data.files = files.filter(f => !toDeletePaths.includes(f.path));
+            state.data = data;
+            refreshModList();
+            log(`已删除 ${checked.length} 个模组`, 'success');
+        }
+
+        // ============================================================
+        //  备份
+        // ============================================================
+        function backupIndex() {
+            const data = gatherData();
+            const filename = `modrinth.index.backup_${getTimestamp()}.json`;
+            downloadJSON(data, filename);
+            log(`已备份至 ${filename}`, 'success');
+            setStatus('已备份');
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ============================================================
+        //  打包 .mrpack
+        // ============================================================
+        async function packMrpack() {
+            const data = gatherData();
+            if (!data.files || !data.files.length) {
+                if (!confirm('没有模组条目，确定要打包吗？')) return;
+            }
+            try {
+                const zip = new JSZip();
+                zip.file('modrinth.index.json', JSON.stringify(data, null, 2));
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${data.name || 'modpack'}.mrpack`;
+                a.click();
+                URL.revokeObjectURL(url);
+                log('✅ 打包完成', 'success');
+                setStatus('打包完成');
+            } catch (e) {
+                log('打包失败: ' + e.message, 'error');
+                alert('打包失败');
+            }
+        }
+
+        // ============================================================
+        //  打开 .mrpack
+        // ============================================================
+        async function openMrpack(file) {
+            try {
+                const zip = await JSZip.loadAsync(file);
+                const indexFile = zip.file('modrinth.index.json');
+                if (!indexFile) {
+                    alert('该 .mrpack 文件不包含 modrinth.index.json');
+                    log('打开 .mrpack 失败：缺少 modrinth.index.json', 'error');
+                    return;
+                }
+                const content = await indexFile.async('string');
+                const data = JSON.parse(content);
+                loadData(data);
+                log(`✅ 成功打开 .mrpack: ${file.name}`, 'success');
+                setStatus(`已打开 ${file.name}`);
+            } catch (err) {
+                alert('打开 .mrpack 失败: ' + err.message);
+                log('打开 .mrpack 失败: ' + err.message, 'error');
+                setStatus('打开失败');
+            }
+        }
+
+        // ============================================================
+        //  检查更新（实验性）
+        // ============================================================
+        async function checkUpdates() {
+            if (!state.allMods.length) {
+                alert('没有模组可供检查');
+                return;
+            }
+            if (!confirm('🧪 检查更新功能目前为实验性阶段，可能存在版本检测不准确或误报的情况。\n\n是否继续？')) {
+                log('用户取消检查更新', 'warn');
+                return;
+            }
+            setStatus('正在检查更新...');
+            log('开始检查模组更新（实验性）...', 'info');
+
+            const mcVer = dom.pkgMc.value.trim();
+            const loaderApi = CONFIG.LOADER_API[dom.pkgLoader.value] || 'fabric';
+            const updates = [];
+            const queue = state.allMods.filter(m => m.project_id);
+            const total = queue.length;
+            let completed = 0;
+
+            // 并发工作器
+            const workers = [];
+            const worker = async () => {
+                while (queue.length) {
+                    const mod = queue.shift();
+                    try {
+                        const latest = await getLatestVersion(mod.project_id, mcVer, loaderApi);
+                        if (latest) {
+                            const latestVer = extractVersion(latest.version_number);
+                            const currentVer = mod.version;
+                            if (currentVer !== '未知版本' && latestVer !== '未知版本' && compareVersions(latestVer, currentVer) > 0) {
+                                const name = await getProjectName(mod.project_id);
+                                updates.push({
+                                    mod,
+                                    name,
+                                    currentVer,
+                                    latestVer,
+                                    latestData: latest
+                                });
+                            }
+                        }
+                    } catch (e) { /* 忽略单个失败 */ }
+                    completed++;
+                    setStatus(`检查更新中... ${completed}/${total}`);
+                }
+            };
+
+            for (let i = 0; i < Math.min(CONFIG.CONCURRENCY, total); i++) {
+                workers.push(worker());
+            }
+            await Promise.all(workers);
+
+            setStatus('就绪');
+            if (!updates.length) {
+                alert('所有模组都是最新版本（实验性检测）');
+                log('所有模组都是最新版本', 'success');
+                return;
+            }
+            showUpdateDialog(updates);
+        }
+
+        function showUpdateDialog(updates) {
+            const tbody = dom.updateTableBody;
+            tbody.innerHTML = '';
+            updates.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="update-checkbox" data-index="${idx}"></td>
+                    <td>${item.name}</td>
+                    <td>${item.currentVer}</td>
+                    <td>${item.latestVer}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            dom.updateSelectAll.checked = false;
+            dom.updateModal.classList.add('active');
+
+            dom.updateSelectAll.onchange = function() {
+                tbody.querySelectorAll('.update-checkbox').forEach(cb => cb.checked = this.checked);
+            };
+
+            dom.updateApplyBtn.onclick = function() {
+                const checked = tbody.querySelectorAll('.update-checkbox:checked');
+                if (!checked.length) { alert('请至少选择一个要更新的模组'); return; }
+                if (!confirm(`确定更新 ${checked.length} 个模组吗？（实验性功能）`)) return;
+                const indices = Array.from(checked).map(cb => parseInt(cb.dataset.index));
+                const data = gatherData();
+                const files = data.files || [];
+                let updated = 0;
+                indices.forEach(idx => {
+                    const item = updates[idx];
+                    const mod = item.mod;
+                    const latest = item.latestData;
+                    const newEntry = {
+                        path: `mods/${latest.files[0].filename}`,
+                        hashes: {
+                            sha1: latest.files[0].hashes.sha1,
+                            sha512: latest.files[0].hashes.sha512
+                        },
+                        downloads: [latest.files[0].url],
+                        fileSize: latest.files[0].size
+                    };
+                    const fileIndex = files.findIndex(f => f.path === mod.path);
+                    if (fileIndex !== -1) {
+                        files[fileIndex] = newEntry;
+                        updated++;
+                    }
+                });
+                if (!updated) { alert('没有模组被更新（可能路径不匹配）'); return; }
+                data.files = files;
+                state.data = data;
+                refreshModList();
+                log(`成功更新 ${updated} 个模组（实验性）`, 'success');
+                setStatus(`更新了 ${updated} 个模组`);
+                dom.updateModal.classList.remove('active');
+                alert(`成功更新 ${updated} 个模组`);
+            };
+
+            dom.updateCloseBtn.onclick = () => dom.updateModal.classList.remove('active');
+            dom.updateModal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('active');
+            });
+        }
+
+        // ============================================================
+        //  事件绑定
+        // ============================================================
+        // 缩放
+        dom.scaleSlider.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            dom.scaleLabel.textContent = val.toFixed(2) + 'x';
+            document.querySelector('.app-container').style.zoom = val;
+        });
+
+        // 打开文件
+        dom.btnOpenFile.addEventListener('click', () => dom.fileInput.click());
+        dom.fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    loadData(data);
+                    log(`已打开 ${file.name}`, 'success');
+                    setStatus(`已打开 ${file.name}`);
+                } catch (err) {
+                    alert('文件解析失败: ' + err.message);
+                    log('文件解析失败: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            this.value = '';
+        });
+
+        // 打开 .mrpack
+        dom.btnOpenMrpack.addEventListener('click', () => dom.mrpackInput.click());
+        dom.mrpackInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            openMrpack(file);
+            this.value = '';
+        });
+
+        // 下载 index
+        dom.btnDownloadIndex.addEventListener('click', function() {
+            const data = gatherData();
+            downloadJSON(data, 'modrinth.index.json');
+            log('已下载 index.json', 'success');
+            setStatus('已下载');
+        });
+
+        // 重新加载
+        dom.btnRefreshMeta.addEventListener('click', function() {
+            if (state.data) { loadData(state.data);
+                log('重新加载元数据', 'success'); } else alert('请先打开一个 index.json');
+        });
+
+        // 获取版本
+        dom.btnFetchVersions.addEventListener('click', fetchVersions);
+        dom.modInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') dom.btnFetchVersions.click();
+        });
+
+        // 搜索
+        dom.searchInput.addEventListener('input', renderTable);
+
+        // 刷新列表
+        dom.btnRefreshList.addEventListener('click', function() {
+            refreshModList();
+            updateCompatibility();
+        });
+
+        // 删除
+        dom.btnDeleteSelected.addEventListener('click', deleteSelected);
+
+        // 备份
+        dom.btnBackup.addEventListener('click', backupIndex);
+
+        // 打包
+        dom.btnPackMrpack.addEventListener('click', packMrpack);
+
+        // 检查更新
+        dom.btnCheckUpdates.addEventListener('click', checkUpdates);
+
+        // 全选
+        dom.selectAll.addEventListener('change', function() {
+            document.querySelectorAll('.mod-checkbox').forEach(cb => cb.checked = this.checked);
+        });
+
+        // 信息变动时自动更新
+        [dom.pkgName, dom.pkgVersion, dom.pkgMc, dom.pkgLoader, dom.pkgLoaderVer].forEach(el => {
+            el.addEventListener('change', function() {
+                gatherData();
+                updateCompatibility();
+                refreshModList();
+            });
+        });
+
+        // 加载器切换时更新兼容提示
+        dom.pkgLoader.addEventListener('change', updateCompatibility);
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+        const initData = {
+            game: 'minecraft',
+            formatVersion: 1,
+            versionId: '1.0.0',
+            name: '我的整合包',
+            summary: '',
+            files: [],
+            dependencies: {}
+        };
+        loadData(initData);
+        log('程序已启动，请打开 index.json 或 .mrpack', 'info');
+        setStatus('就绪');
+    })();
+</script>
+</body>
+</html>
