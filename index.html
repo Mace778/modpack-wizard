@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>⚡ 整合包模组管理工具 · Modrinth</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+:root{--accent:#0078d4;--accent-h:#106ebe;--accent2:#8b5cf6;--accent2-h:#7c3aed;
+--success:#16a34a;--warning:#d97706;--danger:#dc2626;
+--gray:#e0e0e0;--gray-h:#d0d0d0;--text-light:#1a1a1a;--text-dark:#fff;
+--mica:#fafbfc;--mica-strong:#f0f2f5;--header:#e8e8e8;--zebra:#fafafa;--border:#d0d0d0;
+--row-hover:#e5efff;--selected:#cce4f7;--text:#1a1a1a;--muted:#6b7280}
+[data-theme="dark"]{--accent:#2d7dd2;--accent-h:#2a6cb0;--accent2:#7d5ba6;--accent2-h:#6b4a8f;
+--success:#3a8a3a;--warning:#b08a2a;--danger:#b8383d;
+--gray:#2a2a2a;--gray-h:#3d3d3d;--text-light:#e5e5e5;--text-dark:#fff;
+--mica:#252525;--mica-strong:#2d2d2d;--header:#1a1a1a;--zebra:#1f1f1f;--border:#3a3a3a;
+--row-hover:#232c3a;--selected:#294058;--text:#e5e5e5;--muted:#9ca3af}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font:13px 'Segoe UI',system-ui,sans-serif;background:var(--mica);color:var(--text);
+height:100vh;display:flex;flex-direction:column;overflow:hidden}
+button{font:12px 'Segoe UI',system-ui,sans-serif;cursor:pointer;border:none;border-radius:8px;
+height:34px;padding:0 14px;color:var(--text-dark);transition:background .12s;white-space:nowrap}
+button:active{opacity:.85}
+input,select{font:13px 'Segoe UI',system-ui,sans-serif;padding:5px 9px;border:1px solid var(--border);
+border-radius:4px;background:var(--mica-strong);color:var(--text);outline:none;height:30px}
+input:focus{border-color:var(--accent)}
+.btn-gray{background:var(--gray);color:var(--text-light)}.btn-gray:hover{background:var(--gray-h)}
+.btn-accent{background:var(--accent)}.btn-accent:hover{background:var(--accent-h)}
+.btn-accent2{background:var(--accent2)}.btn-accent2:hover{background:var(--accent2-h)}
+.btn-success{background:var(--success)}.btn-danger{background:var(--danger)}
+.btn-warning{background:var(--warning)}
+
+/* 顶栏 */
+#bar{display:flex;align-items:center;height:56px;margin:12px 12px 10px;padding:0 20px;
+background:var(--mica-strong);border:1px solid var(--border);border-radius:12px;flex-shrink:0}
+#bar .t{font-size:20px;font-weight:600;color:var(--accent)}
+#bar .sub{font-size:12px;color:var(--muted);margin-left:10px}
+#bar .tool{margin-left:auto;display:flex;gap:10px}
+#bar .tool button{width:90px;padding:0 4px}
+
+/* 主体 */
+#body{flex:1;display:grid;grid-template-columns:4fr 1fr;gap:8px;padding:0 12px;overflow:hidden;min-height:0}
+#left{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-width:0}
+#right{display:flex;flex-direction:column;overflow:hidden}
+.group{background:var(--mica);border:1px solid var(--border);border-radius:12px;
+padding:0 14px 12px;margin-bottom:10px}
+.group>.gtitle{font-weight:600;color:var(--accent);padding:10px 0 6px}
+#groupList{display:flex;flex-direction:column;flex:1;min-height:0}
+
+/* 模式 radio */
+.radio-row{display:flex;gap:24px;padding:2px 0}
+.radio-item{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;user-select:none}
+.radio-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--accent);position:relative;flex-shrink:0}
+.radio-item.on .radio-dot::after{content:'';position:absolute;inset:2px;border-radius:50%;background:var(--accent)}
+.mode-hint{font-style:italic;font-size:12px;color:var(--accent);padding-top:5px}
+
+/* 文件行 */
+.frow{display:flex;align-items:center;gap:5px}
+.frow .lbl{font-size:12px;flex-shrink:0}
+.frow input{flex:1;min-width:80px}
+
+/* 信息区折叠 */
+#infoToggle{width:90px;margin-bottom:6px}
+#infoContent{background:var(--mica-strong);border-radius:10px;overflow:hidden;
+transition:height .15s;height:2px;padding:0 5px}
+#infoContent.open{height:auto;padding:8px 5px}
+.info-grid{display:grid;grid-template-columns:auto 220px auto;gap:6px 6px;align-items:center}
+.info-grid .ilbl{font-size:12px;text-align:right;padding-right:4px}
+.info-grid select,.info-grid input{width:220px}
+.mini-btn{width:30px;height:30px;border-radius:8px;font-size:13px;padding:0}
+.compat{font-size:12px;font-weight:600}
+.compat.ok{color:var(--success)}.compat.bad{color:var(--danger)}.compat.warn{color:var(--warning)}
+
+/* 模组列表 */
+.tool-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.tool-row button{flex-shrink:0}
+#searchEntry{flex:1;min-width:120px}
+#btnClearSearch{width:30px;padding:0}
+#btnAddLocal{display:none}
+body.offline #btnAddLocal{display:block}
+.tbl-hdr{display:flex;height:40px;background:var(--header);border:1px solid var(--border);
+border-radius:10px;align-items:center;overflow:hidden}
+.tbl-hdr div{font-weight:600;font-size:13px;color:var(--text);padding:4px;overflow:hidden;
+text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+#tree{overflow-y:auto;border-radius:10px;margin-top:4px;flex:1;min-height:120px;
+background:var(--zebra)}
+.mrow{display:flex;height:32px;align-items:center;border-radius:4px;cursor:default;overflow:hidden}
+.mrow div{font-size:12px;padding:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.mrow.zebra{background:var(--zebra)}
+.mrow:hover{background:var(--row-hover)}
+.mrow.sel{background:var(--selected)}
+.empty-hint{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+
+/* 日志 */
+#groupLog{flex:1;display:flex;flex-direction:column;min-height:0;margin-bottom:0}
+#logText{flex:1;overflow-y:auto;font:12px Consolas,'Cascadia Mono',monospace;white-space:pre-wrap;
+word-break:break-all;background:var(--mica-strong);border:1px solid var(--border);
+border-radius:8px;padding:6px 8px;min-height:100px}
+
+/* 状态栏 */
+#status{height:30px;background:var(--gray);color:var(--text-light);display:flex;align-items:center;
+padding:0 12px;font-size:12px;flex-shrink:0;margin-top:0}
+#statusTxt{flex:1}
+#offlineInd{font-weight:600}
+
+/* 底部按钮组 */
+#bottomBtns{display:flex;gap:6px;padding:6px 0;justify-content:center}
+#bottomBtns button{width:130px}
+#btnPack{width:auto}
+
+/* 模态窗口 */
+.win-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:99;
+align-items:center;justify-content:center}
+.win-ov.show{display:flex}
+.win{background:var(--mica);border:1px solid var(--border);border-radius:12px;
+box-shadow:0 10px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden}
+.win-hd{padding:10px 16px;font-weight:600;color:var(--accent);font-size:16px;border-bottom:1px solid var(--border);
+display:flex;justify-content:space-between;align-items:center}
+.win-hd .x{background:none;border:none;color:var(--muted);font-size:16px;height:auto;padding:2px 6px}
+.win-hd .x:hover{color:var(--text)}
+.win-bd{flex:1;overflow-y:auto;padding:8px 10px;min-height:0}
+.win-ft{padding:8px 10px;display:flex;gap:8px;justify-content:center;border-top:1px solid var(--border)}
+.sel-row{display:flex;align-items:center;border-radius:4px;padding:2px 0;cursor:pointer}
+.sel-row:hover{background:var(--row-hover)}
+.sel-row.on{background:var(--accent);color:#fff}
+.sel-row.zebra{background:var(--zebra)}
+.sel-row.zebra:hover,.sel-row.zebra.on{background:var(--row-hover)}
+.sel-row.zebra.on{background:var(--accent);color:#fff}
+.sel-row div{font-size:12px;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.hint{font-size:12px;color:var(--muted)}
+.italic-warn{font-style:italic;font-size:12px;color:var(--warning);text-align:center;padding:2px 0}
+.bold-md{font-size:16px;font-weight:600;text-align:center;padding:10px 0 2px}
+</style>
+</head>
+<body>
+<div id="bar">
+  <span class="t" id="tTitle"></span><span class="sub" id="tSub"></span>
+  <span class="tool">
+    <button class="btn-gray" id="btnTheme" onclick="toggle_theme()"></button>
+    <button class="btn-gray" id="btnLang" onclick="toggle_lang()"></button>
+    <button class="btn-gray" id="btnOffline" onclick="toggle_offline()"></button>
+  </span>
+</div>
+
+<div id="body">
+<div id="left">
+  <div class="group"><div class="gtitle" id="gMode"></div>
+    <div class="radio-row">
+      <span class="radio-item" id="radNew" onclick="set_mode('new')"><span class="radio-dot"></span><span id="radNewTxt"></span></span>
+      <span class="radio-item" id="radExist" onclick="set_mode('existing')"><span class="radio-dot"></span><span id="radExistTxt"></span></span>
+    </div>
+  </div>
+
+  <div class="group"><div class="gtitle" id="gFile"></div>
+    <div class="frow">
+      <span class="lbl" id="lblPath"></span>
+      <input id="entryFile" readonly placeholder="modrinth.index.json">
+      <button class="btn-accent" style="width:80px" id="btnBrowse" onclick="browse_file()"></button>
+      <button class="btn-accent2" style="width:110px" id="btnOpenMrpack" onclick="open_mrpack()"></button>
+    </div>
+    <div class="mode-hint" id="modeHint"></div>
+  </div>
+
+  <div class="group"><div class="gtitle" id="gInfo"></div>
+    <button class="btn-gray" id="infoToggle" onclick="toggle_info()">▶ 展开</button>
+    <div id="infoContent">
+      <div class="info-grid">
+        <span class="ilbl" id="lblName"></span><input id="entryName" value="我的整合包">
+        <span></span>
+        <span class="ilbl" id="lblVersion"></span><input id="entryVersion" value="1.0.0">
+        <span></span>
+        <span class="ilbl" id="lblMc"></span>
+        <select id="comboMc"><option>1.20.1</option></select>
+        <button class="btn-gray mini-btn" onclick="fetch_mc_versions()">🔄</button>
+        <span class="ilbl" id="lblLoader"></span>
+        <select id="comboLoaderType" onchange="loader_type_changed()">
+          <option>Fabric</option><option>Forge</option><option>NeoForge</option>
+        </select>
+        <span></span>
+        <span class="ilbl" id="lblLoaderVer"></span>
+        <select id="comboLoaderVer"><option value=""></option></select>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button class="btn-gray mini-btn" onclick="fetch_fabric_versions(true)">🔄</button>
+          <span class="compat" id="compatLabel"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="group"><div class="gtitle" id="gAdd"></div>
+    <div class="frow">
+      <span class="lbl" id="lblAddPlaceholder"></span>
+      <input id="urlEntry" placeholder="https://modrinth.com/mod/... 或项目 ID">
+      <button class="btn-accent2" style="width:100px" id="btnFetch" onclick="fetch_versions_from_url()"></button>
+    </div>
+  </div>
+
+  <div class="group" id="groupList" style="flex:1;display:flex;flex-direction:column">
+    <div class="gtitle" id="gList"></div>
+    <div class="tool-row">
+      <span style="font-size:14px">🔍</span>
+      <input id="searchEntry" oninput="debounce_filter()">
+      <button class="btn-gray" id="btnClearSearch" onclick="clear_search()">✕</button>
+    </div>
+    <div class="tool-row">
+      <button class="btn-accent" style="width:110px" id="btnRefresh" onclick="refresh_mod_list()"></button>
+      <button class="btn-danger" style="width:110px" id="btnDelete" onclick="delete_selected()"></button>
+      <button class="btn-warning" style="width:110px" id="btnFolder" onclick="open_mods_folder()"></button>
+      <button class="btn-accent2" style="width:150px" id="btnCheckUpd" onclick="check_updates()"></button>
+      <button class="btn-gray" style="width:110px" id="btnExport" onclick="export_mod_list()"></button>
+      <button class="btn-gray" style="width:110px" id="btnImport" onclick="import_mod_list()"></button>
+      <button class="btn-accent2" style="width:130px" id="btnAddLocal" onclick="add_local_jar()"></button>
+    </div>
+    <div class="tbl-hdr" id="listHdr"></div>
+    <div id="tree"></div>
+  </div>
+
+  <div id="bottomBtns">
+    <button class="btn-gray" id="btnBackup" onclick="manual_backup()"></button>
+    <button class="btn-gray" id="btnReload" onclick="reload_metadata()"></button>
+    <button class="btn-accent" id="btnPack" onclick="pack_to_mrpack()"></button>
+  </div>
+</div>
+
+<div id="right">
+  <div class="group" id="groupLog"><div class="gtitle" id="gLog"></div>
+    <div id="logText"></div>
+  </div>
+</div>
+</div>
+
+<div id="status">
+  <span id="statusTxt"></span>
+  <span id="offlineInd"></span>
+</div>
+
+<input type="file" id="fileJson" accept=".json" hidden>
+<input type="file" id="fileMrpack" accept=".mrpack,.zip" hidden>
+<input type="file" id="fileJar" accept=".jar" hidden>
+<input type="file" id="fileCsv" accept=".csv" hidden>
+<input type="file" id="fileOverrides" webkitdirectory multiple hidden>
+
+<script>
+'use strict';
+/* ============================================================
+ * ModpackWizard 网页版 — 与 Python 桌面版功能/控件/文案 1:1 复刻
+ * ============================================================ */
+
+/* ---------- 语言字典（照抄 Python LANG） ---------- */
+const LANG={
+zh_CN:{'app_title':'⚡ 整合包模组管理工具 · Modrinth','app_sub':'精简高效','mode_label':'操作模式',
+'mode_new':'🆕 新建','mode_existing':'📂 打开已有','file_label':'📁 文件','path_label':'路径:',
+'browse_btn':'浏览','open_mrpack_btn':'打开 .mrpack','mode_hint_existing':'当前模式：打开已有文件',
+'mode_hint_new':'当前模式：新建','info_label':'📋 整合包信息','info_name':'名称:','info_version':'版本:',
+'info_mc':'MC版本:','info_loader':'加载器:','info_loader_ver':'加载器版本:','expand_btn':'▶ 展开',
+'collapse_btn':'▼ 折叠','compat_unknown':'⚠️ 未知','compat_unsupported':'⚠️ 未声明',
+'compat_compatible':'✅ 兼容','compat_incompatible':'❌ 不兼容','add_mod_label':'➕ 添加模组',
+'add_mod_placeholder':'项目链接或 ID','fetch_btn':'🔍 获取版本','modlist_label':'📦 模组列表',
+'refresh_btn':'🔄 刷新','delete_btn':'🗑️ 删除','folder_btn':'📂 打开文件夹',
+'add_local_btn':'📂 添加本地 JAR','check_update_btn':'🧪 检查更新（实验性）','backup_btn':'💾 备份',
+'reload_btn':'🔄 重新加载','pack_btn':'📦 打包 .mrpack','export_btn':'📤 导出列表',
+'import_btn':'📥 导入列表','log_label':'📋 日志','status_ready':'就绪 ✅','status_loading':'加载中...',
+'status_saved':'已保存 ✅','status_backup':'已备份','status_packed':'打包完成',
+'status_checking':'检查更新中...','status_downloading':'下载中...','col_name':'项目名称',
+'col_filename':'文件名','col_version':'版本','col_path':'路径','col_project_id':'项目 ID',
+'dialog_confirm_delete':'确定删除选中的 {count} 个模组吗？','dialog_select_mod':'请至少选择一个模组',
+'dialog_no_mods':'没有匹配的模组','dialog_file_not_found':'文件不存在',
+'dialog_open_mrpack_fail':'该 .mrpack 文件不包含 modrinth.index.json',
+'dialog_parse_error':'文件解析失败: {error}','dialog_success_open':'已打开 {file}',
+'dialog_success_new':'✅ 新建成功: {path}','dialog_version_fetch':'获取版本失败: {error}',
+'dialog_no_version':'该项目没有版本','dialog_select_version':'请先选择一个版本',
+'dialog_version_added':'✅ 添加 {filename}','dialog_version_exists':'模组 {filename} 已存在，是否仍然添加？',
+'dialog_dep_prompt':'模组 {filename} 有以下依赖项：','dialog_dep_existing':'（已存在）',
+'dialog_dep_missing':'（缺失）','dialog_dep_confirm':'是否补齐缺失的依赖？',
+'dialog_update_experimental':'🧪 检查更新功能目前为实验性阶段，可能存在版本检测不准确或误报的情况。\n\n建议在操作前先使用“备份”功能保存当前整合包文件，以防数据丢失。\n\n是否继续执行？',
+'dialog_no_update':'所有模组都是最新版本','dialog_update_found':'发现 {count} 个模组有更新（实验性检测结果）',
+'dialog_update_warning':'⚠️ 该功能为实验性，版本比较可能不准确，请以 Modrinth 页面为准。',
+'dialog_update_apply':'确定更新 {count} 个模组吗？（实验性功能）',
+'dialog_update_success':'成功更新 {count} 个模组','dialog_update_select':'请至少选择一个模组来更新',
+'dialog_pack_empty':'没有模组条目，仍然打包吗？','dialog_pack_success':'已生成 .mrpack 文件（含模组）:\n{path}',
+'dialog_pack_fail':'打包失败: {error}','dialog_backup_success':'备份已保存到 {path}',
+'dialog_import_select':'请选择 CSV 文件','dialog_import_success':'成功导入 {count} 个模组',
+'dialog_import_fail':'导入失败: {error}','dialog_export_success':'已导出列表到 {path}',
+'dialog_local_jar_title':'添加本地 JAR','dialog_local_jar_prompt':'请选择一个 JAR 文件',
+'dialog_local_jar_id':'输入 Modrinth 项目 ID（可选）:','dialog_local_jar_added':'已添加本地模组 {filename}',
+'dialog_detail_title':'模组详情','dialog_detail_no_id':'此模组无项目 ID，仅显示本地信息。',
+'log_download_progress':'下载中 {filename} ({current}/{total})','log_download_done':'已下载: {filename}',
+'log_download_fail':'下载失败: {filename} - {error}','log_export':'已导出模组列表到 {path}',
+'log_import':'从 {path} 导入 {count} 个模组','log_refresh':'已加载 {count} 个模组',
+'log_local_jar':'已添加本地模组 {filename}','log_detail_view':'查看模组详情: {name}',
+'log_offline_mode':'离线模式切换为 {state}','offline_btn':'📥 离线模式','offline_on':'已启用离线模式',
+'offline_off':'已禁用离线模式','status_offline':'离线模式','theme_btn':'🎨 切换主题',
+'lang_btn':'🌐 切换语言','button_open_selected':'打开选中项','button_open_all':'打开全部',
+'button_install_missing':'补齐缺失','button_close':'关闭','button_cancel':'取消',
+'button_select_this':'选择此版本','button_update_selected':'更新选中项','button_select_all':'☑ 全选/反选',
+'button_show_all':'🔄 显示全部','button_show_recommended':'🔄 显示推荐/兼容','column_mod_name':'模组名',
+'column_current_ver':'当前版本','column_latest_ver':'最新版本','column_action':'操作',
+'dialog_confirm_overrides':'是否包含 overrides？','dialog_overrides_prompt':'将自定义配置文件打包到 overrides 目录？',
+'log_no_overrides':'未选择 overrides 文件夹，仅打包 index.json',
+'log_offline_removed':'离线模式：从 index 移除 {count} 个模组条目','dialog_pack_error':'无法读取 index 文件',
+'log_dep_fetch':'正在获取依赖 {name} 的最新版本...','log_dep_added':'已添加依赖 {name}',
+'log_dep_exists':'依赖 {name} 已存在，跳过','dialog_dep_fetch_fail':'获取依赖 {name} 的版本失败',
+'dialog_dep_add_success':'成功添加 {count} 个依赖','dialog_dep_no_missing':'所有依赖均已存在，无需添加。',
+'log_add_mod':'已添加模组 {filename}','log_delete_mod':'已删除 {count} 个模组','log_pack':'已打包: {path}',
+'log_update_start':'开始检查更新（实验性）...','log_update_done':'所有模组均为最新版本',
+'log_update_success':'成功更新 {count} 个模组','log_theme_switch':'主题切换为 {theme}',
+'log_lang_switch':'语言切换为 {lang}'},
+en_US:{'app_title':'⚡ Modpack Mod Manager · Modrinth','app_sub':'Lean & efficient','mode_label':'Mode',
+'mode_new':'🆕 New','mode_existing':'📂 Open existing','file_label':'📁 File','path_label':'Path:',
+'browse_btn':'Browse','open_mrpack_btn':'Open .mrpack','mode_hint_existing':'Current mode: open existing',
+'mode_hint_new':'Current mode: new','info_label':'📋 Pack Info','info_name':'Name:','info_version':'Version:',
+'info_mc':'MC version:','info_loader':'Loader:','info_loader_ver':'Loader ver:','expand_btn':'▶ Expand',
+'collapse_btn':'▼ Collapse','compat_unknown':'⚠️ Unknown','compat_unsupported':'⚠️ Unsupported',
+'compat_compatible':'✅ Compatible','compat_incompatible':'❌ Incompatible','add_mod_label':'➕ Add mod',
+'add_mod_placeholder':'Project link or ID','fetch_btn':'🔍 Fetch versions','modlist_label':'📦 Mod list',
+'refresh_btn':'🔄 Refresh','delete_btn':'🗑️ Delete','folder_btn':'📂 Open folder',
+'add_local_btn':'📂 Add local JAR','check_update_btn':'🧪 Check updates (experimental)','backup_btn':'💾 Backup',
+'reload_btn':'🔄 Reload','pack_btn':'📦 Pack .mrpack','export_btn':'📤 Export list',
+'import_btn':'📥 Import list','log_label':'📋 Log','status_ready':'Ready ✅','status_loading':'Loading...',
+'status_saved':'Saved ✅','status_backup':'Backed up','status_packed':'Packed',
+'status_checking':'Checking updates...','status_downloading':'Downloading...','col_name':'Project Name',
+'col_filename':'Filename','col_version':'Version','col_path':'Path','col_project_id':'Project ID',
+'dialog_confirm_delete':'Delete {count} selected mods?','dialog_select_mod':'Select at least one mod',
+'dialog_no_mods':'No matching mods','dialog_file_not_found':'File not found',
+'dialog_open_mrpack_fail':'This .mrpack does not contain modrinth.index.json',
+'dialog_parse_error':'Parse failed: {error}','dialog_success_open':'Opened {file}',
+'dialog_success_new':'✅ Created: {path}','dialog_version_fetch':'Fetch versions failed: {error}',
+'dialog_no_version':'No versions for this project','dialog_select_version':'Select a version first',
+'dialog_version_added':'✅ Added {filename}','dialog_version_exists':'Mod {filename} already exists. Add anyway?',
+'dialog_dep_prompt':'Mod {filename} has these dependencies:','dialog_dep_existing':'(installed)',
+'dialog_dep_missing':'(missing)','dialog_dep_confirm':'Install missing dependencies?',
+'dialog_update_experimental':'🧪 Update checking is experimental and may produce false positives.\n\nUse "Backup" first to protect your data.\n\nContinue?',
+'dialog_no_update':'All mods are up to date','dialog_update_found':'Found {count} mod updates (experimental)',
+'dialog_update_warning':'⚠️ Experimental feature — version comparison may be inaccurate.',
+'dialog_update_apply':'Update {count} mods? (experimental)',
+'dialog_update_success':'Updated {count} mods','dialog_update_select':'Select at least one mod to update',
+'dialog_pack_empty':'No mod entries. Pack anyway?','dialog_pack_success':'Generated .mrpack:\n{path}',
+'dialog_pack_fail':'Pack failed: {error}','dialog_backup_success':'Backup saved to {path}',
+'dialog_import_select':'Select a CSV file','dialog_import_success':'Imported {count} mods',
+'dialog_import_fail':'Import failed: {error}','dialog_export_success':'Exported list to {path}',
+'dialog_local_jar_title':'Add local JAR','dialog_local_jar_prompt':'Select a JAR file',
+'dialog_local_jar_id':'Enter Modrinth project ID (optional):','dialog_local_jar_added':'Added local mod {filename}',
+'dialog_detail_title':'Mod Details','dialog_detail_no_id':'No project ID — local info only.',
+'log_download_progress':'Downloading {filename} ({current}/{total})','log_download_done':'Downloaded: {filename}',
+'log_download_fail':'Download failed: {filename} - {error}','log_export':'Exported list to {path}',
+'log_import':'Imported {count} mods from {path}','log_refresh':'Loaded {count} mods',
+'log_local_jar':'Added local mod {filename}','log_detail_view':'View details: {name}',
+'log_offline_mode':'Offline mode: {state}','offline_btn':'📥 Offline Mode','offline_on':'Offline mode ON',
+'offline_off':'Offline mode OFF','status_offline':'Offline','theme_btn':'🎨 Toggle Theme',
+'lang_btn':'🌐 Switch Language','button_open_selected':'Open selected','button_open_all':'Open all',
+'button_install_missing':'Install missing','button_close':'Close','button_cancel':'Cancel',
+'button_select_this':'Select this version','button_update_selected':'Update selected',
+'button_select_all':'☑ Select all/none','button_show_all':'🔄 Show all',
+'button_show_recommended':'🔄 Show recommended','column_mod_name':'Mod','column_current_ver':'Current',
+'column_latest_ver':'Latest','column_action':'Action',
+'dialog_confirm_overrides':'Include overrides?','dialog_overrides_prompt':'Pack custom config files into overrides?',
+'log_no_overrides':'No overrides folder selected, only index.json will be packed',
+'log_offline_removed':'Offline: removed {count} entries from index','dialog_pack_error':'Cannot read index file',
+'log_dep_fetch':'Fetching latest version of {name}...','log_dep_added':'Added dependency {name}',
+'log_dep_exists':'Dependency {name} exists, skipped','dialog_dep_fetch_fail':'Failed to fetch {name}',
+'dialog_dep_add_success':'Added {count} dependencies','dialog_dep_no_missing':'All dependencies installed.',
+'log_add_mod':'Added mod {filename}','log_delete_mod':'Deleted {count} mods','log_pack':'Packed: {path}',
+'log_update_start':'Checking updates (experimental)...','log_update_done':'All mods up to date',
+'log_update_success':'Updated {count} mods','log_theme_switch':'Theme: {theme}',
+'log_lang_switch':'Language: {lang}'}};
+
+const LOADER_KEYS={"Fabric":"fabric-loader","Forge":"forge","NeoForge":"neoforge"};
+const LOADER_API={"Fabric":"fabric","Forge":"forge","NeoForge":"neoforge"};
+
+/* ---------- 全局状态 ---------- */
+let CURRENT_LANG,CURRENT_THEME,OFFLINE=false;
+try{const cfg=JSON.parse(localStorage.getItem('modpackwizard_config')||'{}');
+  CURRENT_LANG=cfg.language==='en_US'?'en_US':'zh_CN';
+  CURRENT_THEME=cfg.theme==='light'?'light':'dark';}
+catch{CURRENT_LANG='zh_CN';CURRENT_THEME='dark';}
+function save_config(){try{
+  localStorage.setItem('modpackwizard_config',JSON.stringify({language:CURRENT_LANG,theme:CURRENT_THEME}));}catch{}}
+let MODE='existing',EXPANDED=false;
+let INDEX_DATA=null,ALL_MODS=[],ROWS=[],PENDING_NAMES=0,FILTER_TIMER=null;
+let FABRIC_CACHE={all:null,byMc:{}},MC_CACHE=null,NAME_CACHE={};
+
+const $=id=>document.getElementById(id);
+const tr=k=>LANG[CURRENT_LANG][k]||k;
+
+/* 带参数的 tr（对应 Python 的 tr(key).format(...)） */
+function trf(key,params){let s=LANG[CURRENT_LANG][key]||key;
+  for(const k in params)s=s.replace('{'+k+'}',params[k]);return s;}
+
+/* ---------- 工具函数（照抄 Python） ---------- */
+function normalize_version(v){v=String(v||'').trim();
+  v=v.replace(/^mc[\d.\-]+-/,'');v=v.replace(/[+\-]fabric.*$/,'');
+  v=v.replace(/[+\-]forge.*$/,'');v=v.replace(/[+\-]neoforge.*$/,'');
+  v=v.replace(/\+\d{1,3}(\.\d{1,3}){0,2}$/,'');return v;}
+function extract_version(filename){const m=String(filename||'').match(/(\d+(?:\.\d+)+)/);
+  return m?m[1]:'未知版本';}
+function compare_simple(v1,v2){const p=v=>normalize_version(v).match(/\d+/g)||[];
+  const a=p(v1).map(Number),b=p(v2).map(Number);
+  if(!a.length&&!b.length)return 0;if(!a.length)return -1;if(!b.length)return 1;
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    const n1=a[i]||0,n2=b[i]||0;if(n1!==n2)return n1-n2;}return 0;}
+function parse_project_id_from_url(url){if(!url)return null;
+  let m=String(url).match(/cdn\.modrinth\.com\/data\/([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  m=String(url).match(/modrinth\.com\/(?:mod|project)\/([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  const last=String(url).split('/').pop();
+  if(/^[a-zA-Z0-9_-]+$/.test(last))return last;return null;}
+function parse_project_id(url){const m=String(url).match(/modrinth\.com\/(?:mod|project)\/([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];if(/^[a-zA-Z0-9_-]+$/.test(url))return url;return null;}
+async function sha1_hex(buf){const h=await crypto.subtle.digest('SHA-1',buf);
+  return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function sha512_hex(buf){const h=await crypto.subtle.digest('SHA-512',buf);
+  return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+
+/* ---------- API（requests → fetch） ---------- */
+async function api_get(url){const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function api_fetch_mc_versions(){if(MC_CACHE)return MC_CACHE;
+  const d=await api_get('https://api.modrinth.com/v2/tag/game_version');
+  MC_CACHE=d.filter(v=>['release','beta','alpha'].includes(v.version_type)).map(v=>v.version);return MC_CACHE;}
+async function api_fetch_fabric_versions(force){
+  const cached=FABRIC_CACHE.all;
+  if(cached&&!force)return[cached,FABRIC_CACHE.map];
+  try{const d=await api_get('https://meta.fabricmc.net/v2/versions/loader');
+    const versions=[],map={};
+    for(const item of (Array.isArray(d)?d:[])){
+      const v=item&&item.loader?item.loader.version:(item&&item.version);
+      const gvs=(item&&item.gameVersions)||[];
+      if(v){versions.push(v);if(gvs.length)map[v]=gvs;}}
+    if(versions.length||cached===null){FABRIC_CACHE.all=versions;FABRIC_CACHE.map=map;FABRIC_CACHE.byMc={};
+      return[versions,map];}
+  }catch{}
+  if(cached)return[cached,FABRIC_CACHE.map];
+  return[[],{}];}
+async function api_fetch_fabric_for_mc(mc,force){
+  if(!force&&FABRIC_CACHE.byMc[mc])return FABRIC_CACHE.byMc[mc];
+  try{const d=await api_get(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(mc)}`);
+    const versions=(Array.isArray(d)?d:[]).map(x=>x&&x.loader?x.loader.version:(x&&x.version)).filter(Boolean);
+    if(versions.length){FABRIC_CACHE.byMc[mc]=versions;return versions;}}
+  catch{}
+  const[all,map]=await api_fetch_fabric_versions(false);
+  let compatible=Object.keys(map).filter(v=>(map[v]||[]).includes(mc));
+  if(!compatible.length)compatible=all.slice();
+  FABRIC_CACHE.byMc[mc]=compatible;return compatible;}
+async function api_fetch_project_name(pid){if(NAME_CACHE[pid])return NAME_CACHE[pid];
+  try{const d=await api_get(`https://api.modrinth.com/v2/project/${pid}`);
+    NAME_CACHE[pid]=d.title||pid;}catch{NAME_CACHE[pid]=pid;}
+  return NAME_CACHE[pid];}
+async function api_get_all_versions(pid,mc,loader){
+  const all_v=[];let offset=0;const limit=100;
+  while(true){
+    const p=new URLSearchParams({limit:String(limit),offset:String(offset)});
+    if(mc)p.set('game_versions',JSON.stringify([mc]));
+    if(loader)p.set('loaders',JSON.stringify([loader]));
+    try{const batch=await api_get(`https://api.modrinth.com/v2/project/${pid}/version?${p}`);
+      if(!Array.isArray(batch)||!batch.length)break;
+      all_v.push(...batch);
+      if(batch.length<limit)break;
+      offset+=limit;}
+    catch{break;}}
+  return all_v;}
+async function api_get_latest_version(pid,mc,loader){
+  try{const list=await api_get_all_versions(pid,mc,loader);return list[0]||null;}catch{return null;}}
+
+/* ---------- 日志/状态 ---------- */
+function log(msg,level='INFO'){const box=$('logText');
+  const ts=new Date().toTimeString().slice(0,8);
+  const prefix={ERROR:'❌',SUCCESS:'✅',WARNING:'⚠️'}[level]||'ℹ️';
+  box.textContent+=`[${ts}] ${prefix} ${msg}\n`;box.scrollTop=box.scrollHeight;}
+function set_status(msg){$('statusTxt').textContent=msg;}
+
+/* ---------- UI 文案应用 ---------- */
+function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
+  document.title=t('app_title');$('tTitle').textContent=t('app_title');
+  $('tSub').textContent=t('app_sub');
+  $('btnTheme').textContent=t('theme_btn');$('btnLang').textContent=t('lang_btn');
+  $('btnOffline').textContent=t('offline_btn');
+  $('gMode').textContent=t('mode_label');
+  $('radNewTxt').textContent=t('mode_new');$('radExistTxt').textContent=t('mode_existing');
+  $('gFile').textContent=t('file_label');$('lblPath').textContent=t('path_label');
+  $('btnBrowse').textContent=t('browse_btn');$('btnOpenMrpack').textContent=t('open_mrpack_btn');
+  $('modeHint').textContent=MODE==='new'?t('mode_hint_new'):t('mode_hint_existing');
+  $('gInfo').textContent=t('info_label');
+  $('infoToggle').textContent=EXPANDED?t('collapse_btn'):t('expand_btn');
+  $('lblName').textContent=t('info_name');$('lblVersion').textContent=t('info_version');
+  $('lblMc').textContent=t('info_mc');$('lblLoader').textContent=t('info_loader');
+  $('lblLoaderVer').textContent=t('info_loader_ver');
+  $('gAdd').textContent=t('add_mod_label');
+  $('lblAddPlaceholder').textContent=t('add_mod_placeholder');
+  $('btnFetch').textContent=t('fetch_btn');
+  $('btnBackup').textContent=t('backup_btn');$('btnReload').textContent=t('reload_btn');
+  $('btnPack').textContent=t('pack_btn');
+  $('gList').textContent=t('modlist_label');
+  $('btnRefresh').textContent=t('refresh_btn');$('btnDelete').textContent=t('delete_btn');
+  $('btnFolder').textContent=t('folder_btn');$('btnCheckUpd').textContent=t('check_update_btn');
+  $('btnExport').textContent=t('export_btn');$('btnImport').textContent=t('import_btn');
+  $('btnAddLocal').textContent=t('add_local_btn');
+  $('gLog').textContent=t('log_label');
+  const widths=[260,200,120,200];
+  $('listHdr').innerHTML=[t('col_name'),t('col_filename'),t('col_version'),t('col_path')]
+    .map((h,i)=>`<div style="width:${widths[i]}px">${h}</div>`).join('');
+  $('offlineInd').textContent=OFFLINE?tr('offline_on'):'';
+  if(!$('statusTxt').textContent||$('statusTxt').textContent==='Ready ✅'||$('statusTxt').textContent==='就绪 ✅')
+    set_status(t('status_ready'));}
+
+/* ---------- 模式/折叠/主题/语言/离线 ---------- */
+function set_mode(m){MODE=m;
+  $('radNew').classList.toggle('on',m==='new');
+  $('radExist').classList.toggle('on',m==='existing');
+  $('modeHint').textContent=trf(m==='new'?'mode_hint_new':'mode_hint_existing',{});
+  $('modeHint').style.color='var(--accent)';
+  if(m==='new'&&!EXPANDED)toggle_info();}
+function toggle_info(){EXPANDED=!EXPANDED;
+  $('infoContent').classList.toggle('open',EXPANDED);
+  $('infoToggle').textContent=EXPANDED?tr('collapse_btn'):tr('expand_btn');}
+function toggle_theme(){CURRENT_THEME=CURRENT_THEME==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',CURRENT_THEME);
+  save_config();
+  log(trf('log_theme_switch',{theme:CURRENT_THEME}));
+  set_status(`Theme: ${CURRENT_THEME}`);}
+function toggle_lang(){CURRENT_LANG=CURRENT_LANG==='zh_CN'?'en_US':'zh_CN';
+  save_config();
+  log(trf('log_lang_switch',{lang:CURRENT_LANG}));
+  apply_texts();render_rows();
+  log(CURRENT_LANG==='en_US'?"UI rebuilt with new language":"已用新语言重建界面",'SUCCESS');}
+function toggle_offline(){OFFLINE=!OFFLINE;
+  document.body.classList.toggle('offline',OFFLINE);
+  log(trf('log_offline_mode',{state:tr(OFFLINE?'offline_on':'offline_off')}));
+  $('offlineInd').textContent=OFFLINE?tr('offline_on'):'';
+  set_status(OFFLINE?tr('offline_on'):tr('status_ready'));}
+
+/* ---------- 文件操作 ---------- */
+function new_template(){return{game:'minecraft',formatVersion:1,versionId:'1.0.0',
+  name:$('entryName').value.trim()||'我的整合包',summary:'',files:[],
+  dependencies:{minecraft:$('comboMc').value.trim()||'1.20.1',
+    [LOADER_KEYS[$('comboLoaderType').value]||'fabric-loader']:
+      $('comboLoaderVer').value.trim()||'0.15.11'}};}
+async function browse_file(){
+  if(MODE==='new'){
+    const data=new_template();
+    let handle=null;
+    if(window.showSaveFilePicker){
+      try{handle=await window.showSaveFilePicker({suggestedName:'modrinth.index.json',
+        types:[{description:'JSON',accept:{'application/json':['.json']}}]});}
+      catch{return;}
+      try{const w=await handle.createWritable();
+        await w.write(JSON.stringify(data,null,2));await w.close();}catch{}}
+    window._indexHandle=handle;
+    INDEX_DATA=data;
+    ALL_MODS=[];render_rows();
+    $('entryFile').value=handle?handle.name:'modrinth.index.json (新)';
+    log(trf('dialog_success_new',{path:$('entryFile').value}),'SUCCESS');
+    apply_metadata(INDEX_DATA);refresh_mod_list();
+  }else{$('fileJson').click();}}
+$('fileJson').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{INDEX_DATA=JSON.parse(await f.text());
+    window._indexHandle=null;
+    $('entryFile').value=f.name;
+    apply_metadata(INDEX_DATA);refresh_mod_list();
+  }catch(err){log(trf('dialog_parse_error',{error:err.message}),'ERROR');
+    alert(trf('dialog_parse_error',{error:err.message}));}});
+function open_mrpack(){$('fileMrpack').click();}
+$('fileMrpack').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  log(`正在打开 .mrpack: ${f.name}`);set_status(tr('status_loading'));
+  try{const zip=await JSZip.loadAsync(f);
+    const idx=zip.file('modrinth.index.json');
+    if(!idx)throw new Error(tr('dialog_open_mrpack_fail'));
+    INDEX_DATA=JSON.parse(await idx.async('string'));
+    window._mrpackZip=zip;window._mrpackName=f.name;window._indexHandle=null;
+    $('entryFile').value=f.name;
+    apply_metadata(INDEX_DATA);refresh_mod_list();
+    set_status(tr('status_ready'));
+    alert(trf('dialog_success_open',{file:f.name}));
+  }catch(err){log(`打开 .mrpack 失败: ${err.message}`,'ERROR');
+    alert(`打开 .mrpack 失败:\n${err.message}`);set_status(tr('status_ready'));}});
+function apply_metadata(data){try{
+  $('entryName').value=data.name||'';
+  $('entryVersion').value=data.versionId||'';
+  const deps=data.dependencies||{};
+  $('comboMc').value=deps.minecraft||'';
+  let loader='Fabric',lv='';
+  for(const ln of['Fabric','Forge','NeoForge']){const k=LOADER_KEYS[ln];
+    if(deps[k]){loader=ln;lv=deps[k];break;}}
+  $('comboLoaderType').value=loader;
+  if(lv){const sel=$('comboLoaderVer');
+    if(![...sel.options].some(o=>o.value===lv)){const o=document.createElement('option');o.value=o.textContent=lv;sel.appendChild(o);}
+    sel.value=lv;}
+  check_loader_compatibility();
+  log(`加载: 名称='${data.name||''}', MC='${deps.minecraft||''}', 加载器='${loader}', 版本='${lv}'`);
+}catch(e){log(trf('dialog_parse_error',{error:e.message}),'ERROR');}}
+function reload_metadata(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  apply_metadata(INDEX_DATA);refresh_mod_list();}
+function save_index_to_state(){if(!INDEX_DATA)return false;
+  INDEX_DATA.name=$('entryName').value.trim();
+  INDEX_DATA.versionId=$('entryVersion').value.trim();
+  INDEX_DATA.dependencies=INDEX_DATA.dependencies||{};
+  INDEX_DATA.dependencies.minecraft=$('comboMc').value.trim();
+  const k=LOADER_KEYS[$('comboLoaderType').value];
+  if($('comboLoaderVer').value)INDEX_DATA.dependencies[k]=$('comboLoaderVer').value.trim();
+  INDEX_DATA.files=ALL_MODS.map(m=>m.raw_entry);
+  if(window._indexHandle){
+    window._indexHandle.createWritable()
+      .then(w=>w.write(JSON.stringify(INDEX_DATA,null,2)).then(()=>w.close()))
+      .catch(()=>{});}
+  return true;}
+function manual_backup(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  save_index_to_state();
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const ts=`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  const name=`${$('entryFile').value||'modrinth.index.json'}.backup_${ts}`;
+  dl_blob(new Blob([JSON.stringify(INDEX_DATA,null,2)],{type:'application/json'}),name);
+  log(trf('dialog_backup_success',{path:name}),'SUCCESS');
+  set_status(tr('status_backup'));}
+function dl_blob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),1500);}
+
+/* ---------- 模组列表 ---------- */
+function current_files(){return INDEX_DATA?INDEX_DATA.files||[]:[];}
+function refresh_mod_list(){if(!INDEX_DATA)return;
+  ALL_MODS=[];PENDING_NAMES=0;
+  for(const entry of current_files()){
+    const p=entry.path||'';const filename=p.split(/[/\\]/).pop();
+    const version=extract_version(filename);
+    let project_id=null;
+    if(entry.downloads&&entry.downloads.length)
+      project_id=parse_project_id_from_url(entry.downloads[0]);
+    const display_name=project_id?(NAME_CACHE[project_id]||filename):filename;
+    const mod_entry={path:p,filename,version,display_name,project_id,raw_entry:entry};
+    ALL_MODS.push(mod_entry);
+    if(project_id&&!NAME_CACHE[project_id]){PENDING_NAMES++;
+      async_fetch_name(project_id,mod_entry);}}
+  apply_filter();
+  log(trf('log_refresh',{count:ALL_MODS.length}),'SUCCESS');}
+async function async_fetch_name(pid,mod_entry){
+  const name=await api_fetch_project_name(pid);
+  mod_entry.display_name=name;PENDING_NAMES--;
+  if(PENDING_NAMES<=0)render_rows();}
+function debounce_filter(){clearTimeout(FILTER_TIMER);
+  FILTER_TIMER=setTimeout(apply_filter,200);}
+function clear_search(){$('searchEntry').value='';apply_filter();}
+function apply_filter(){const kw=$('searchEntry').value.trim().toLowerCase();
+  const filtered=!kw?ALL_MODS:ALL_MODS.filter(e=>
+    e.display_name.toLowerCase().includes(kw)||
+    e.filename.toLowerCase().includes(kw)||e.path.toLowerCase().includes(kw));
+  render_rows(filtered);}
+function render_rows(filtered){
+  if(filtered===undefined)filtered=arguments[0]||ALL_MODS;
+  const tree=$('tree');tree.innerHTML='';ROWS=[];
+  const widths=[260,200,120,200];
+  filtered.forEach((entry,idx)=>{
+    const row=document.createElement('div');
+    row.className='mrow'+(idx%2===1?' zebra':'');
+    row._raw=entry;row._selected=false;
+    const vals=[entry.display_name||entry.filename||'未知',entry.filename||'',entry.version||'',entry.path||''];
+    vals.forEach((v,i)=>{const c=document.createElement('div');
+      c.style.width=widths[i]+'px';c.textContent=v;
+      c.onclick=()=>toggle_row(row);
+      c.ondblclick=()=>show_mod_detail(row);
+      row.appendChild(c);});
+    tree.appendChild(row);ROWS.push(row);});}
+function toggle_row(row){row._selected=!row._selected;
+  row.classList.toggle('sel',row._selected);}
+function selected_rows(){return ROWS.filter(r=>r._selected);}
+function delete_selected(){const sel=selected_rows();
+  if(!sel.length){alert(tr('dialog_select_mod'));return;}
+  if(!confirm(trf('dialog_confirm_delete',{count:sel.length})))return;
+  const paths=new Set(sel.map(r=>r._raw.path));
+  INDEX_DATA.files=current_files().filter(f=>!paths.has(f.path));
+  log(trf('log_delete_mod',{count:sel.length}),'SUCCESS');
+  refresh_mod_list();save_index_to_state();reload_metadata();}
+function open_mods_folder(){if(!INDEX_DATA){alert('请先打开一个 index.json');return;}
+  alert('浏览器版无法直接打开本地文件夹。\n\n如需 mods 目录：打包 .mrpack 后用 Modrinth App 打开，或使用桌面版。');}
+
+/* ---------- 版本获取（信息区） ---------- */
+async function fetch_mc_versions(){log('获取 Minecraft 版本...');
+  set_status(tr('status_loading'));
+  try{const versions=await api_fetch_mc_versions();
+    const sel=$('comboMc');sel.innerHTML='';
+    versions.forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});
+    sel.value=versions[0]||'1.20.1';
+    log(`✅ 获取 ${versions.length} 个 MC 版本`,'SUCCESS');
+    update_fabric_dropdown_for_mc(sel.value.trim());
+  }catch(e){log('获取 MC 版本失败','ERROR');}
+  set_status(tr('status_ready'));}
+async function fetch_fabric_versions(force_refresh=false){
+  log('正在获取 Fabric 版本...');set_status(tr('status_loading'));
+  try{const[versions]=await api_fetch_fabric_versions(force_refresh);
+    const mc_ver=$('comboMc').value.trim();
+    let compatible=[];if(mc_ver)compatible=await api_fetch_fabric_for_mc(mc_ver,force_refresh);
+    if(!versions.length&&!compatible.length){
+      log('获取 Fabric 版本失败（网络异常？）','ERROR');set_status(tr('status_ready'));return;}
+    apply_fabric_versions(versions,compatible,mc_ver);
+  }catch(e){log('获取 Fabric 版本失败（网络异常？）','ERROR');}
+  set_status(tr('status_ready'));}
+function apply_fabric_versions(all_versions,compatible,mc_ver){
+  set_status(tr('status_ready'));
+  const sel=$('comboLoaderVer');
+  if(mc_ver&&compatible.length){fill_select(sel,compatible);sel.value=compatible[0];
+    log(`🔍 MC ${mc_ver} 兼容 ${compatible.length} 个 Fabric 版本`);}
+  else{fill_select(sel,all_versions);sel.value=all_versions[0]||'';
+    if(mc_ver&&!compatible.length)log(`未找到 MC ${mc_ver} 兼容版本，显示全部 ${all_versions.length} 个`,'WARNING');
+    else log(`获取到 ${all_versions.length} 个 Fabric 版本`,'SUCCESS');}
+  check_loader_compatibility();}
+function fill_select(sel,list){sel.innerHTML='';
+  list.forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});}
+async function update_fabric_dropdown_for_mc(mc_ver){
+  const compatible=await api_fetch_fabric_for_mc(mc_ver);
+  if(!compatible.length){log(`未找到 MC ${mc_ver} 兼容的 Fabric 版本`,'WARNING');return;}
+  const sel=$('comboLoaderVer');fill_select(sel,compatible);
+  sel.value=compatible[0]||'';check_loader_compatibility();}
+function loader_type_changed(){if(INDEX_DATA)save_index_to_state();}
+async function check_loader_compatibility(){
+  const mc_ver=$('comboMc').value.trim(),loader_name=$('comboLoaderType').value;
+  if(!mc_ver||!loader_name)return;
+  const compatible=await api_fetch_fabric_for_mc(mc_ver);
+  const current=$('comboLoaderVer').value.trim();
+  const lbl=$('compatLabel');
+  if(!compatible.length){lbl.textContent=tr('compat_unknown');lbl.className='compat warn';}
+  else if(!current){lbl.textContent=tr('compat_unsupported');lbl.className='compat warn';}
+  else if(compatible.includes(current)){lbl.textContent=tr('compat_compatible');lbl.className='compat ok';}
+  else{lbl.textContent=tr('compat_incompatible');lbl.className='compat bad';}}
+
+/* ---------- 通过 URL/ID 添加模组 ---------- */
+async function fetch_versions_from_url(){
+  const url=$('urlEntry').value.trim();
+  if(!url){alert('请输入项目链接或 ID');return;}
+  const project_id=parse_project_id(url);
+  if(!project_id){alert('无法解析项目 ID');return;}
+  log(`获取项目 ${project_id} 的版本...`);set_status(tr('status_loading'));
+  const mc_ver=$('comboMc').value.trim();
+  const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+  try{const all_v=await api_get_all_versions(project_id,mc_ver,loader_api);
+    if(!all_v.length){alert(tr('dialog_no_version'));set_status(tr('status_ready'));return;}
+    let default_v=all_v.filter(v=>v.featured);
+    if(!default_v.length)default_v=all_v.slice(0,1);
+    show_selector(default_v,all_v,project_id,mc_ver,loader_api);
+  }catch(e){alert(trf('dialog_version_fetch',{error:e.message}));}
+  set_status(tr('status_ready'));}
+
+/* ---------- 版本选择对话框（照抄 show_selector） ---------- */
+function show_selector(default_versions,all_versions,project_id,mc_ver,loader_api){
+  build_win(`选择版本 - ${project_id}`,'1000px','650px',win=>{
+    const col_widths=[200,200,180,140,60];
+    const headers=['版本号','游戏版本','加载器','发布日期','推荐'];
+    const hdr=document.createElement('div');hdr.className='tbl-hdr';hdr.style.margin='10px 10px 4px';
+    headers.forEach((h,i)=>{const d=document.createElement('div');
+      d.style.width=col_widths[i]+'px';d.textContent=h;hdr.appendChild(d);});
+    win.bd.parentNode.insertBefore(hdr,win.bd);
+    const rows_ref={cur:null,all:[]};
+    const scroll=win.bd;
+    function populate(vlist){
+      rows_ref.all.forEach(r=>r.remove());rows_ref.all=[];rows_ref.cur=null;
+      vlist.forEach(v=>{const row=document.createElement('div');row.className='sel-row';
+        row._version=v;
+        const vals=[v.version_number||'N/A',(v.game_versions||[]).join(', '),
+          (v.loaders||[]).join(', '),(v.date_published||'').slice(0,10),v.featured?'⭐':''];
+        vals.forEach((val,i)=>{const c=document.createElement('div');
+          c.style.width=col_widths[i]+'px';
+          c.style.textAlign=i<4?'left':'center';c.textContent=val;
+          c.onclick=()=>select(row);row.appendChild(c);});
+        row.onclick=()=>select(row);
+        scroll.appendChild(row);rows_ref.all.push(row);});
+      win.title.textContent=`选择版本 - ${project_id} (${vlist.length} 个版本)`;}
+    function select(row){if(rows_ref.cur)rows_ref.cur.classList.remove('on');
+      rows_ref.cur=row;row.classList.add('on');}
+    function on_select(){if(!rows_ref.cur){alert(tr('dialog_select_version'));return;}
+      const ver=rows_ref.cur._version;
+      const matched=all_versions.find(v=>v.version_number===ver.version_number);
+      if(matched){close_win();add_version(matched);}
+      else alert('数据异常');}
+    function toggle(){
+      if(toggle.state!=='all'){populate(all_versions);toggle.state='all';
+        win.btnToggle.textContent=tr('button_show_recommended');}
+      else{populate(default_versions);toggle.state='default';
+        win.btnToggle.textContent=tr('button_show_all');}}
+    toggle.state='default';
+    const ft=win.ft;
+    const b1=mkbtn(tr('button_select_this'),'btn-success','120px',on_select);
+    const b2=mkbtn(tr('button_show_all'),'btn-accent2','140px',toggle);win.btnToggle=b2;
+    const b3=mkbtn(tr('button_cancel'),'btn-gray','100px',close_win);
+    ft.append(b1,b2,b3);
+    const filterLbl=document.createElement('div');filterLbl.className='hint';
+    filterLbl.style.cssText='text-align:center;padding:2px 0';
+    filterLbl.textContent=`当前筛选：Minecraft ${mc_ver} + ${loader_api}`;
+    win.ft.parentNode.insertBefore(filterLbl,win.ft);
+    populate(default_versions);});}
+
+/* ---------- 添加版本 + 依赖检查 ---------- */
+function build_mod_entry(version_data){const f=version_data.files[0];
+  return{path:`mods/${f.filename}`,hashes:{sha1:f.hashes.sha1,sha512:f.hashes.sha512},
+    downloads:[f.url],fileSize:f.size};}
+function add_version(version_data){
+  try{const f=version_data.files[0];const filename=f.filename;
+    const entry=build_mod_entry(version_data);
+    if(current_files().some(fe=>fe.path===entry.path)){
+      if(!confirm(trf('dialog_version_exists',{filename}))){
+        log(trf('log_add_mod',{filename})+' (已存在，取消)','WARNING');return;}}
+    if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+    INDEX_DATA.files.push(entry);
+    log(trf('log_add_mod',{filename}),'SUCCESS');
+    refresh_mod_list();save_index_to_state();
+    const deps=(version_data.dependencies||[]).map(d=>d.project_id).filter(Boolean);
+    if(deps.length)show_dependency_dialog(deps,filename);
+  }catch(e){log(`添加版本失败: ${e}`,'ERROR');
+    alert(trf('dialog_version_fetch',{error:String(e)}));}}
+
+/* ---------- 依赖对话框（照抄 show_dependency_dialog） ---------- */
+function show_dependency_dialog(dep_ids,filename){
+  build_win(tr('dialog_dep_prompt'),'700px','500px',win=>{
+    const title=document.createElement('div');title.className='bold-md';
+    title.textContent=trf('dialog_dep_prompt',{filename});win.bd.before(title);
+    const installed_ids=new Set();
+    current_files().forEach(entry=>{
+      if(entry.downloads&&entry.downloads[0]){
+        const pid=parse_project_id_from_url(entry.downloads[0]);
+        if(pid)installed_ids.add(pid);}});
+    const dep_status=[];
+    dep_ids.forEach(dep_id=>{const installed=installed_ids.has(dep_id);
+      dep_status.push({id:dep_id,name:dep_id,installed});});
+    let cur_i=null;const rows=[];
+    function select_dep(i){if(cur_i!==null)rows[cur_i].classList.remove('on');
+      cur_i=i;rows[i].classList.add('on');}
+    function open_selected(){if(cur_i===null){alert('请先选择一个依赖');return;}
+      window.open(`https://modrinth.com/mod/${dep_status[cur_i].id}`);}
+    function open_all(){dep_status.forEach(d=>window.open(`https://modrinth.com/mod/${d.id}`));}
+    async function install_missing(){
+      const missing=dep_status.filter(d=>!d.installed);
+      if(!missing.length){alert(tr('dialog_dep_no_missing'));return;}
+      if(!confirm(tr('dialog_dep_confirm')))return;
+      const mc_ver=$('comboMc').value.trim();
+      const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+      let ok=0;
+      for(const d of missing){
+        log(trf('log_dep_fetch',{name:d.name}));
+        try{const latest=await api_get_latest_version(d.id,mc_ver,loader_api);
+          if(!latest){log(trf('dialog_dep_fetch_fail',{name:d.name}),'WARNING');continue;}
+          const entry=build_mod_entry(latest);
+          if(current_files().some(fe=>fe.path===entry.path)){
+            log(trf('log_dep_exists',{name:d.name}),'WARNING');continue;}
+          INDEX_DATA.files.push(entry);ok++;
+          log(trf('log_dep_added',{name:d.name}),'SUCCESS');
+        }catch(e){log(`补齐依赖 ${d.name} 失败: ${e}`,'ERROR');}}
+      if(ok>0){alert(trf('dialog_dep_add_success',{count:ok}));
+        refresh_mod_list();save_index_to_state();close_win();}
+      else alert('没有成功补齐任何依赖，请检查网络或手动添加。');}
+    const ft=win.ft;
+    ft.append(mkbtn(tr('button_open_selected'),'btn-accent','120px',open_selected),
+      mkbtn(tr('button_open_all'),'btn-accent2','100px',open_all),
+      mkbtn(tr('button_install_missing'),'btn-success','120px',install_missing),
+      mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    dep_status.forEach((d,i)=>{
+      const row=document.createElement('div');row.className='sel-row';
+      const c=document.createElement('div');c.style.flex='1';
+      c.textContent=`加载中... (${d.id}) `+(d.installed?tr('dialog_dep_existing'):tr('dialog_dep_missing'));
+      c.style.color=d.installed?'var(--text)':'var(--warning)';
+      row.appendChild(c);row.onclick=()=>select_dep(i);
+      win.bd.appendChild(row);rows.push(row);});
+    // 异步获取依赖名称
+    (async()=>{for(const d of dep_status){
+      const name=await api_fetch_project_name(d.id);d.name=name;
+      rows.forEach((r,i)=>{
+        if(!r.isConnected)return;
+        const st=dep_status[i];
+        r.firstChild.textContent=`${st.name} (${st.id}) `+
+          (st.installed?tr('dialog_dep_existing'):tr('dialog_dep_missing'));});}})();});}
+
+/* ---------- 导出/导入 CSV ---------- */
+function csv_escape(s){return `"${String(s??'').replace(/"/g,'""')}"`;}
+function export_mod_list(){if(!ALL_MODS.length){alert(tr('dialog_no_mods'));return;}
+  let csv='Display Name,Project ID,Filename,Version,Path\n';
+  ALL_MODS.forEach(m=>{csv+=[csv_escape(m.display_name),csv_escape(m.project_id||''),
+    csv_escape(m.filename),csv_escape(m.version),csv_escape(m.path)].join(',')+'\n';});
+  dl_blob(new Blob([csv],{type:'text/csv'}),'modlist.csv');
+  log(trf('log_export',{path:'modlist.csv'}),'SUCCESS');
+  alert(trf('dialog_export_success',{path:'modlist.csv'}));}
+async function import_mod_list(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  $('fileCsv').click();}
+$('fileCsv').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  log(`开始从 ${f.name} 导入...`);set_status(tr('status_loading'));
+  const mc_ver=$('comboMc').value.trim();
+  const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+  try{const text=(await f.text()).replace(/^\ufeff/,'');
+    const lines=text.split(/\r?\n/).filter(l=>l.trim());
+    const headers=parse_csv_line(lines[0]);
+    const pidCol=headers.findIndex(h=>/project.?id/i.test(h));
+    const rows=lines.slice(1).map(parse_csv_line);
+    const new_entries=[];let i=0;
+    for(const row of rows){i++;
+      set_status(`导入中... ${i}/${rows.length}`);
+      const pid=(row[pidCol>=0?pidCol:0]||'').trim();
+      if(!pid)continue;
+      let latest=null;try{latest=await api_get_latest_version(pid,mc_ver,loader_api);}catch{}
+      if(!latest){log(`无法找到兼容版本: ${pid}`,'WARNING');continue;}
+      try{const entry=build_mod_entry(latest);
+        if(!new_entries.some(ne=>ne.path===entry.path))new_entries.push(entry);}
+      catch{log(`版本数据异常: ${pid}`,'WARNING');}}
+    const existing=new Set(current_files().map(fe=>fe.path));
+    const to_add=new_entries.filter(ne=>!existing.has(ne.path));
+    if(to_add.length){manual_backup();INDEX_DATA.files.push(...to_add);}
+    log(trf('log_import',{path:f.name,count:to_add.length}),'SUCCESS');
+    refresh_mod_list();save_index_to_state();
+    alert(trf('dialog_import_success',{count:to_add.length}));
+  }catch(err){log(trf('dialog_import_fail',{error:err.message}),'ERROR');
+    alert(trf('dialog_import_fail',{error:err.message}));}
+  set_status(tr('status_ready'));});
+function parse_csv_line(line){const out=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){const c=line[i];
+    if(inQ){if(c==='"'){if(line[i+1]==='"'){cur+='"';i++;}else inQ=false;}else cur+=c;}
+    else if(c==='"')inQ=true;else if(c===','){out.push(cur);cur='';}else cur+=c;}
+  out.push(cur);return out;}
+
+/* ---------- 本地 JAR（照抄 add_local_jar 流程） ---------- */
+function add_local_jar(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  $('fileJar').click();}
+$('fileJar').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  const project_id=prompt(tr('dialog_local_jar_id'))||'';
+  try{const buf=await f.arrayBuffer();
+    const entry={path:`mods/${f.name}`,
+      hashes:{sha1:await sha1_hex(buf),sha512:await sha512_hex(buf)},
+      downloads:[],fileSize:f.size};
+    if(project_id)entry.project_id=project_id;
+    if(!window._localJars)window._localJars=new Map();
+    window._localJars.set(f.name,f);
+    INDEX_DATA.files.push(entry);
+    log(trf('log_local_jar',{filename:f.name}),'SUCCESS');
+    refresh_mod_list();save_index_to_state();
+  }catch(err){log(`读取 JAR 失败: ${err.message}`,'ERROR');}});
+
+/* ---------- 模组详情（照抄 show_mod_detail_row） ---------- */
+function show_mod_detail(row){const mod=row._raw;
+  const name=mod.display_name||'未知';
+  log(trf('log_detail_view',{name}));
+  build_win(tr('dialog_detail_title'),'500px','400px',win=>{
+    const add=(txt,style='')=>{const d=document.createElement('div');
+      d.style.cssText='padding:2px 20px;font-size:12px;'+style;d.textContent=txt;win.bd.appendChild(d);};
+    const t1=document.createElement('div');t1.className='bold-md';
+    t1.textContent=`${tr('col_name')}: ${name}`;win.bd.appendChild(t1);
+    add(`${tr('col_filename')}: ${mod.filename}`);
+    add(`${tr('col_version')}: ${mod.version}`);
+    add(`${tr('col_path')}: ${mod.path}`);
+    if(mod.project_id){
+      add(`${tr('col_project_id')}: ${mod.project_id}`);
+      const loading=document.createElement('div');
+      loading.style.cssText='text-align:center;padding:6px';loading.textContent='正在获取详情...';
+      win.bd.appendChild(loading);
+      api_get(`https://api.modrinth.com/v2/project/${mod.project_id}`)
+        .then(data=>{loading.remove();
+          const d=document.createElement('div');
+          d.style.cssText='padding:5px 20px;font-size:12px;white-space:pre-wrap';
+          d.textContent=`标题: ${data.title||'N/A'}\n作者: ${data.author||'N/A'}\n描述: ${String(data.description||'N/A').slice(0,200)}...\n下载量: ${data.downloads||0}\n最后更新: ${String(data.date_modified||'N/A').slice(0,10)}`;
+          win.bd.appendChild(d);})
+        .catch(()=>loading.remove());
+    }else{const d=document.createElement('div');
+      d.style.cssText='text-align:center;padding:6px;color:var(--warning);font-size:12px';
+      d.textContent=tr('dialog_detail_no_id');win.bd.appendChild(d);}
+    win.ft.appendChild(mkbtn(tr('button_close'),'btn-gray','100px',close_win));});}
+
+/* ---------- 检查更新（照抄 check_updates 流程） ---------- */
+function check_updates(){
+  if(!confirm(tr('dialog_update_experimental'))){log('用户取消检查更新','WARNING');return;}
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const files=current_files();
+  if(!files.length){alert('当前整合包没有模组');return;}
+  const mc_ver=$('comboMc').value.trim();
+  const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+  const mods_to_check=[];
+  files.forEach(entry=>{let pid=null;
+    if(entry.downloads&&entry.downloads.length)
+      pid=parse_project_id_from_url(entry.downloads[0]);
+    if(pid)mods_to_check.push({project_id:pid,entry,
+      filename:(entry.path||'').split(/[/\\]/).pop()});});
+  if(!mods_to_check.length){log('没有可检查的模组（缺少 project_id）','WARNING');
+    alert('没有模组包含有效的 Modrinth 项目 ID');return;}
+  log(tr('log_update_start'));set_status(tr('status_checking'));
+  const total=mods_to_check.length;let done=0;const updates=[];
+  (async()=>{await Promise.all(mods_to_check.map(async m=>{
+    const result=await check_single_mod(m,mc_ver,loader_api);
+    done++;set_status(`${tr('status_checking')}... ${done}/${total}`);
+    if(result)updates.push(result);}));
+    on_check_done(updates);})();}
+async function check_single_mod(m,mc_ver,loader_api){
+  try{const latest=await api_get_latest_version(m.project_id,mc_ver,loader_api);
+    if(!latest)return null;
+    const current_ver=extract_version(m.filename);
+    const latest_ver=latest.version_number||'';
+    if(current_ver==='未知版本'||!latest_ver)return null;
+    const current_url=(m.entry.downloads||[''])[0];
+    let latest_url='';
+    if(latest.files&&latest.files.length)latest_url=latest.files[0].url||'';
+    if(current_url&&latest_url&&current_url===latest_url)return null;
+    if(compare_simple(latest_ver,current_ver)>0){
+      const name=await api_fetch_project_name(m.project_id);
+      return{project_id:m.project_id,name,
+        current_ver:normalize_version(current_ver),
+        latest_ver:normalize_version(latest_ver),
+        current_entry:m.entry,latest_data:latest};}
+  }catch{}
+  return null;}
+function on_check_done(updates){set_status(tr('status_ready'));
+  if(!updates.length){alert(tr('dialog_no_update'));
+    log(tr('log_update_done'),'SUCCESS');return;}
+  show_update_dialog(updates);}
+
+/* ---------- 更新对话框（照抄 show_update_dialog） ---------- */
+function show_update_dialog(updates){
+  build_win(trf('dialog_update_found',{count:updates.length}),'800px','520px',win=>{
+    const title=document.createElement('div');title.className='bold-md';
+    title.textContent=trf('dialog_update_found',{count:updates.length});
+    win.bd.parentNode.insertBefore(title,win.bd);
+    const warn=document.createElement('div');warn.className='italic-warn';
+    warn.textContent=tr('dialog_update_warning');
+    win.bd.parentNode.insertBefore(warn,win.bd);
+    const col_widths=[260,160,160,80];
+    const headers=[tr('column_mod_name'),tr('column_current_ver'),
+      tr('column_latest_ver'),tr('column_action')];
+    const hdr=document.createElement('div');hdr.className='tbl-hdr';hdr.style.margin='10px 10px 4px';
+    headers.forEach((h,i)=>{const d=document.createElement('div');
+      d.style.width=col_widths[i]+'px';d.textContent=h;hdr.appendChild(d);});
+    win.bd.parentNode.insertBefore(hdr,win.bd);
+    const countLbl=document.createElement('div');countLbl.className='hint';
+    countLbl.style.cssText='text-align:center;font-weight:600;color:var(--accent);padding:4px';
+    function refresh_count(){const n=rows.filter(r=>r._selected).length;
+      countLbl.textContent=`已选 ${n}/${updates.length}`;}
+    win.bd.parentNode.insertBefore(countLbl,win.ft);
+    function toggle(row){row._selected=!row._selected;
+      row.classList.toggle('on',row._selected);
+      row.children[3].textContent=row._selected?'⬆ 更新':'';
+      refresh_count();}
+    function select_all_toggle(){const target=!rows.every(r=>r._selected);
+      rows.forEach(r=>{r._selected=target;r.classList.toggle('on',target);
+        r.children[3].textContent=target?'⬆ 更新':'';});
+      refresh_count();}
+    function apply_updates(){const to_update=rows.filter(r=>r._selected);
+      if(!to_update.length){alert(tr('dialog_update_select'));return;}
+      if(!confirm(trf('dialog_update_apply',{count:to_update.length})))return;
+      const files=current_files();
+      const path_to_idx={};files.forEach((f,i)=>path_to_idx[f.path]=i);
+      let replaced=0;
+      to_update.forEach(r=>{const upd=r._upd;
+        const idx=path_to_idx[upd.current_entry.path];
+        if(idx!==undefined){files[idx]=build_mod_entry(upd.latest_data);replaced++;}});
+      INDEX_DATA.files=files;
+      log(trf('log_update_success',{count:replaced}),'SUCCESS');
+      close_win();refresh_mod_list();save_index_to_state();reload_metadata();
+      alert(trf('dialog_update_success',{count:replaced}));}
+    win.ft.append(
+      mkbtn(tr('button_select_all'),'btn-accent2','140px',select_all_toggle),
+      mkbtn(tr('button_update_selected'),'btn-success','140px',apply_updates),
+      mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    const rows=[];
+    updates.forEach(upd=>{const row=document.createElement('div');row.className='sel-row';
+      row._upd=upd;row._selected=false;
+      [upd.name,upd.current_ver,upd.latest_ver,''].forEach((val,i)=>{
+        const c=document.createElement('div');c.style.width=col_widths[i]+'px';
+        c.style.textAlign=i<3?'left':'center';c.textContent=val;
+        c.onclick=()=>toggle(row);row.appendChild(c);});
+      row.onclick=()=>toggle(row);
+      win.bd.appendChild(row);rows.push(row);});
+    refresh_count();});}
+
+/* ---------- 打包 .mrpack（照抄 pack_to_mrpack + _continue_pack） ---------- */
+function pick_overrides(){return new Promise(res=>{
+  const inp=$('fileOverrides');
+  inp.onchange=()=>{const files=[...inp.files].map(f=>
+    [f,f.webkitRelativePath?f.webkitRelativePath.split('/').slice(1).join('/'):f.name]);
+    inp.value='';res(files);};
+  inp.oncancel=()=>{inp.value='';res(null);};
+  inp.click();});}
+async function pack_to_mrpack(){
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  save_index_to_state();
+  const data=JSON.parse(JSON.stringify(INDEX_DATA));
+  if(!(data.files||[]).length){
+    if(!confirm(tr('dialog_pack_empty')))return;}
+  log('开始打包为 .mrpack...');set_status(tr('status_loading'));
+  try{
+    let pack_data=data;const extra={};
+    if(OFFLINE){
+      log('离线模式：开始下载所有模组文件...');
+      set_status(tr('status_downloading'));
+      const files_list=data.files||[];const total=files_list.length;
+      let fail=0;const downloaded=[];
+      for(let i=0;i<total;i++){const entry=files_list[i];
+        const filename=(entry.path||'').split(/[/\\]/).pop();
+        const url=(entry.downloads||[])[0]||'';
+        if(!url){log(`跳过 ${filename}（无下载链接）`,'WARNING');continue;}
+        set_status(`${tr('status_downloading')} ${i+1}/${total}`);
+        log(trf('log_download_progress',{filename,current:i+1,total}));
+        try{const r=await fetch(url);
+          if(!r.ok)throw new Error('HTTP '+r.status);
+          const buf=await r.arrayBuffer();
+          if(entry.hashes&&entry.hashes.sha1){
+            const s1=await sha1_hex(buf);
+            if(s1!==entry.hashes.sha1)throw new Error('SHA1 mismatch');}
+          downloaded.push({filename,buf});
+          log(trf('log_download_done',{filename}),'SUCCESS');
+        }catch(e){fail++;
+          log(trf('log_download_fail',{filename,error:e.message}),'ERROR');}}
+      if(fail===0){pack_data={...data,files:[]};
+        log(trf('log_offline_removed',{count:total}));
+        for(const d of downloaded)extra[`mods/${d.filename}`]=d.buf;
+        log('已添加 mods 目录','SUCCESS');}
+      else{alert(`下载失败\n有 ${fail} 个模组下载失败，index 未作修改，请检查网络后重试。`);
+        log('离线打包中止，部分模组下载失败，index 保持不变','WARNING');
+        set_status(tr('status_ready'));return;}}
+    else{
+      // 在线打包：把内存中的本地 JAR 放进 mods/
+      if(window._localJars&&window._localJars.size){
+        for(const [name,file] of window._localJars)extra[`mods/${name}`]=file;
+        log('已添加 mods 目录','SUCCESS');}}
+    // 保存路径（对应 asksaveasfilename）
+    let handle=null;
+    const suggested=`${pack_data.name||'modpack'}.mrpack`;
+    if(window.showSaveFilePicker){
+      try{handle=await window.showSaveFilePicker({suggestedName:suggested,
+        types:[{description:'Modrinth Modpack',accept:{'application/octet-stream':['.mrpack']}}]});}
+      catch{set_status(tr('status_ready'));return;}}
+    const name=handle?handle.name:suggested;
+    // overrides（对应 askyesno + askdirectory）
+    const include_overrides=confirm(`${tr('dialog_confirm_overrides')}\n\n${tr('dialog_overrides_prompt')}`);
+    let overrides_files=null;
+    if(include_overrides){
+      overrides_files=await pick_overrides();
+      if(!overrides_files)log(tr('log_no_overrides'),'WARNING');}
+    const zip=new JSZip();
+    zip.file('modrinth.index.json',JSON.stringify(pack_data,null,2));
+    for(const[p,c]of Object.entries(extra))zip.file(p,c);
+    if(overrides_files)for(const[f,rel]of overrides_files)zip.file(`overrides/${rel}`,f);
+    if(overrides_files)log(`已添加 overrides`,'SUCCESS');
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    if(handle){const w=await handle.createWritable();await w.write(blob);await w.close();}
+    else dl_blob(blob,name);
+    log(trf('log_pack',{path:name}),'SUCCESS');
+    set_status(tr('status_packed'));
+    alert(`打包完成\n${trf('dialog_pack_success',{path:name})}`);
+  }catch(e){log(trf('dialog_pack_fail',{error:e.message}),'ERROR');
+    alert(trf('dialog_pack_fail',{error:e.message}));set_status(tr('status_ready'));}}
+
+/* ---------- 通用窗口助手（对应 _win） ---------- */
+function build_win(title,w,h,onbuild){
+  const ov=document.createElement('div');ov.className='win-ov';
+  const win=document.createElement('div');win.className='win';
+  win.style.width=w;win.style.height=h;win.style.maxWidth='95vw';win.style.maxHeight='92vh';
+  const hd=document.createElement('div');hd.className='win-hd';
+  const tt=document.createElement('span');tt.textContent=title;
+  const x=document.createElement('button');x.className='x';x.textContent='✕';x.onclick=close_win;
+  hd.append(tt,x);
+  const bd=document.createElement('div');bd.className='win-bd';
+  const ft=document.createElement('div');ft.className='win-ft';
+  win.append(hd,bd,ft);ov.appendChild(win);document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('show'));
+  ov._win={title:tt,bd,ft};
+  onbuild({title:tt,bd,ft});
+  ov.addEventListener('click',e=>{if(e.target===ov)close_win();});}
+function close_win(){const ovs=document.querySelectorAll('.win-ov');
+  if(ovs.length){ovs[ovs.length-1].remove();}}
+function mkbtn(text,cls,width,onclick){const b=document.createElement('button');
+  b.className=cls;b.style.width=width;b.textContent=text;b.onclick=onclick;return b;}
+
+/* ---------- 输入联动 ---------- */
+$('entryName').addEventListener('change',()=>{if(INDEX_DATA)save_index_to_state();});
+$('entryVersion').addEventListener('change',()=>{if(INDEX_DATA)save_index_to_state();});
+$('comboMc').addEventListener('change',()=>{if(INDEX_DATA)save_index_to_state();});
+$('comboLoaderType').addEventListener('change',()=>{if(INDEX_DATA)save_index_to_state();});
+$('comboLoaderVer').addEventListener('change',()=>{if(INDEX_DATA)save_index_to_state();});
+$('urlEntry').addEventListener('keydown',e=>{if(e.key==='Enter')fetch_versions_from_url();});
+$('searchEntry').addEventListener('keydown',e=>{if(e.key==='Enter')apply_filter();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')close_win();
+  if(e.ctrlKey&&e.key==='s'){e.preventDefault();
+    if(INDEX_DATA){save_index_to_state();manual_backup();}}});
+
+/* ---------- 启动（对应 __init__ 的 after 调度） ---------- */
+document.documentElement.setAttribute('data-theme',CURRENT_THEME);
+apply_texts();
+set_mode('existing');
+log(tr('status_ready'));
+setTimeout(fetch_mc_versions,100);
+setTimeout(()=>fetch_fabric_versions(true),200);
+$('entryFile').focus();
+</script>
+</body>
+</html>
