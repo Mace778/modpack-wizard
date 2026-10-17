@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚡ ModpackWizard · 整合包模组管理工具</title>
-<meta name="description" content="精简高效的 Minecraft 整合包管理工具：Modrinth / CurseForge 双格式，搜索添加、SHA1 识别、自动补依赖、批量更新检查、兼容性体检、一键打包。">
+<meta name="description" content="ModpackWizard 整合包模组管理工具主站：提供 Windows 桌面版下载与浏览器版入口，支持 Modrinth / CurseForge 双格式管理、依赖检查和打包导出。">
 <meta name="theme-color" content="#0f1115">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <meta property="og:title" content="⚡ ModpackWizard · 整合包模组管理工具">
-<meta property="og:description" content="精简高效的 Minecraft 整合包管理工具：Modrinth / CurseForge 双格式，搜索添加、SHA1 识别、自动补依赖、批量更新检查、兼容性体检、一键打包。">
+<meta property="og:description" content="ModpackWizard 整合包模组管理工具主站：提供 Windows 桌面版下载与浏览器版入口，支持 Modrinth / CurseForge 双格式管理、依赖检查和打包导出。">
 <meta property="og:type" content="website">
 <style>
 /* ============ 品牌变量（与桌面端配色一致） ============ */
@@ -143,6 +143,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:50;
 .dl-fit{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;margin:-7px 0 17px;
   border-radius:999px;background:var(--accent-soft);color:var(--text);font-size:12px}
 .dl-fit::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.dl-pass{font-size:12px;color:var(--muted);margin:-8px 0 16px}
+.dl-pass code{color:var(--text);background:var(--card-2);border:1px solid var(--border);
+  border-radius:5px;padding:2px 7px;font:600 12px/1.5 Consolas,monospace;user-select:all}
 .dl-card ul{list-style:none;text-align:left;max-width:280px;margin:0 auto 22px;
   font-size:13px;color:var(--muted)}
 .dl-card li{padding:5px 0 5px 24px;position:relative}
@@ -216,13 +219,13 @@ footer .dis{max-width:680px;margin:8px auto 0;font-size:11.5px;opacity:.75}
     <div class="hero-points" aria-label="产品特点" data-i18n-aria-label="hero_points_label">
       <span><b>2</b> <span data-i18n="hero_point_formats">种整合包格式</span></span>
       <span><b>3</b> <span data-i18n="hero_point_content">类内容管理</span></span>
-      <span data-i18n="hero_point_local">本地处理 · 无需 API Key</span>
+      <span data-i18n="hero_point_local">工具主站 · 桌面版下载 · 浏览器版入口</span>
     </div>
     <div class="ctas">
       <a class="btn btn-primary" href="#" onclick="return goto_win(event)">⬇ <span data-i18n="dl_win">下载 Windows 版</span></a>
       <a class="btn btn-ghost" href="#" onclick="return goto_web(event)">🌐 <span data-i18n="dl_web">浏览器版（免安装）</span></a>
     </div>
-    <div class="hero-note" data-i18n="hero_note">免费 · 无需 API Key · 中英双语 · 明暗主题</div>
+    <div class="hero-note" data-i18n="hero_note">免费使用 · 中英双语 · 明暗主题</div>
 
     <!-- 纯 CSS 应用界面 mockup -->
     <div class="mockup" aria-hidden="true">
@@ -331,6 +334,7 @@ footer .dis{max-width:680px;margin:8px auto 0;font-size:11.5px;opacity:.75}
         <h3 data-i18n="dl_card1_t">Windows 桌面版</h3>
         <div class="meta" data-i18n="dl_card1_meta">单文件 exe · 约 12 MB</div>
         <div class="dl-fit" data-i18n="dl_card1_fit">适合频繁处理本地文件</div>
+        <div class="dl-pass"><span data-i18n="dl_card1_pass">蓝奏云分享密码</span> <code>19fz</code></div>
         <ul>
           <li data-i18n="dl_card1_l1">Windows 10 及以上，免安装运行</li>
           <li data-i18n="dl_card1_l2">本地文件操作与打包最顺畅</li>
@@ -365,15 +369,15 @@ footer .dis{max-width:680px;margin:8px auto 0;font-size:11.5px;opacity:.75}
 
 <script>
 /* =====================================================================
-   ⚠️ 发布前检查清单（当前全部为占位地址，不可直接发布）：
-   1. 替换 winUrl 为 exe 实际发布地址（GitHub Releases 等）
+   ⚠️ 发布前检查清单：
+   1. 核对 winUrl 分享链接与页面展示的分享密码是否仍有效
    2. 替换 repoUrl 为实际 GitHub 仓库地址
    3. 替换/确认 webUrl：'../ModpackWizard.html' 为相对路径，仅在
       "部署整个仓库根（website/ 与 ModpackWizard.html 同级）"时成立；
       单独部署本页面时须改为浏览器版的实际可访问地址
 ===================================================================== */
 const CONFIG={
-  winUrl :'https://github.com/YOUR-NAME/ModpackWizard/releases/latest',
+  winUrl :'https://mace7788.lanzouc.com/iLjfu4cbcwhe',
   webUrl :'../ModpackWizard.html',
   repoUrl:'https://github.com/YOUR-NAME/ModpackWizard'
 };
@@ -386,15 +390,15 @@ function goto_repo(e){e.preventDefault();return openUrl(CONFIG.repoUrl);}
 const I18N={
 zh:{
   meta_title:'⚡ ModpackWizard · 整合包模组管理工具',
-  meta_desc:'精简高效的 Minecraft 整合包管理工具：支持 Modrinth / CurseForge，搜索添加、SHA1 识别、自动补依赖、批量更新、兼容性检查与打包导出。',
+  meta_desc:'ModpackWizard 整合包模组管理工具主站，提供 Windows 桌面版下载与浏览器版入口；支持 Modrinth / CurseForge 双格式管理、依赖处理、更新检查与打包导出。',
   skip_main:'跳转到主要内容', nav_label:'主导航', lang_label:'切换语言', hero_points_label:'产品特点',
-  hero_point_formats:'种整合包格式', hero_point_content:'类内容管理', hero_point_local:'本地处理 · 无需 API Key',
+  hero_point_formats:'种整合包格式', hero_point_content:'类内容管理', hero_point_local:'工具主站 · 桌面版下载 · 浏览器版入口',
   nav_features:'功能', nav_how:'流程', nav_download:'下载', nav_get:'获取',
-  hero_badge:'Modrinth · CurseForge 双格式支持',
+  hero_badge:'ModpackWizard 整合包模组管理工具主站',
   hero_title:'Minecraft <em>整合包模组</em>管理，精简高效',
-  hero_lead:'在一个清爽界面里管理 mods / 资源包 / 光影包：Modrinth 搜索添加、本地 JAR 的 SHA1 智能识别、自动补齐依赖、批量检查更新、兼容性体检、重复检测，直至一键打包导出。桌面版与浏览器版功能对齐。',
+  hero_lead:'这里是 ModpackWizard 的产品主站，可下载 Windows 桌面版，也可直接进入浏览器版。集中管理 mods、资源包与光影包，支持 Modrinth 搜索添加、本地 JAR 识别、依赖处理、更新检查、兼容性体检与打包导出。',
   dl_win:'下载 Windows 版', dl_web:'浏览器版（免安装）',
-  hero_note:'免费 · 无需 API Key · 中英双语 · 明暗主题',
+  hero_note:'免费使用 · 中英双语 · 明暗主题',
   mk_home:'主页', mk_edit:'编辑整合包', mk_settings:'设置', mk_info:'整合包信息',
   mk_pack:'📦 打包 .mrpack（含模组）', mk_zip:'📦 导出 .zip', mk_backup:'备份', mk_reload:'重新加载',
   mk_add:'添加模组', mk_fetch:'🔍 获取版本', mk_local:'添加本地 JAR',
@@ -418,9 +422,10 @@ zh:{
   s3t:'检查维护', s3d:'更新检查、兼容性体检、重复检测，让模组列表保持干净可靠。',
   s4t:'打包分发', s4d:'导出 .mrpack / .zip，或一键把全部文件下载到整合包目录。',
   dl_badge:'获取工具', dl_title:'选择适合你的版本',
-  dl_sub:'两个版本功能对齐、数据结构一致，按使用习惯选择即可。',
+  dl_sub:'ModpackWizard 主站提供 Windows 桌面版下载与浏览器版入口，按使用习惯选择即可。',
   dl_card1_t:'Windows 桌面版', dl_card1_meta:'单文件 exe · 约 12 MB',
   dl_card1_fit:'适合频繁处理本地文件',
+  dl_card1_pass:'蓝奏云分享密码',
   dl_card1_l1:'Windows 10 及以上，免安装运行', dl_card1_l2:'本地文件操作与打包最顺畅', dl_card1_l3:'CustomTkinter 桌面界面',
   dl_btn_exe:'下载 ModpackWizard.exe',
   dl_card2_t:'浏览器版', dl_card2_meta:'单个 HTML 文件 · 打开即用',
@@ -432,15 +437,15 @@ zh:{
 },
 en:{
   meta_title:'⚡ ModpackWizard · Minecraft Modpack Manager',
-  meta_desc:'A lean Minecraft modpack manager for Modrinth and CurseForge: search and add mods, identify local JARs by SHA1, resolve dependencies, check updates and compatibility, and export packs.',
+  meta_desc:'The ModpackWizard home for the Windows desktop download and browser-based modpack manager, with Modrinth and CurseForge support, dependency handling, update checks and pack export.',
   skip_main:'Skip to main content', nav_label:'Main navigation', lang_label:'Switch language', hero_points_label:'Product highlights',
-  hero_point_formats:'modpack formats', hero_point_content:'content types', hero_point_local:'Local-first · No API key',
+  hero_point_formats:'modpack formats', hero_point_content:'content types', hero_point_local:'Product home · Desktop download · Browser access',
   nav_features:'Features', nav_how:'How it works', nav_download:'Download', nav_get:'Get it',
-  hero_badge:'Modrinth · CurseForge dual-format support',
+  hero_badge:'ModpackWizard · Modpack management tool',
   hero_title:'Manage your <em>Minecraft modpack</em>, lean & efficient',
-  hero_lead:'Manage mods / resource packs / shader packs in one clean UI: search & add from Modrinth, SHA1-based local JAR recognition, automatic dependency install, batch update checks, compatibility scan, duplicate detection, and one-click export. Desktop and web versions are at feature parity.',
+  hero_lead:'This is the ModpackWizard product home: download the Windows desktop app or open the browser version. Manage mods, resource packs and shader packs with Modrinth search, local JAR recognition, dependency handling, update checks, compatibility scans and pack export.',
   dl_win:'Download for Windows', dl_web:'Web version (no install)',
-  hero_note:'Free · No API key required · Bilingual · Light & dark themes',
+  hero_note:'Free to use · Bilingual · Light & dark themes',
   mk_home:'Home', mk_edit:'Edit pack', mk_settings:'Settings', mk_info:'Pack Info',
   mk_pack:'📦 Pack .mrpack (with mods)', mk_zip:'📦 Export .zip', mk_backup:'Backup', mk_reload:'Reload',
   mk_add:'Add mod', mk_fetch:'🔍 Fetch versions', mk_local:'Add local JAR',
@@ -464,9 +469,10 @@ en:{
   s3t:'Check & maintain', s3d:'Update checks, compatibility scan and duplicate detection keep your list clean and reliable.',
   s4t:'Pack & distribute', s4d:'Export .mrpack / .zip, or download every file into the pack folder in one click.',
   dl_badge:'Get the tool', dl_title:'Pick the version for you',
-  dl_sub:'Feature-parity and identical data structures — pick whichever suits your workflow.',
+  dl_sub:'Get the Windows desktop app or open the browser version from the ModpackWizard product home.',
   dl_card1_t:'Windows desktop', dl_card1_meta:'Single-file exe · ~12 MB',
   dl_card1_fit:'Best for frequent local file work',
+  dl_card1_pass:'Lanzou share code',
   dl_card1_l1:'Windows 10 and later, portable single file', dl_card1_l2:'Smoothest local file ops and packing', dl_card1_l3:'CustomTkinter desktop UI',
   dl_btn_exe:'Download ModpackWizard.exe',
   dl_card2_t:'Web version', dl_card2_meta:'A single HTML file · just open it',
