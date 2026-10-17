@@ -106,8 +106,8 @@ height:var(--ctrl-height);padding:0 14px;color:var(--text-dark);transition:backg
 input,select{font:13px var(--font-family);padding:5px 9px;border:1px solid var(--border);
 border-radius:var(--radius-ctrl);background:var(--mica-strong);color:var(--text);outline:none;height:var(--ctrl-height)}
 input:focus{border-color:var(--accent)}
-#bar{display:flex;align-items:center;height:56px;margin:12px 12px 10px;padding:0 20px;
-background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);flex-shrink:0}#bar .t{font-size:20px;font-weight:600;color:var(--accent)}#bar .sub{font-size:12px;color:var(--muted);margin-left:10px}#bar .tool{margin-left:auto;display:flex;gap:10px}
+#bar{display:flex;align-items:center;gap:8px;height:56px;margin:12px 12px 10px;padding:0 20px;
+background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);flex-shrink:0}#bar .t{font-size:20px;font-weight:600;color:var(--accent);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#bar .sub{font-size:12px;color:var(--muted);margin-left:2px;white-space:nowrap}#bar .tool{margin-left:auto;display:flex;gap:10px}
 #body{flex:1;display:grid;grid-template-columns:minmax(170px,170px) minmax(0,1fr);gap:8px;padding:0 12px;overflow:hidden;min-height:0}
 #nav{background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);
 padding:14px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
@@ -116,7 +116,9 @@ padding:14px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
 #nav button:hover{background:var(--gray-h)}#nav button.on{background:var(--accent);color:var(--text-dark)}
 #pages{position:relative;overflow:hidden;min-height:0;min-width:0}
 .page{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
-.page.show{display:flex}
+.page.show{display:flex;animation:page-enter .14s ease-out both}
+@keyframes page-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.page.show{animation:none}}
 #pageHome{align-items:center;overflow-y:auto;padding-top:46px}
 .home-title{font-size:26px;font-weight:600;color:var(--accent)}
 .home-sub{color:var(--muted);margin:6px 0 26px;font-size:13px}
@@ -185,6 +187,11 @@ display:flex;justify-content:space-between;align-items:center}.win-hd .x{backgro
   #nav button{font-size:0;padding:0;position:relative}
   #nav button::before{content:'●';font-size:20px;line-height:1}
   #nav button.on::before{color:#fff}
+}
+@media (max-width:600px){
+  #bar{margin:8px 8px 8px;padding:0 10px}
+  #bar .t{font-size:15px;flex:1}
+  #bar .sub{display:none}
 }
 </style>
 </head>
@@ -286,6 +293,11 @@ display:flex;justify-content:space-between;align-items:center}.win-hd .x{backgro
       <button class="btn-accent2" style="width:100px" id="btnFetch" onclick="fetch_versions_from_url()"></button>
       <button class="btn-gray" style="width:120px" id="btnAddLocal" onclick="add_local_jar()"></button>
     </div>
+    <div class="frow" style="margin-top:6px">
+      <span class="lbl"></span>
+      <input id="projectSearchEntry" style="flex:1;min-width:120px">
+      <button class="btn-accent2" style="width:120px" id="btnSearchProject" onclick="search_projects_to_add()"></button>
+    </div>
   </div>
   <div class="group" id="groupList" style="flex:1;display:flex;flex-direction:column">
     <div class="gtitle" id="gList"></div>
@@ -351,7 +363,7 @@ zh_CN:{'app_title':'⚡ 整合包模组管理工具','app_sub':'精简高效','f
 'dialog_update_success':'成功更新 {count} 个模组','dialog_update_select':'请至少选择一个模组来更新','dialog_pack_empty':'没有模组条目，仍然打包吗？','dialog_pack_success':'已生成 .mrpack 文件（含模组）:\n{path}','dialog_pack_fail':'打包失败: {error}','dialog_backup_success':'备份已保存到 {path}',
 'dialog_import_select':'请选择 CSV 文件','dialog_import_success':'成功导入 {count} 个模组','dialog_import_fail':'导入失败: {error}','dialog_export_success':'已导出列表到 {path}','dialog_local_jar_title':'添加本地 JAR','dialog_local_jar_prompt':'请选择一个 JAR 文件',
 'dialog_local_jar_id':'输入 Modrinth 项目 ID（可选）:','dialog_detail_title':'模组详情','dialog_detail_no_id':'此模组无项目 ID，仅显示本地信息。','log_download_done':'已下载: {filename}',
-'log_download_fail':'下载失败: {filename} - {error}','log_export':'已导出模组列表到 {path}','log_import':'从 {path} 导入 {count} 个模组','log_refresh':'已加载 {count} 个模组','log_local_jar':'已添加本地模组 {filename}','log_detail_view':'查看模组详情: {name}',
+'log_download_fail':'下载失败: {filename} - {error}','log_export':'已导出模组列表到 {path}','log_import':'从 {path} 导入 {count} 个模组','log_async_pack_changed':'整合包已切换，已丢弃尚未完成的操作','log_refresh':'已加载 {count} 个模组','log_local_jar':'已添加本地模组 {filename}','log_detail_view':'查看模组详情: {name}',
 
 'button_open_selected':'打开选中项','button_open_all':'打开全部','button_install_missing':'补齐缺失','button_close':'关闭','button_cancel':'取消',
 'button_select_this':'选择此版本','button_update_selected':'更新选中项','button_select_all':'☑ 全选/反选','button_show_all':'🔄 显示全部','button_show_recommended':'🔄 显示推荐/兼容','column_mod_name':'模组名',
@@ -375,6 +387,9 @@ zh_CN:{'app_title':'⚡ 整合包模组管理工具','app_sub':'精简高效','f
 'home_import_online':'🌐 通过名称导入整合包','home_import_online_desc':'在线搜索并下载整合包',
 'home_new_pack':'📄 新建整合包','home_new_pack_desc':'创建 .mrpack 或 .zip（Modrinth / CurseForge）',
 'edit_empty_hint':'请先在主页导入或新建整合包','search_no_result':'未找到匹配的模组，请更换关键词',
+'search_project_placeholder':'输入项目名称关键词...','search_project_btn':'🔎 按名称搜索','search_project_title':'🔎 搜索并添加项目',
+'search_projecting':'正在搜索项目...','search_project_no_result':'没有找到匹配的项目','search_project_fail':'搜索项目失败: {error}',
+'search_project_select':'选择此项目',
 'settings_title':'⚙️ 设置','settings_lang':'语言','settings_theme':'主题','settings_style':'界面风格',
   'theme_dark':'🌙 深色','theme_light':'☀️ 浅色','style_classic':'经典','style_winui':'WinUI','lang_zh':'中文','lang_en':'English',
 'type_label':'类型','type_mod':'🧩 模组','type_rp':'🎨 资源包','type_sp':'✨ 光影包',
@@ -436,7 +451,7 @@ en_US:{'app_title':'⚡ Modpack Manager','app_sub':'Lean & efficient','file_labe
 'dialog_update_success':'Updated {count} mods','dialog_update_select':'Select at least one mod to update','dialog_pack_empty':'No mods in this pack. Pack anyway?','dialog_pack_success':'Generated .mrpack (with mods):\n{path}','dialog_pack_fail':'Pack failed: {error}','dialog_backup_success':'Backup saved to {path}',
 'dialog_import_select':'Select a CSV file','dialog_import_success':'Imported {count} mods','dialog_import_fail':'Import failed: {error}','dialog_export_success':'Exported list to {path}','dialog_local_jar_title':'Add local JAR','dialog_local_jar_prompt':'Select a JAR file',
 'dialog_local_jar_id':'Enter Modrinth project ID (optional):','dialog_detail_title':'Mod Details','dialog_detail_no_id':'No project ID — local info only.','log_download_done':'Downloaded: {filename}',
-'log_download_fail':'Download failed: {filename} - {error}','log_export':'Exported list to {path}','log_import':'Imported {count} mods from {path}','log_refresh':'Loaded {count} mods','log_local_jar':'Added local mod {filename}','log_detail_view':'View details: {name}',
+'log_download_fail':'Download failed: {filename} - {error}','log_export':'Exported list to {path}','log_import':'Imported {count} mods from {path}','log_async_pack_changed':'Pack changed; unfinished operations were discarded','log_refresh':'Loaded {count} mods','log_local_jar':'Added local mod {filename}','log_detail_view':'View details: {name}',
 
 'button_open_selected':'Open Selected','button_open_all':'Open All','button_install_missing':'Install Missing','button_close':'Close','button_cancel':'Cancel',
 'button_select_this':'Select This','button_update_selected':'Update Selected','button_select_all':'☑ Select All','button_show_all':'🔄 Show All','button_show_recommended':'🔄 Show Recommended/Compatible','column_mod_name':'Mod',
@@ -461,6 +476,9 @@ en_US:{'app_title':'⚡ Modpack Manager','app_sub':'Lean & efficient','file_labe
 'home_import_online':'🌐 Import by Name','home_import_online_desc':'Search & download packs online',
 'home_new_pack':'📄 New Pack','home_new_pack_desc':'Create .mrpack or .zip (Modrinth / CurseForge)',
 'edit_empty_hint':'Please import or create a pack on Home first','search_no_result':'No matching mods found. Try another keyword',
+'search_project_placeholder':'Enter a project name...','search_project_btn':'🔎 Search by name','search_project_title':'🔎 Search and add a project',
+'search_projecting':'Searching projects...','search_project_no_result':'No matching projects found','search_project_fail':'Project search failed: {error}',
+'search_project_select':'Select this project',
 'settings_title':'⚙️ Settings','settings_lang':'Language','settings_theme':'Theme','settings_style':'Style',
   'theme_dark':'🌙 Dark','theme_light':'☀️ Light','style_classic':'Classic','style_winui':'WinUI','lang_zh':'中文','lang_en':'English',
 'type_label':'Type','type_mod':'🧩 Mod','type_rp':'🎨 Resource Pack','type_sp':'✨ Shader Pack',
@@ -527,17 +545,25 @@ function set_style(style){if(CURRENT_STYLE===style)return;
   if(sw)sw.classList.toggle('on',style==='winui');
   log(trf('log_style_switch',{style:CURRENT_STYLE}));
   set_status(`Style: ${CURRENT_STYLE}`);}
-let EXPANDED=false,PACK_FORMAT='modrinth',CURRENT_PAGE='home',ADD_TYPE='mod',ADD_PREFIX='mods';
+let EXPANDED=false,PACK_FORMAT='modrinth',CURRENT_PAGE='home',ADD_TYPE='mod';
 const TYPE_PREFIX={mod:'mods',rp:'resourcepacks',sp:'shaderpacks'};
 function entry_type(e){const p=String((e&&e.path)||'').replace(/\\/g,'/');
   if(p.startsWith('resourcepacks/'))return'rp';
   if(p.startsWith('shaderpacks/'))return'sp';return'mod';}
 function entry_prefix(t){return TYPE_PREFIX[t]||'mods';}
+function begin_pack_open(){return++PACK_OPEN_BATCH;}
+function is_current_pack_open(batch){return batch===PACK_OPEN_BATCH;}
 function project_type_to_add_type(pt){return pt==='resourcepack'?'rp':pt==='shader'?'sp':'mod';}
+function build_project_search_facets(add_type,mc_version,loader_api){
+  const pt=add_type==='rp'?'resourcepack':add_type==='sp'?'shader':'mod';
+  const facets=[[`project_type:${pt}`]];
+  if(mc_version)facets.push([`versions:${mc_version}`]);
+  if(add_type==='mod'&&loader_api)facets.push([`categories:${loader_api}`]);
+  return facets;}
 function type_label(t){return t==='rp'?tr('type_rp'):t==='sp'?tr('type_sp'):tr('type_mod');}
-function set_prefix_from_entry(e){ADD_PREFIX=entry_prefix(entry_type(e));}
-let INDEX_DATA=null,ALL_MODS=[],ROWS=[],NAME_BATCH=0,FILTER_TIMER=null;
+let INDEX_DATA=null,ALL_MODS=[],ROWS=[],NAME_BATCH=0,FILTER_TIMER=null,ROW_RENDER_BATCH=0,ROW_RENDER_PENDING=false,PACK_OPEN_BATCH=0;
 let FABRIC_CACHE={all:null,byMc:{}},MC_CACHE=null,NAME_CACHE={};
+const ROW_CACHE=new Map();
 const $=id=>document.getElementById(id);
 const tr=k=>LANG[CURRENT_LANG][k]||k;
 function trf(key,params){let s=LANG[CURRENT_LANG][key]||key;
@@ -568,6 +594,11 @@ async function api_get(url){const opt=(window.AbortSignal&&AbortSignal.timeout)?
   const r=await fetch(url,opt);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 /* 裸 fetch 统一 30s 超时（旧浏览器无 AbortSignal.timeout 则不限制） */
 function fetch_to(){return (window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(30000)}:undefined;}
+async function api_search_projects(query,add_type,mc_version,loader_api){
+  const params=new URLSearchParams({query,limit:'20',
+    facets:JSON.stringify(build_project_search_facets(add_type,mc_version,loader_api))});
+  const data=await api_get(`https://api.modrinth.com/v2/search?${params}`);
+  return Array.isArray(data.hits)?data.hits:[];}
 async function api_fetch_mc_versions(){if(MC_CACHE)return MC_CACHE;
   const d=await api_get('https://api.modrinth.com/v2/tag/game_version');
   MC_CACHE=d.filter(v=>['release','beta','alpha'].includes(v.version_type)).map(v=>v.version);return MC_CACHE;}
@@ -795,6 +826,7 @@ function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
   btnExportZip:'export_zip_btn',gAdd:'add_mod_label',lblType:'type_label',
   typeModTxt:'type_mod',typeRpTxt:'type_rp',typeSpTxt:'type_sp',
   lblAddPlaceholder:'add_mod_placeholder',btnFetch:'fetch_btn',btnAddLocal:'add_local_file',
+  btnSearchProject:'search_project_btn',
   gList:'modlist_label',btnRefresh:'refresh_btn',btnDelete:'delete_btn',btnFolder:'folder_btn',
   btnCheckUpd:'check_update_btn',btnExport:'export_btn',btnImport:'import_btn',
   btnSwitchVer:'switch_ver_btn',btnDiff:'diff_btn',btnDuplicate:'duplicate_btn',
@@ -803,6 +835,7 @@ function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
   lblShowLog:'settings_show_log'};
   for(const id in M)$(id).textContent=t(M[id]);
   $('urlEntry').placeholder=t('add_mod_placeholder');
+  $('projectSearchEntry').placeholder=t('search_project_placeholder');
   apply_log_state();
   $('infoToggle').textContent=EXPANDED?t('collapse_btn'):t('expand_btn');
   $('typeMod').classList.toggle('on',ADD_TYPE==='mod');
@@ -815,12 +848,15 @@ function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
   render_rows();
   if(!$('statusTxt').textContent||$('statusTxt').textContent==='Ready ✅'||$('statusTxt').textContent==='就绪 ✅')
     set_status(t('status_ready'));}
-function show_page(p){CURRENT_PAGE=p;
+function show_page(p){const previous=CURRENT_PAGE;
+  if(previous==='edit'&&p!=='edit'&&ROW_RENDER_PENDING)ROW_RENDER_BATCH++;
+  CURRENT_PAGE=p;
   const map={home:'pageHome',edit:'pageEdit',settings:'pageSettings'};
   for(const k in map)$(map[k]).classList.toggle('show',k===p);
   $('navHome').classList.toggle('on',p==='home');
   $('navEdit').classList.toggle('on',p==='edit');
-  $('navSettings').classList.toggle('on',p==='settings');}
+  $('navSettings').classList.toggle('on',p==='settings');
+  if(p==='edit'&&previous!=='edit'&&ROW_RENDER_PENDING)apply_filter();}
 function set_lang(lang){if(CURRENT_LANG===lang)return;
   CURRENT_LANG=lang;save_config();
   log(trf('log_lang_switch',{lang:CURRENT_LANG}));
@@ -832,7 +868,7 @@ function set_theme(theme){CURRENT_THEME=theme;
   save_config();
   log(trf('log_theme_switch',{theme:CURRENT_THEME}));
   set_status(`Theme: ${CURRENT_THEME}`);}
-function set_add_type(t){ADD_TYPE=t;ADD_PREFIX=entry_prefix(t);
+function set_add_type(t){ADD_TYPE=t;
   $('typeMod').classList.toggle('on',t==='mod');
   $('typeRp').classList.toggle('on',t==='rp');
   $('typeSp').classList.toggle('on',t==='sp');}
@@ -842,31 +878,37 @@ function toggle_info(){EXPANDED=!EXPANDED;
   $('infoToggle').textContent=EXPANDED?tr('collapse_btn'):tr('expand_btn');}
 function open_mrpack(){$('fileMrpack').click();}
 async function handle_open_file(f){
+  const batch=begin_pack_open();
   log(trf('log_opening',{name:f.name}));set_status(tr('status_loading'));progress_show(true);
   try{const zip=await JSZip.loadAsync(f);
-    window._cfPending=null;window._localJars=new Map();
+    if(!is_current_pack_open(batch))return;
     const idx=zip.file('modrinth.index.json');
-    if(idx){INDEX_DATA=JSON.parse(await idx.async('string'));PACK_FORMAT='modrinth';}
+    let nextData,nextFormat='modrinth',nextCfPending=null;
+    if(idx)nextData=JSON.parse(await idx.async('string'));
     else{
       const man=zip.file('manifest.json');
       if(!man)throw new Error(tr('dialog_open_mrpack_fail'));
       let m=null;try{m=JSON.parse(await man.async('string'));}catch{}
       if(!m||!m.minecraft)throw new Error(tr('dialog_open_cf_fail'));
-      INDEX_DATA=cf_manifest_to_index(m);PACK_FORMAT='curseforge';
-      window._cfPending=(m.files||[]).map(x=>({projectID:+x.projectID||0,
+      nextData=cf_manifest_to_index(m);nextFormat='curseforge';
+      nextCfPending=(m.files||[]).map(x=>({projectID:+x.projectID||0,
         fileID:+x.fileID||0,required:x.required!==false}));
-      log(trf('log_cf_open',{count:window._cfPending.length}));}
+    }
     // 扫描覆盖文件：overrides 与客户端专用目录合并到工作区（同名时客户端覆盖通用），server-overrides 原样保留
-    window._ovFiles=new Map();
+    const ovFiles=new Map();
     let nOv=0,nCli=0,nSrv=0;
     const cut=p=>p.slice(p.indexOf('/')+1);
     await Promise.all(Object.values(zip.files).filter(z=>!z.dir).map(async z=>{
       const p=z.name;
-      if(p.startsWith('overrides/')){window._ovFiles.set(cut(p),await z.async('blob'));nOv++;}
-      else if(PACK_FORMAT==='curseforge'&&p.startsWith('clientoverrides/')){window._ovFiles.set(cut(p),await z.async('blob'));nCli++;}
-      else if(PACK_FORMAT==='modrinth'&&p.startsWith('client-overrides/')){window._ovFiles.set(cut(p),await z.async('blob'));nCli++;}
-      else if(PACK_FORMAT==='modrinth'&&p.startsWith('server-overrides/')){window._ovFiles.set(p,await z.async('blob'));nSrv++;}
+      if(p.startsWith('overrides/')){ovFiles.set(cut(p),await z.async('blob'));nOv++;}
+      else if(nextFormat==='curseforge'&&p.startsWith('clientoverrides/')){ovFiles.set(cut(p),await z.async('blob'));nCli++;}
+      else if(nextFormat==='modrinth'&&p.startsWith('client-overrides/')){ovFiles.set(cut(p),await z.async('blob'));nCli++;}
+      else if(nextFormat==='modrinth'&&p.startsWith('server-overrides/')){ovFiles.set(p,await z.async('blob'));nSrv++;}
     }));
+    if(!is_current_pack_open(batch))return;
+    INDEX_DATA=nextData;PACK_FORMAT=nextFormat;
+    window._cfPending=nextCfPending;window._localJars=new Map();window._ovFiles=ovFiles;
+    if(nextCfPending)log(trf('log_cf_open',{count:nextCfPending.length}));
     $('entryFile').value=f.name;
     refresh_format_buttons();
     apply_metadata(INDEX_DATA);refresh_mod_list();save_index_to_state();
@@ -901,7 +943,9 @@ function apply_metadata(data){try{
   else fill_select(lsel,[]);  /* 新包无 loader 依赖时清空下拉，防止上一包的版本残留被写进 deps */
   check_loader_compatibility();
   log(trf('log_loaded_info',{name:data.name||'',mc:deps.minecraft||'',loader:loader,ver:lv}));
-}catch(e){log(trf('dialog_parse_error',{error:e.message}),'ERROR');}}
+}catch(e){if(!is_current_pack_open(batch))return;
+  log(trf('dialog_parse_error',{error:e.message}),'ERROR');
+  progress_hide();set_status(tr('status_ready'));}}
 function reload_metadata(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
   apply_metadata(INDEX_DATA);refresh_mod_list();}
 function save_index_to_state(){if(!INDEX_DATA)return false;
@@ -938,10 +982,8 @@ function dl_blob(blob,name){const u=URL.createObjectURL(blob),a=document.createE
   setTimeout(()=>URL.revokeObjectURL(u),1500);}
 function current_files(){return INDEX_DATA?INDEX_DATA.files||[]:[];}
 function refresh_mod_list(silent){if(!INDEX_DATA)return;
-  const batch=++NAME_BATCH;let pending=0;
+  const batch=++NAME_BATCH,missingNames=new Map(),pathOccurrences=new Map();
   ALL_MODS=[];
-  const onName=()=>{if(NAME_BATCH!==batch)return;
-    if(--pending<=0)apply_filter();};
   for(const entry of current_files()){
     const p=entry.path||'';const filename=p.split(/[/\\]/).pop();
     const version=extract_version(filename);
@@ -950,17 +992,23 @@ function refresh_mod_list(silent){if(!INDEX_DATA)return;
       project_id=parse_project_id_from_url(entry.downloads[0]);
     let display_name=project_id?(NAME_CACHE[project_id]||filename):filename;
     if(entry.cf)display_name=CF_NAME_CACHE.get(entry.cf.projectID)||filename;
+    const occurrence=pathOccurrences.get(p)||0;pathOccurrences.set(p,occurrence+1);
     const mod_entry={path:p,filename,version,display_name,project_id,
-      etype:entry_type(entry),raw_entry:entry,is_cf:!!entry.cf};
+      etype:entry_type(entry),raw_entry:entry,is_cf:!!entry.cf,_rowKey:`${p}\u0000${occurrence}`};
     ALL_MODS.push(mod_entry);
-    if(project_id&&!NAME_CACHE[project_id]){pending++;
-      async_fetch_name(project_id,mod_entry,batch,onName);}}
+    if(project_id&&!NAME_CACHE[project_id]){
+      if(!missingNames.has(project_id))missingNames.set(project_id,[]);
+      missingNames.get(project_id).push(mod_entry);}}
+  const activeKeys=new Set(ALL_MODS.map(m=>m._rowKey));
+  for(const key of ROW_CACHE.keys())if(!activeKeys.has(key))ROW_CACHE.delete(key);
   apply_filter();
+  if(missingNames.size)fetch_mod_names(missingNames,batch);
   if(!silent)log(trf('log_refresh',{count:ALL_MODS.length}),'SUCCESS');}
-async function async_fetch_name(pid,mod_entry,batch,onDone){
-  const name=await api_fetch_project_name(pid);
-  if(NAME_BATCH!==batch)return;
-  mod_entry.display_name=name;onDone();}
+async function fetch_mod_names(missingNames,batch){
+  await pool_run([...missingNames.keys()],8,async pid=>{
+    const name=await api_fetch_project_name(pid);
+    (missingNames.get(pid)||[]).forEach(entry=>entry.display_name=name);});
+  if(NAME_BATCH===batch)apply_filter();}
 function debounce_filter(){clearTimeout(FILTER_TIMER);
   FILTER_TIMER=setTimeout(apply_filter,300);}
 function clear_search(){$('searchEntry').value='';apply_filter();}
@@ -975,23 +1023,38 @@ function render_rows(filtered){
   if(filtered===undefined)filtered=ALL_MODS;
   const tree=$('tree');
   if(!tree)return;
-  tree.innerHTML='';ROWS=[];
+  tree.replaceChildren();ROWS=[];
+  const generation=++ROW_RENDER_BATCH;
+  ROW_RENDER_PENDING=false;
   if(!INDEX_DATA){
     tree.appendChild(el('div','empty-hint',tr('edit_empty_hint')));return;}
   if(!filtered.length){
     tree.appendChild(el('div','empty-hint',
       $('searchEntry').value.trim()?tr('search_no_result'):tr('edit_empty_mods')));return;}
   const widths=['22%','19%','9%','8%','42%'];
-  filtered.forEach((entry,idx)=>{
-    const row=el('div',null,null,'mrow'+(idx%2===1?' zebra':''));
-    row._raw=entry;row._selected=false;
-    const vals=[entry.display_name||entry.filename||tr('unknown'),entry.filename||'',
-      entry.version||'',type_label(entry.etype||'mod'),entry.path||''];
-    vals.forEach((v,i)=>{const c=el('div','width:'+widths[i],v);
-      c.onclick=()=>toggle_row(row);
-      c.ondblclick=()=>show_mod_detail(row);
-      row.appendChild(c);});
-    tree.appendChild(row);ROWS.push(row);});}
+  const chunkSize=60;
+  ROW_RENDER_PENDING=filtered.length>0;
+  function renderChunk(start=0){
+    if(generation!==ROW_RENDER_BATCH||!tree.isConnected)return;
+    const fragment=document.createDocumentFragment(),end=Math.min(start+chunkSize,filtered.length);
+    for(let idx=start;idx<end;idx++){
+      const entry=filtered[idx],key=entry._rowKey||`${entry.path||''}\u0000${idx}`;
+      let row=ROW_CACHE.get(key);
+      if(!row){row=el('div',null,null,'mrow');row._cells=[];
+        widths.forEach((width,i)=>{const cell=el('div','width:'+width);
+          cell.onclick=()=>toggle_row(row);cell.ondblclick=()=>show_mod_detail(row);
+          row.appendChild(cell);row._cells.push(cell);});
+        ROW_CACHE.set(key,row);}
+      row._raw=entry;row._selected=false;
+      row.classList.toggle('zebra',idx%2===1);row.classList.remove('sel');
+      const vals=[entry.display_name||entry.filename||tr('unknown'),entry.filename||'',
+        entry.version||'',type_label(entry.etype||'mod'),entry.path||''];
+      row._cells.forEach((cell,i)=>{if(cell.textContent!==String(vals[i]))cell.textContent=vals[i];});
+      fragment.appendChild(row);ROWS.push(row);}
+    tree.appendChild(fragment);
+    if(end<filtered.length)requestAnimationFrame(()=>renderChunk(end));
+    else ROW_RENDER_PENDING=false;}
+  renderChunk();}
 function toggle_row(row){row._selected=!row._selected;
   row.classList.toggle('sel',row._selected);}
 function selected_rows(){return ROWS.filter(r=>r._selected);}
@@ -1080,6 +1143,7 @@ async function check_loader_compatibility(){
   else if(compatible.includes(current)){lbl.textContent=tr('compat_compatible');lbl.className='compat ok';}
   else{lbl.textContent=tr('compat_incompatible');lbl.className='compat bad';}}
 async function fetch_versions_from_url(){
+  const pack=INDEX_DATA;
   const url=$('urlEntry').value.trim();
   if(!url){alert(tr('warn_need_url'));return;}
   const project_id=parse_project_id_from_url(url);
@@ -1089,17 +1153,63 @@ async function fetch_versions_from_url(){
   let add_type=ADD_TYPE;
   try{
     const meta=await api_fetch_project_meta(project_id);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
     const mapped=project_type_to_add_type(meta?meta.project_type:'mod');
     if(mapped!=='mod')add_type=mapped;
     set_add_type(add_type);
     const loader_api=add_type==='mod'?(LOADER_API[$('comboLoaderType').value]||'fabric'):null;
     const all_v=await api_get_all_versions(project_id,mc_ver,loader_api);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
     if(!all_v.length){alert(tr('dialog_no_version'));set_status(tr('status_ready'));return;}
     let default_v=all_v.filter(v=>v.featured);
     if(!default_v.length)default_v=all_v.slice(0,1);
-    show_selector(default_v,all_v,project_id,mc_ver,loader_api);
+    show_selector(default_v,all_v,project_id,mc_ver,loader_api,
+      version=>add_version(version,entry_prefix(add_type),pack));
   }catch(e){alert(trf('dialog_version_fetch',{error:e.message}));}
   set_status(tr('status_ready'));}
+function search_projects_to_add(){
+  const initialQuery=$('projectSearchEntry').value.trim();
+  build_win(tr('search_project_title'),'760px','600px',win=>{
+    win.bd.style.display='flex';win.bd.style.flexDirection='column';
+    const box=el('div','display:flex;gap:6px;padding:6px 10px;flex-shrink:0');
+    const inp=document.createElement('input');inp.style.flex='1';
+    inp.placeholder=tr('search_project_placeholder');
+    inp.value=initialQuery;
+    const st=el('div','text-align:center;padding:4px;flex-shrink:0','','hint');
+    const results=el('div','flex:1;overflow:auto;padding:4px 10px');
+    let requestId=0;
+    const search=async()=>{
+      const query=inp.value.trim();if(!query)return;
+      const id=++requestId,addType=ADD_TYPE,mc=$('comboMc').value.trim(),pack=INDEX_DATA;
+      const loader=addType==='mod'?(LOADER_API[$('comboLoaderType').value]||'fabric'):null;
+      st.textContent=tr('search_projecting');results.replaceChildren();
+      try{
+        const hits=await api_search_projects(query,addType,mc,loader);
+        if(id!==requestId||!win.bd.isConnected||INDEX_DATA!==pack)return;
+        st.textContent='';
+        if(!hits.length){st.textContent=tr('search_project_no_result');return;}
+        hits.forEach(h=>{
+          const row=el('div','padding:8px 10px;margin:4px 0;border-radius:6px','','sel-row');
+          row.appendChild(el('div','font-weight:600',h.title||'?'));
+          row.appendChild(el('div','font-size:11px;color:var(--muted)',
+            trf('online_by',{author:h.author||'?',dl:h.downloads||0})));
+          const desc=String(h.description||'').slice(0,140);
+          if(desc)row.appendChild(el('div','font-size:11px;color:var(--muted)',desc));
+          const pick=mkbtn(tr('search_project_select'),'btn-accent','140px',()=>{
+            if(!h.project_id)return;
+            if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');return;}
+            set_add_type(addType);
+            $('urlEntry').value=h.project_id;close_win();fetch_versions_from_url();});
+          pick.style.height='28px';pick.style.marginTop='5px';row.appendChild(pick);
+          results.appendChild(row);});
+      }catch(e){
+        if(id!==requestId||!win.bd.isConnected||INDEX_DATA!==pack)return;
+        st.textContent=trf('search_project_fail',{error:e.message});}}
+    const btn=mkbtn(tr('search_project_btn'),'btn-accent2','120px',search);
+    box.append(inp,btn);win.bd.append(box,st,results);
+    win.ft.appendChild(mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')search();});
+    inp.focus();if(initialQuery)search();});}
 function show_selector(default_versions,all_versions,project_id,mc_ver,loader_api,on_select_callback){
   build_win(trf('selector_title',{id:project_id}),'1000px','650px',win=>{
     const col_widths=['25%','25%','23%','18%','9%'];
@@ -1146,16 +1256,18 @@ function show_selector(default_versions,all_versions,project_id,mc_ver,loader_ap
       const filterLbl=el('div','text-align:center;padding:2px 0',ftxt,'hint');
       win.ft.parentNode.insertBefore(filterLbl,win.ft);}
     populate(default_versions);});}
-function build_mod_entry(version_data,prefix){
-  const f=version_data.files[0],pre=prefix||ADD_PREFIX;
+function build_mod_entry(version_data,prefix='mods'){
+  const f=version_data.files[0],pre=prefix||'mods';
   const e={path:`${pre}/${f.filename}`,
     hashes:{sha1:(f.hashes&&f.hashes.sha1)||'',sha512:(f.hashes&&f.hashes.sha512)||''},
-    downloads:[f.url],fileSize:f.size};
+    downloads:[f.url],fileSize:f.size||0};
   if(f.env)e.env=f.env;  // 保留 Modrinth client/server 环境标记
   return e;}
-function add_version(version_data){
+function add_version(version_data,prefix='mods',expected_pack=INDEX_DATA){
   try{const f=version_data.files[0];const filename=f.filename;
-    const entry=build_mod_entry(version_data);
+    if(!expected_pack||INDEX_DATA!==expected_pack){
+      log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+    const entry=build_mod_entry(version_data,prefix);
     if(current_files().some(fe=>fe.path===entry.path)){
       if(!confirm(trf('dialog_version_exists',{filename}))){
         log(trf('log_add_exists',{filename}),'WARNING');return;}}
@@ -1168,7 +1280,7 @@ function add_version(version_data){
     if(deps.length)show_dependency_dialog(deps,filename);
   }catch(e){log(trf('log_add_version_fail',{error:String(e)}),'ERROR');
     alert(trf('dialog_version_fetch',{error:String(e)}));}}
-function show_dependency_dialog(dep_ids,filename){
+function show_dependency_dialog(dep_ids,filename,expected_pack=INDEX_DATA){
   build_win(tr('dialog_dep_prompt'),'700px','500px',win=>{
     win.bd.before(el('div',null,trf('dialog_dep_prompt',{filename}),'bold-md'));
     const installed_ids=new Set();
@@ -1194,18 +1306,23 @@ function show_dependency_dialog(dep_ids,filename){
       const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
       let ok=0;progress_show();
       for(let di=0;di<missing.length;di++){
+        if(INDEX_DATA!==expected_pack){
+          log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
         const d=missing[di];progress_set(di+1,missing.length);
         log(trf('log_dep_fetch',{name:d.name}));
         try{const latest=await api_get_latest_version(d.id,mc_ver,loader_api);
+          if(INDEX_DATA!==expected_pack){
+            log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
           if(!latest){log(trf('dialog_dep_fetch_fail',{name:d.name}),'WARNING');continue;}
-          ADD_PREFIX='mods';
-          const entry=build_mod_entry(latest);
+          const entry=build_mod_entry(latest,'mods');
           if(current_files().some(fe=>fe.path===entry.path)){
             log(trf('log_dep_exists',{name:d.name}),'WARNING');continue;}
           INDEX_DATA.files.push(entry);ok++;
           log(trf('log_dep_added',{name:d.name}),'SUCCESS');
         }catch(e){log(trf('log_dep_add_fail',{name:d.name,error:String(e)}),'ERROR');}}
       progress_hide();
+      if(INDEX_DATA!==expected_pack){
+        log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
       if(ok>0){alert(trf('dialog_dep_add_success',{count:ok}));
         refresh_mod_list();save_index_to_state();close_win();}
       else alert(tr('dep_none_added'));}
@@ -1241,23 +1358,30 @@ $('fileCsv').addEventListener('change',async e=>{const f=e.target.files[0];e.tar
   log(trf('log_csv_import_start',{name:f.name}));set_status(tr('status_loading'));
   const mc_ver=$('comboMc').value.trim();
   const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+  const pack=INDEX_DATA;
   progress_show();
   try{const text=(await f.text()).replace(/^﻿/,'');
     const lines=text.split(/\r?\n/).filter(l=>l.trim());
     if(!lines.length){alert(tr('dialog_csv_empty'));progress_hide();set_status(tr('status_ready'));return;}
     const headers=parse_csv_line(lines[0]);
     const pidCol=headers.findIndex(h=>/project.?id/i.test(h));
+    const pathCol=headers.findIndex(h=>/^path$/i.test(h.trim()));
     const rows=lines.slice(1).map(parse_csv_line);
     const new_entries=[];let i=0;
     for(const row of rows){i++;
       set_status(trf('csv_importing',{i,count:rows.length}));progress_set(i,rows.length);
       const pid=(row[pidCol>=0?pidCol:0]||'').trim();
       if(!pid)continue;
-      let latest=null;try{latest=await api_get_latest_version(pid,mc_ver,loader_api);}catch{}
+      const csvPath=(row[pathCol]||'').replace(/\\/g,'/');
+      const prefix=entry_prefix(entry_type({path:csvPath}));
+      const useLoader=prefix==='mods'?loader_api:null;
+      let latest=null;try{latest=await api_get_latest_version(pid,mc_ver,useLoader);}catch{}
+      if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
       if(!latest){log(trf('log_no_compat_version',{pid}),'WARNING');continue;}
-      try{ADD_PREFIX='mods';const entry=build_mod_entry(latest);
+      try{const entry=build_mod_entry(latest,prefix);
         if(!new_entries.some(ne=>ne.path===entry.path))new_entries.push(entry);}
       catch{log(trf('log_version_data_bad',{pid}),'WARNING');}}
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
     const existing=new Set(current_files().map(fe=>fe.path));
     const to_add=new_entries.filter(ne=>!existing.has(ne.path));
     if(to_add.length){manual_backup();INDEX_DATA.files.push(...to_add);}
@@ -1275,18 +1399,20 @@ function parse_csv_line(line){const out=[];let cur='',inQ=false;
 function add_local_jar(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
   $('fileJar').click();}
 async function handle_local_jar_file(f){
+  const pack=INDEX_DATA;
   try{const buf=await f.arrayBuffer();
     const s1=await sha1_hex(buf);
     let prefix=entry_prefix(ADD_TYPE);
     const latest=await api_lookup_version_by_hash(s1);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
     if(latest){
       const meta=await api_fetch_project_meta(latest.project_id);
+      if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
       if(meta&&project_type_to_add_type(meta.project_type)!=='mod'){
         const at=project_type_to_add_type(meta.project_type);
         prefix=entry_prefix(at);set_add_type(at);
       }
-      ADD_PREFIX=prefix;
-      const entry=build_mod_entry(latest);
+      const entry=build_mod_entry(latest,prefix);
       log(trf('log_jar_identified',{filename:f.name,
         project:latest.project_id||'?',version:latest.version_number||'?'}),'SUCCESS');
       backup_silent();
@@ -1294,7 +1420,6 @@ async function handle_local_jar_file(f){
       refresh_mod_list();save_index_to_state();return;}
     log(trf('log_jar_unknown',{filename:f.name}),'WARNING');
     const project_id=prompt(tr('dialog_local_jar_id'))||'';
-    ADD_PREFIX=prefix;
     const entry={path:`${prefix}/${f.name}`,
       hashes:{sha1:s1,sha512:await sha512_hex(buf)},
       downloads:[],fileSize:f.size};
@@ -2028,6 +2153,7 @@ async function switch_mod_version(){const sel=selected_rows();
   if(sel.length!==1){alert(tr('dialog_switch_select'));return;}
   if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
   const mod=sel[0]._raw;
+  const pack=INDEX_DATA;
   const pid=mod.project_id||parse_project_id_from_url((mod.raw_entry.downloads||[])[0]||'');
   if(!pid){alert(tr('dialog_detail_no_id'));return;}
   const mc=$('comboMc').value.trim();
@@ -2035,15 +2161,17 @@ async function switch_mod_version(){const sel=selected_rows();
   log(trf('log_fetch_versions',{pid:pid}));set_status(tr('status_loading'));
   try{
     const all_v=await api_get_all_versions(pid,mc,loader);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
     if(!all_v.length){alert(tr('dialog_no_version'));set_status(tr('status_ready'));return;}
     let def=all_v.filter(v=>v.featured);
     if(!def.length)def=all_v.slice(0,1);
     show_selector(def,all_v,pid,mc,loader,ver=>{
+      if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');return;}
       const f=ver.files&&ver.files[0];
       if(!f){alert(trf('log_version_data_bad',{pid:pid}));return;}
       backup_silent();
-      set_prefix_from_entry(mod.raw_entry);
-      const new_entry=build_mod_entry(ver);
+      const prefix=(mod.raw_entry.path||'mods/').replace(/\\/g,'/').split('/')[0]||'mods';
+      const new_entry=build_mod_entry(ver,prefix);
       const idx=current_files().findIndex(fe=>fe.path===mod.raw_entry.path);
       if(idx>=0)INDEX_DATA.files[idx]=new_entry;
       else INDEX_DATA.files.push(new_entry);
@@ -2101,6 +2229,7 @@ async function download_all_mods(){
 ['entryName','entryVersion','comboMc','comboLoaderType','comboLoaderVer'].forEach(id=>{
   $(id).addEventListener('change',()=>{if(INDEX_DATA)save_index_to_state();});});
 $('urlEntry').addEventListener('keydown',e=>{if(e.key==='Enter')fetch_versions_from_url();});
+$('projectSearchEntry').addEventListener('keydown',e=>{if(e.key==='Enter')search_projects_to_add();});
 $('searchEntry').addEventListener('keydown',e=>{if(e.key==='Enter')apply_filter();});
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')close_win();
