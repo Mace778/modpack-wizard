@@ -23,10 +23,29 @@ except ImportError:
     _ctk.set_default_color_theme = lambda *a, **k: None
     _ctk.set_widget_scaling = lambda *a, **k: None
     sys.modules['customtkinter'] = _ctk
+try:
+    import tkinter  # noqa: F401
+except ImportError:
+    _tk = types.ModuleType('tkinter')
+
+    class _StubVar:
+        def __init__(self, *a, **k):
+            self._v = None
+
+        def set(self, v):
+            self._v = v
+
+        def get(self):
+            return self._v
+    _tk.StringVar = _tk.BooleanVar = _tk.IntVar = _tk.DoubleVar = _StubVar
+    for _name in ('filedialog', 'messagebox', 'simpledialog'):
+        setattr(_tk, _name, types.SimpleNamespace())
+    sys.modules['tkinter'] = _tk
 
 from ModpackWizard import (build_mod_entry, build_project_search_facets,
-                           entry_prefix, entry_type, is_current_pack_open,
-                           mod_match, remove_entries_by_indices)
+                           easy_switch_selectable, entry_prefix, entry_type,
+                           is_current_pack_open, mod_match,
+                           remove_entries_by_indices)
 
 E = {
     'display_name': ' sodium ',
@@ -144,6 +163,20 @@ class TestPackOpenAndDuplicateRemoval(unittest.TestCase):
         other = {'path': 'mods/other.jar'}
         self.assertEqual(remove_entries_by_indices([keep, extra, other], {1}),
                          [keep, other])
+
+
+class TestEasySwitchSelectable(unittest.TestCase):
+    def test_ok_is_selectable(self):
+        self.assertTrue(easy_switch_selectable({'status': 'ok'}))
+
+    def test_bad_unknown_local_not_selectable(self):
+        self.assertFalse(easy_switch_selectable({'status': 'bad'}))
+        self.assertFalse(easy_switch_selectable({'status': 'unknown'}))
+        self.assertFalse(easy_switch_selectable({'status': 'local'}))
+
+    def test_missing_status_not_selectable(self):
+        self.assertFalse(easy_switch_selectable({}))
+        self.assertFalse(easy_switch_selectable(None))
 
 
 if __name__ == '__main__':

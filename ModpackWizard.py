@@ -164,6 +164,20 @@ LANG = {
   'log_easy_switch_start': '版本易切开始（目标 MC={mc}，加载器={loader}）...',
   'log_easy_switch_done': '版本易切完成：兼容 {ok}，不支持 {bad}，无法检测 {unk}',
   'log_easy_switch_upgrade': '升级完成：成功 {ok}，失败 {fail}',
+  'log_easy_switch_fail': '版本易切失败：{error}',
+  'log_easy_switch_applied': '已同步包依赖：MC={mc}，{loader}={ver}',
+  'log_update_entry_fail': '条目升级失败 {filename}：{error}',
+  'easy_switch_cur_deps': '当前依赖：MC {mc} · {loader} {ver}',
+  'easy_switch_step1_hint': '选择目标 MC 版本和加载器后点击「检查兼容性」，将逐条检测每个条目在目标版本下的兼容性。',
+  'easy_switch_back': '← 上一步', 'easy_switch_next': '下一步 →',
+  'easy_switch_still_checking': '检查尚未完成，请稍候',
+  'easy_switch_need_select': '请至少勾选一个可升级条目',
+  'easy_switch_no_loader_ver': '目标 MC 下没有可用的 {loader} 版本，请返回上一步调整目标',
+  'easy_switch_confirm_intro': '即将升级以下 {count} 个条目：',
+  'easy_switch_confirm_deps': '依赖将同步切换：MC {old_mc} → {new_mc} · 加载器 → {loader}',
+  'easy_switch_confirm_hint': '升级仅替换索引中的下载信息，文件由启动器按新地址下载。',
+  'easy_switch_finish': '升级完成：成功 {ok}，失败 {fail}。包依赖已同步。',
+  'easy_switch_finish_fail_hint': '部分条目升级失败，详见日志。',
   'dlg_dup_title': '重复检测', 'dlg_dup_none': '未发现重复', 'dlg_dup_intro': '检测到 {count} 组重复：',
   'dlg_dup_delete_extra': '删除多余的（保留每组第一个）', 'dlg_compat_title': '兼容性体检', 'dlg_compat_ok': '所有模组兼容',
   'dlg_compat_issues': '发现 {count} 个不兼容模组：', 'dlg_compat_skip_cf': '已跳过 {count} 个 CurseForge 条目', 'dlg_stats_title': '统计面板',
@@ -316,6 +330,20 @@ LANG = {
   'log_easy_switch_start': 'Version switch started (target MC={mc}, loader={loader})...',
   'log_easy_switch_done': 'Version switch done: compatible {ok}, unsupported {bad}, unknown {unk}',
   'log_easy_switch_upgrade': 'Upgrade done: success {ok}, failed {fail}',
+  'log_easy_switch_fail': 'Version switch failed: {error}',
+  'log_easy_switch_applied': 'Pack dependencies updated: MC={mc}, {loader}={ver}',
+  'log_update_entry_fail': 'Failed to upgrade {filename}: {error}',
+  'easy_switch_cur_deps': 'Current deps: MC {mc} · {loader} {ver}',
+  'easy_switch_step1_hint': 'Pick the target MC version and loader, then click "Check Compatibility" to test every entry against the target.',
+  'easy_switch_back': '← Back', 'easy_switch_next': 'Next →',
+  'easy_switch_still_checking': 'Check is still running, please wait',
+  'easy_switch_need_select': 'Select at least one upgradable entry',
+  'easy_switch_no_loader_ver': 'No {loader} version available for the target MC; go back and adjust the target',
+  'easy_switch_confirm_intro': 'The following {count} entries will be upgraded:',
+  'easy_switch_confirm_deps': 'Dependencies will switch: MC {old_mc} → {new_mc} · loader → {loader}',
+  'easy_switch_confirm_hint': 'Upgrades only rewrite download info in the index; launchers download files from the new URLs.',
+  'easy_switch_finish': 'Upgrade finished: {ok} succeeded, {fail} failed. Pack dependencies synced.',
+  'easy_switch_finish_fail_hint': 'Some entries failed to upgrade; see the log for details.',
   'dlg_dup_title': 'Duplicate Detection', 'dlg_dup_none': 'No duplicates found', 'dlg_dup_intro': 'Found {count} duplicate groups:',
   'dlg_dup_delete_extra': 'Delete extras (keep first of each group)', 'dlg_compat_title': 'Compatibility Check', 'dlg_compat_ok': 'All mods are compatible',
   'dlg_compat_issues': 'Found {count} incompatible mods:', 'dlg_compat_skip_cf': 'Skipped {count} CurseForge mods', 'dlg_stats_title': 'Statistics',
@@ -682,6 +710,10 @@ def entry_type(entry):
     return 'mod'
 def entry_prefix(t):
     return TYPE_PREFIX.get(t, 'mods')
+
+def easy_switch_selectable(res):
+    """版本易切条目是否可勾选升级：仅兼容项可选"""
+    return bool(res) and res.get('status') == 'ok'
 
 def is_current_pack_open(batch, current_batch):
     return batch == current_batch
@@ -3694,7 +3726,7 @@ class ModPackApp:
         self._btn(win, tr('button_close'), win.destroy, 'gray', width=100, padx=0)
 
     def easy_switch_check(self):
-        """版本易切：检查当前整合包切换目标 MC/加载器后的兼容性并支持升级"""
+        """版本易切向导：① 选目标 → ② 检查兼容 → ③ 确认升级 → ④ 完成"""
         path = self._index_path_or_warn()
         if not path:
             return
@@ -3705,271 +3737,419 @@ class ModPackApp:
         if not files:
             messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_no_mods'))
             return
-        expected_path = path
-
-        # 弹窗：目标 MC + 加载器选择
         win = self._win(tr('easy_switch_title'), "760x560")
-        self.easy_win = win
-        form = ctk.CTkFrame(win, fg_color="transparent")
-        form.pack(fill='x', padx=12, pady=(10, 4))
+        self._easy_switch_wizard(win, path, data, files)
+
+    def _easy_switch_wizard(self, win, path, data, files):
+        """向导式版本易切：分步选目标、检查、确认、执行"""
+        deps0 = data.get('dependencies') or {}
+        cur_key = next((k for k in ('fabric-loader', 'forge', 'neoforge')
+                        if deps0.get(k)), 'fabric-loader')
+        cur_name = {'fabric-loader': 'Fabric', 'forge': 'Forge',
+                    'neoforge': 'NeoForge'}.get(cur_key, 'Fabric')
+        gen = [0]  # 代次令牌：回退/重查/关窗时 +1，使旧线程回调失效
+        state = {'searching': False, 'target': None, 'rows': [], 'results': [], 'sel': []}
+
+        container = ctk.CTkFrame(win, fg_color="transparent")
+        container.pack(fill='both', expand=True, padx=12, pady=(10, 4))
+        pages = [ctk.CTkFrame(container, fg_color="transparent") for _ in range(4)]
+        footer = ctk.CTkFrame(win, fg_color="transparent")
+        footer.pack(fill='x', pady=8)
+
+        def alive():
+            try:
+                return bool(win.winfo_exists())
+            except Exception:
+                return False
+
+        def set_footer(lock):
+            for w in footer.winfo_children():
+                try:
+                    if w.cget('text') != tr('button_close'):
+                        w.configure(state='disabled' if lock else 'normal')
+                except Exception:
+                    pass
+
+        def close_wizard():
+            gen[0] += 1
+            try:
+                win.grab_release()
+            except Exception:
+                pass
+            win.destroy()
+        win.protocol("WM_DELETE_WINDOW", close_wizard)
+
+        def show_step(n):
+            for p in pages:
+                p.pack_forget()
+            pages[n - 1].pack(fill='both', expand=True)
+            for w in footer.winfo_children():
+                w.destroy()
+            if n == 1:
+                self._btn(footer, tr('easy_switch_search_btn'), start_check,
+                          'accent2', width=150, padx=8)
+                self._btn(footer, tr('button_close'), close_wizard, 'gray', width=80, padx=8)
+            elif n == 2:
+                self._btn(footer, tr('easy_switch_back'), lambda: show_step(1),
+                          'gray', width=110, padx=8)
+                self._btn(footer, tr('easy_switch_next'), goto_confirm,
+                          'accent2', width=110, padx=8)
+                self._btn(footer, tr('button_close'), close_wizard, 'gray', width=80, padx=8)
+            elif n == 3:
+                self._btn(footer, tr('easy_switch_back'), lambda: show_step(2),
+                          'gray', width=110, padx=8)
+                self._btn(footer, tr('easy_switch_upgrade_btn'), do_upgrade,
+                          'success', width=140, padx=8)
+            else:
+                self._btn(footer, tr('button_close'), close_wizard, 'gray', width=80, padx=8)
+
+        # 第 1 步：选择目标版本
+        p1 = pages[0]
+        ctk.CTkLabel(p1, text=tr('easy_switch_cur_deps').format(
+            mc=deps0.get('minecraft') or '-', loader=cur_name,
+            ver=deps0.get(cur_key) or '-'),
+            font=FONT_SM, text_color=C['muted'], anchor='w').pack(fill='x', pady=2)
+        form = ctk.CTkFrame(p1, fg_color="transparent")
+        form.pack(fill='x', pady=8)
         ctk.CTkLabel(form, text=tr('easy_switch_target_mc'), font=FONT_SM,
                      text_color=C['muted']).pack(side='left')
-        self.easy_mc_var = ctk.StringVar(value=self.combo_mc.get().strip() or "1.20.1")
-        ctk.CTkEntry(form, textvariable=self.easy_mc_var, width=140,
+        mc_var = ctk.StringVar(value=self.combo_mc.get().strip() or "1.20.1")
+        ctk.CTkEntry(form, textvariable=mc_var, width=150,
                      font=FONT_SM).pack(side='left', padx=(4, 16))
         ctk.CTkLabel(form, text=tr('easy_switch_target_loader'), font=FONT_SM,
                      text_color=C['muted']).pack(side='left')
-        self.easy_loader_var = ctk.StringVar(value=self.loader_var.get())
-        ctk.CTkComboBox(form, values=["Fabric", "Forge", "NeoForge"],
-                        variable=self.easy_loader_var, width=120,
-                        font=FONT_SM, state="readonly").pack(side='left', padx=4)
-        self._btn(form, tr('easy_switch_search_btn'), self._easy_switch_start,
-                  'accent2', width=150, padx=12)
+        loader_var = ctk.StringVar(value=cur_name)
+        ctk.CTkComboBox(form, values=["Fabric", "Forge", "NeoForge"], variable=loader_var,
+                        width=130, font=FONT_SM, state="readonly").pack(side='left', padx=4)
+        ctk.CTkLabel(p1, text=tr('easy_switch_step1_hint'), font=FONT_SM,
+                     text_color=C['muted'], anchor='w', wraplength=680,
+                     justify='left').pack(fill='x', pady=6)
 
-        # 状态 + 统计
-        self.easy_status_lbl = ctk.CTkLabel(win, text=tr('easy_switch_stats').format(ok='-', bad='-',
-            unk='-', local='-'), font=FONT_SM, text_color=C['muted'])
-        self.easy_status_lbl.pack(fill='x', pady=2)
-        self.easy_stats_lbl = ctk.CTkLabel(win, text="", font=FONT_BOLD, text_color=C['accent'])
-        self.easy_stats_lbl.pack(fill='x', pady=2)
+        # 第 2 步：检查兼容性
+        p2 = pages[1]
+        prog = ctk.CTkProgressBar(p2, height=8)
+        prog.pack(fill='x', pady=(6, 2))
+        prog.set(0)
+        stats_lbl = ctk.CTkLabel(p2, text=tr('easy_switch_stats').format(
+            ok='-', bad='-', unk='-', local='-'), font=FONT_BOLD, text_color=C['accent'])
+        stats_lbl.pack(fill='x', pady=2)
+        status_lbl = ctk.CTkLabel(p2, text='', font=FONT_SM, text_color=C['muted'])
+        status_lbl.pack(fill='x', pady=2)
+        scroll = ctk.CTkScrollableFrame(p2, fg_color=C['zebra'], corner_radius=10)
+        scroll.pack(fill='both', expand=True, pady=4)
 
-        # 结果列表
-        self.easy_scroll = ctk.CTkScrollableFrame(win, fg_color=C['zebra'], corner_radius=10)
-        self.easy_scroll.pack(fill='both', expand=True, padx=10, pady=4)
+        # 第 3 步：确认升级 / 第 4 步：完成
+        p3 = pages[2]
+        p4 = pages[3]
 
-        btns = ctk.CTkFrame(win, fg_color="transparent")
-        btns.pack(fill='x', pady=8)
-        self._btn(btns, tr('button_select_all'), self._easy_switch_toggle_all, 'gray', width=140, padx=6)
-        self._btn(btns, tr('easy_switch_upgrade_btn'), self._easy_switch_upgrade, 'success', width=140, padx=6)
-        self._btn(btns, tr('button_close'), win.destroy, 'gray', width=80, padx=6)
-
-        self.easy_rows = []
-        self.easy_results = []
-        self.easy_expected_path = expected_path
-        self._easy_switch_start()
-
-    def _easy_switch_start(self):
-        """后台并发检查兼容性"""
-        target_mc = self.easy_mc_var.get().strip()
-        target_loader = LOADER_API.get(self.easy_loader_var.get(), "fabric")
-        if not target_mc:
-            messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_select_mc'))
-            return
-        self.log(tr('log_easy_switch_start').format(mc=target_mc, loader=target_loader))
-        self.set_status(tr('status_loading'))
-        self.progress_show()
-        todo = []
-        for entry in self._load_index(self.easy_expected_path).get('files', []):
-            pid = parse_project_id_from_url((entry.get('downloads') or [None])[0] or '')
-            todo.append({
-                'pid': pid, 'cf': entry.get('cf'), 'entry': entry,
-                'etype': entry_type(entry),
-                'filename': os.path.basename(entry.get('path', ''))
-            })
-
-        def task():
-            results = []
+        def start_check():
+            if state['searching']:
+                return
+            target_mc = mc_var.get().strip()
+            loader_name = loader_var.get() or 'Fabric'
+            target_loader = LOADER_API.get(loader_name, 'fabric')
+            if not target_mc:
+                messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_select_mc'))
+                return
+            gen[0] += 1
+            my_gen = gen[0]
+            state['searching'] = True
+            state['target'] = None
+            state['rows'] = []
+            state['results'] = []
+            state['sel'] = []
+            for w in scroll.winfo_children():
+                w.destroy()
+            prog.set(0)
+            stats_lbl.configure(text=tr('easy_switch_stats').format(
+                ok='-', bad='-', unk='-', local='-'))
+            status_lbl.configure(text='')
+            show_step(2)
+            set_footer(True)
+            self.log(tr('log_easy_switch_start').format(mc=target_mc, loader=target_loader))
+            todo = []
+            for i, entry in enumerate(files):
+                pid = parse_project_id_from_url(
+                    (entry.get('downloads') or [None])[0] or '')
+                todo.append({'i': i, 'pid': pid, 'cf': entry.get('cf'), 'entry': entry,
+                             'etype': entry_type(entry),
+                             'filename': os.path.basename(entry.get('path', ''))})
             total = len(todo)
-            done = 0
-            with ThreadPoolExecutor(max_workers=20) as ex:
-                futs = {ex.submit(self._easy_switch_check_one, m, target_mc, target_loader): m
-                        for m in todo}
-                for fut in as_completed(futs):
-                    m = futs[fut]
-                    done += 1
-                    self.root.after(0, lambda d=done, t=total: self.progress_set(d, t))
+            results = []
+
+            def check_one(m):
+                res = {'i': m['i'], 'entry': m['entry'], 'etype': m['etype'],
+                       'filename': m['filename'], 'status': 'local',
+                       'target_ver': '', 'latest_data': None, 'name': None}
+                try:
+                    if m.get('cf'):
+                        # cf_get_project_versions 已按目标 mc/loader 过滤，有结果即兼容
+                        vs = cf_get_project_versions(m['cf']['projectID'], target_mc,
+                                                     target_loader if m['etype'] == 'mod' else None)
+                        if vs:
+                            latest = max(vs, key=lambda v: v['file_id'])
+                            res['name'] = self.cache.get_name(m['cf']['projectID']) or m['filename']
+                            res['target_ver'] = extract_version(latest.get('name', ''))
+                            res['latest_data'] = {'cfProjectID': m['cf']['projectID'],
+                                                  'cfFileID': latest['file_id'],
+                                                  'filename': latest.get('name', ''),
+                                                  'filesize': latest.get('filesize', 0)}
+                            res['status'] = 'ok'
+                        else:
+                            res['status'] = 'bad'
+                    elif m.get('pid'):
+                        vs = self.api.get_all_versions(m['pid'], target_mc,
+                                                       target_loader if m['etype'] == 'mod' else None)
+                        if vs:
+                            latest = vs[0]
+                            res['name'] = self.cache.get_name(m['pid']) or m['filename']
+                            res['target_ver'] = (latest.get('version_number')
+                                                 or extract_version(latest.get('name', '')))
+                            res['latest_data'] = latest
+                            res['status'] = 'ok'
+                        else:
+                            res['status'] = 'bad'
+                except Exception:
+                    res['status'] = 'unknown'
+                return res
+
+            def on_progress(my, d):
+                if my != gen[0] or not alive():
+                    return
+                prog.set(d / total if total else 1.0)
+                status_lbl.configure(text=tr('easy_switch_checking').format(i=d, count=total))
+
+            def on_fail(my, err):
+                if my != gen[0] or not alive():
+                    return
+                state['searching'] = False
+                set_footer(False)
+                self.log(tr('log_easy_switch_fail').format(error=err), 'ERROR')
+                status_lbl.configure(text=tr('log_easy_switch_fail').format(error=err))
+
+            def check_done(my, loader_vers):
+                if my != gen[0] or not alive():
+                    return
+                state['searching'] = False
+                set_footer(False)
+                results.sort(key=lambda r: r['i'])
+                state['results'] = results
+                state['target'] = {'mc': target_mc, 'loader_name': loader_name,
+                                   'loader_key': LOADER_KEYS.get(loader_name, 'fabric-loader'),
+                                   'loader_vers': loader_vers, 'loader_ver': ''}
+                cnt = lambda s: sum(1 for r in results if r['status'] == s)
+                self.log(tr('log_easy_switch_done').format(
+                    ok=cnt('ok'), bad=cnt('bad'), unk=cnt('unknown')),
+                    'WARNING' if cnt('bad') else 'SUCCESS')
+                status_lbl.configure(text=tr('log_easy_switch_done').format(
+                    ok=cnt('ok'), bad=cnt('bad'), unk=cnt('unknown')))
+                render_results()
+
+            def render_results():
+                status_map = {'ok': tr('easy_switch_status_ok'),
+                              'bad': tr('easy_switch_status_bad'),
+                              'unknown': tr('easy_switch_status_unknown'),
+                              'local': tr('easy_switch_status_local')}
+                type_map = {'mod': tr('type_mod'), 'rp': tr('type_rp'), 'sp': tr('type_sp')}
+                for r in results:
+                    sel_ok = easy_switch_selectable(r)
+                    var = ctk.BooleanVar(value=sel_ok)
+                    wrap = ctk.CTkFrame(scroll, fg_color="transparent")
+                    wrap.pack(fill='x', pady=1)
+                    ctk.CTkCheckBox(wrap, text='', width=24, variable=var,
+                                    state='normal' if sel_ok else 'disabled').pack(
+                        side='left', padx=(4, 0))
+                    tip = (r.get('name') or r['filename'],
+                           type_map.get(r['etype'], r['etype']),
+                           status_map.get(r['status'], r['status']),
+                           r.get('target_ver') or '-', r['entry'].get('path', ''))
+                    ctk.CTkLabel(wrap, text=f"{tip[0]}  [{tip[1]}]  {tip[2]}  → {tip[3]}   {tip[4]}",
+                                 anchor='w', font=FONT_SM,
+                                 text_color=C['text_light'] if sel_ok else C['muted']
+                                 ).pack(side='left', padx=4, fill='x')
+                    state['rows'].append({'res': r, 'var': var})
+                update_sel()
+
+            def task():
+                my = my_gen
+                done = [0]
+
+                def report():
+                    done[0] += 1
+                    self.root.after(0, lambda d=done[0]: on_progress(my, d))
+                try:
+                    with ThreadPoolExecutor(max_workers=20) as ex:
+                        for res in ex.map(check_one, todo):
+                            results.append(res)
+                            report()
+                except Exception as e:
+                    err = str(e)
+                    self.root.after(0, lambda: on_fail(my, err))
+                    return
+                try:
+                    loader_vers = self.fetch_loader_versions_for_mc(loader_name, target_mc) or []
+                except Exception:
+                    loader_vers = []
+                self.root.after(0, lambda: check_done(my, loader_vers))
+            self._thread(task)
+
+        def update_sel():
+            n = sum(1 for r in state['rows']
+                    if r['var'].get() and easy_switch_selectable(r['res']))
+            okc = sum(1 for r in state['results'] if r['status'] == 'ok')
+            if alive():
+                status_lbl.configure(text=tr('update_selected').format(n=n, total=okc))
+
+        def goto_confirm():
+            if state['searching']:
+                messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_still_checking'))
+                return
+            tgt = state.get('target')
+            if not tgt:
+                return
+            sel = [r for r in state['rows']
+                   if r['var'].get() and easy_switch_selectable(r['res'])]
+            if not sel:
+                messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_need_select'))
+                return
+            loader_ver = ''
+            if tgt['loader_key'] == cur_key and deps0.get('minecraft') == tgt['mc']:
+                loader_ver = deps0.get(tgt['loader_key']) or ''
+            if not loader_ver and tgt['loader_vers']:
+                loader_ver = tgt['loader_vers'][0]
+            if not loader_ver:
+                messagebox.showinfo(tr('dialog_title_tip'),
+                                    tr('easy_switch_no_loader_ver').format(
+                                        loader=tgt['loader_name']))
+                return
+            tgt['loader_ver'] = loader_ver
+            state['sel'] = sel
+            for w in p3.winfo_children():
+                w.destroy()
+            ctk.CTkLabel(p3, text=tr('easy_switch_confirm_intro').format(count=len(sel)),
+                         font=FONT_BOLD, anchor='w').pack(fill='x', pady=(4, 2))
+            box = ctk.CTkFrame(p3, fg_color=C['zebra'], corner_radius=10)
+            box.pack(fill='both', expand=True, pady=4)
+            for r in sel:
+                res = r['res']
+                ctk.CTkLabel(box, text=(f"{res.get('name') or res['filename']}"
+                                        f"  →  {res.get('target_ver') or '-'}"),
+                             anchor='w', font=FONT_SM).pack(fill='x', padx=10, pady=1)
+            ctk.CTkLabel(p3, text=tr('easy_switch_confirm_deps').format(
+                old_mc=deps0.get('minecraft') or '-', new_mc=tgt['mc'],
+                loader=f"{tgt['loader_name']} {loader_ver}"),
+                font=FONT_SM, text_color=C['warning'], anchor='w').pack(fill='x', pady=4)
+            ctk.CTkLabel(p3, text=tr('easy_switch_confirm_hint'), font=FONT_SM,
+                         text_color=C['muted'], anchor='w', wraplength=680,
+                         justify='left').pack(fill='x', pady=2)
+            show_step(3)
+
+        def do_upgrade():
+            sel = state.get('sel') or []
+            tgt = state.get('target') or {}
+            if not sel or not tgt.get('loader_ver'):
+                show_step(2)
+                return
+            if self.index_path.get().strip() != path:
+                self.log(tr('log_async_pack_changed'), 'WARNING')
+                close_wizard()
+                return
+            gen[0] += 1
+            my = gen[0]
+            for w in p4.winfo_children():
+                w.destroy()
+            ctk.CTkLabel(p4, text=tr('status_downloading'), font=FONT_BOLD,
+                         text_color=C['accent']).pack(pady=20)
+            show_step(4)
+
+            def build_one(r):
+                ld = r['res']['latest_data']
+                old_prefix = (r['res']['entry'].get('path', 'mods/').split('/')[0])
+                if 'cfProjectID' in ld:
+                    url = cf_cdn_url(ld['cfFileID'], ld['filename'])
+                    hashes, size = {}, ld.get('filesize', 0)
                     try:
-                        res = fut.result()
-                    except Exception:
-                        res = {'entry': m['entry'], 'etype': m['etype'],
-                               'filename': m['filename'], 'status': 'unknown'}
-                    results.append(res)
-            self.root.after(0, lambda: self._easy_switch_done(results))
-        self._thread(task)
+                        hashes, size = compute_hashes_from_url(url)
+                    except Exception as e:
+                        err, fn = str(e), ld.get('filename', '')
+                        self.root.after(0, lambda: alive() and self.log(
+                            tr('log_cf_nohash').format(filename=fn, error=err), 'WARNING'))
+                    old_cf = r['res']['entry'].get('cf') or {}
+                    return (r['res']['entry'].get('path'), {
+                        'path': f"{old_prefix}/{ld['filename']}", 'hashes': hashes,
+                        'downloads': [url], 'fileSize': size,
+                        'cf': {'projectID': ld['cfProjectID'], 'fileID': ld['cfFileID'],
+                               'required': old_cf.get('required', True)}}, True)
+                return (r['res']['entry'].get('path'),
+                        build_mod_entry(ld, old_prefix), False)
 
-    def _easy_switch_check_one(self, m, target_mc, target_loader):
-        """检查单个条目标 MC/loader 下的兼容性"""
-        res = {'entry': m['entry'], 'etype': m['etype'],
-               'filename': m['filename'], 'status': 'local',
-               'target_ver': '', 'latest_data': None, 'name': None}
-        try:
-            if m.get('cf'):
-                vs = cf_get_project_versions(m['cf']['projectID'], target_mc,
-                                              target_loader if m['etype'] == 'mod' else None)
-                if vs:
-                    latest = max(vs, key=lambda v: v['file_id'])
-                    name = self.cache.get_name(m['cf']['projectID']) or m['filename']
-                    res['name'] = name
-                    res['target_ver'] = extract_version(latest.get('name', ''))
-                    res['latest_data'] = {'cfProjectID': m['cf']['projectID'],
-                                          'cfFileID': latest['file_id'],
-                                          'filename': latest.get('name', ''),
-                                          'filesize': latest.get('filesize', 0)}
-                    # CF 兼容判定：有版本即可升级，不做 mc/loader 过滤（cf_get_project_versions 已过滤）
-                    res['status'] = 'ok'
-                else:
-                    res['status'] = 'bad'
-            elif m.get('pid'):
-                vs = self.api.get_all_versions(m['pid'], target_mc,
-                                               target_loader if m['etype'] == 'mod' else None)
-                if vs:
-                    latest = vs[0]
-                    res['name'] = self.cache.get_name(m['pid']) or m['filename']
-                    res['target_ver'] = latest.get('version_number') or extract_version(latest.get('name', ''))
-                    res['latest_data'] = latest
-                    res['status'] = 'ok'
-                else:
-                    res['status'] = 'bad'
-        except Exception:
-            res['status'] = 'unknown'
-        return res
+            def apply_built(built, fail_n, my):
+                if my != gen[0] or not alive():
+                    return
+                ok = 0
+                try:
+                    fresh = self._load_index(path)
+                    if fresh is None:
+                        raise RuntimeError('reload index failed')
+                    ffiles = fresh.get('files', [])
+                    p2i = {f.get('path'): i for i, f in enumerate(ffiles)}
+                    for old_path, new_entry, _ in built:
+                        idx = p2i.get(old_path)
+                        if idx is not None:
+                            ffiles[idx] = new_entry
+                            ok += 1
+                    fresh['files'] = ffiles
+                    deps = fresh.get('dependencies') or {}
+                    for k in ('fabric-loader', 'forge', 'neoforge'):
+                        if k != tgt['loader_key']:
+                            deps.pop(k, None)
+                    deps['minecraft'] = tgt['mc']
+                    deps[tgt['loader_key']] = tgt['loader_ver']
+                    fresh['dependencies'] = deps
+                    self._save_index(fresh)
+                    self.refresh_mod_list()
+                    self.reload_metadata()
+                except Exception as e:
+                    err = str(e)
+                    self.log(tr('log_easy_switch_fail').format(error=err), 'ERROR')
+                fail_n += len(sel) - ok
+                self.log(tr('log_easy_switch_upgrade').format(ok=ok, fail=fail_n),
+                         'SUCCESS' if ok else 'ERROR')
+                if not alive():
+                    return
+                for w in p4.winfo_children():
+                    w.destroy()
+                ctk.CTkLabel(p4, text=tr('easy_switch_finish').format(ok=ok, fail=fail_n),
+                             font=FONT_BOLD, text_color=C['accent'], wraplength=680,
+                             justify='left').pack(fill='x', pady=(16, 6))
+                ctk.CTkLabel(p4, text=tr('log_easy_switch_applied').format(
+                    mc=tgt['mc'], loader=tgt['loader_name'], ver=tgt['loader_ver']),
+                    font=FONT_SM, text_color=C['muted'], anchor='w').pack(fill='x', pady=2)
+                if fail_n:
+                    ctk.CTkLabel(p4, text=tr('easy_switch_finish_fail_hint'),
+                                 font=FONT_SM, text_color=C['danger'],
+                                 anchor='w').pack(fill='x', pady=2)
 
-    def _easy_switch_done(self, results):
-        """渲染版本易切检查结果"""
-        self.progress_hide()
-        self.set_status(tr('status_ready'))
-        self.easy_results = results
-        if not results:
-            return
-        ok = sum(1 for r in results if r['status'] == 'ok')
-        bad = sum(1 for r in results if r['status'] == 'bad')
-        unk = sum(1 for r in results if r['status'] == 'unknown')
-        self.log(tr('log_easy_switch_done').format(ok=ok, bad=bad, unk=unk),
-            'WARNING' if bad else 'SUCCESS')
+            def task():
+                built, fail_n = [], [0]
 
-        # 清空列表
-        for w in self.easy_scroll.winfo_children():
-            w.destroy()
-        self.easy_rows = []
-        self._easy_switch_update_stats()
-
-        status_map = {'ok': tr('easy_switch_status_ok'),
-                      'bad': tr('easy_switch_status_bad'),
-                      'unknown': tr('easy_switch_status_unknown'),
-                      'local': tr('easy_switch_status_local')}
-        for r in results:
-            wrap = ctk.CTkFrame(self.easy_scroll, fg_color="transparent", corner_radius=4)
-            wrap.pack(fill='x', pady=1)
-            row = ctk.CTkFrame(wrap, fg_color="transparent", corner_radius=4)
-            row.pack(fill='x', padx=2)
-            row._res = r
-            row._selected = (r['status'] == 'ok')
-
-            name = r.get('name') or r['filename']
-            status_txt = status_map.get(r['status'], r['status'])
-            target = r.get('target_ver') or '-'
-            path = r['entry'].get('path', '')
-
-            ctk.CTkLabel(row, text=name, width=200, anchor='w',
-                         font=FONT_SM).pack(side='left', padx=4)
-            ctk.CTkLabel(row, text={'mod': tr('type_mod'), 'rp': tr('type_rp'), 'sp': tr('type_sp')}.get(r['etype'], r['etype']), width=60,
-                         font=FONT_SM).pack(side='left')
-            ctk.CTkLabel(row, text=status_txt, width=100,
-                         font=FONT_SM).pack(side='left')
-            ctk.CTkLabel(row, text=target, width=120,
-                         font=FONT_SM).pack(side='left')
-            ctk.CTkLabel(row, text=path, anchor='w',
-                         font=FONT_SM, text_color=C['muted']).pack(side='left', padx=4, fill='x')
-
-            def toggle(_e=None, row=row):
-                if row._res['status'] in ('ok', 'unknown', 'local'):
-                    row._selected = not row._selected
-                    row.configure(fg_color=C['selected'] if row._selected else "transparent")
-                    self._easy_switch_update_stats()
-
-            row.bind('<Button-1>', toggle)
-            for w in row.winfo_children():
-                w.bind('<Button-1>', toggle)
-            if row._selected:
-                row.configure(fg_color=C['selected'])
-
-            self.easy_rows.append(row)
-
-    def _easy_switch_update_stats(self):
-        if not self.easy_results:
-            return
-        ok = sum(1 for r in self.easy_results if r['status'] == 'ok')
-        bad = sum(1 for r in self.easy_results if r['status'] == 'bad')
-        unk = sum(1 for r in self.easy_results if r['status'] == 'unknown')
-        self.easy_status_lbl.configure(
-            text=tr('easy_switch_stats').format(ok=ok, bad=bad, unk=unk, local=sum(1 for r in self.easy_results if r['status'] == 'local')))
-        total_upg = sum(1 for r in self.easy_rows
-                        if r._res['status'] in ('ok', 'unknown', 'local'))
-        selected = sum(1 for r in self.easy_rows if r._selected)
-        self.easy_stats_lbl.configure(
-            text=tr('update_selected').format(n=selected, total=total_upg))
-
-    def _easy_switch_toggle_all(self):
-        target = not all(r._selected for r in self.easy_rows
-                         if r._res['status'] in ('ok', 'unknown', 'local'))
-        for r in self.easy_rows:
-            if r._res['status'] in ('ok', 'unknown', 'local'):
-                r._selected = target
-                r.configure(fg_color=C['selected'] if target else "transparent")
-        self._easy_switch_update_stats()
-
-    def _easy_switch_upgrade(self):
-        sel = [r for r in self.easy_rows if r._selected]
-        if not sel:
-            messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_no_compatible'))
-            return
-        if self.index_path.get().strip() != self.easy_expected_path:
-            self.log(tr('log_async_pack_changed'), 'WARNING')
-            return
-        if not messagebox.askyesno(tr('dialog_title_tip'),
-                                   tr('dialog_update_apply').format(count=len(sel))):
-            return
-        try:
-            with open(self.easy_expected_path, 'r', encoding='utf-8') as f:
-                pack = json.load(f)
-        except Exception as e:
-            self.log(tr('log_read_fail').format(error=str(e)), 'ERROR')
-            return
-        files = pack.get('files', [])
-        path_to_idx = {f.get('path'): i for i, f in enumerate(files)}
-        ok = 0
-        for row in sel:
-            res = row._res
-            idx = path_to_idx.get(res['entry'].get('path'))
-            if idx is None or not res.get('latest_data'):
-                continue
-            try:
-                if res['status'] == 'ok':
-                    ld = res['latest_data']
-                    old_prefix = (res['entry'].get('path', 'mods/').split('/')[0])
-                    if 'cfProjectID' in ld:
-                        # CF 条目：构造 cf_cdn_url + cf 字段
-                        pid_fid_url = f"https://mediafilez.forgecdn.net/files/{ld['cfFileID'] // 1000}/{ld['cfFileID'] % 1000}/{ld['filename']}"
-                        old_cf = res['entry'].get('cf', {})
-                        files[idx] = {
-                            'path': f"{old_prefix}/{ld['filename']}",
-                            'hashes': {}, 'env': res['entry'].get('env', {}),
-                            'downloads': [pid_fid_url],
-                            'fileSize': ld.get('filesize', 0),
-                            'cf': {'projectID': ld['cfProjectID'], 'fileID': ld['cfFileID'],
-                                   'required': old_cf.get('required', True)}}
-                    else:
-                        files[idx] = build_mod_entry(ld, old_prefix)
-                    ok += 1
-            except Exception:
-                pass
-        pack['files'] = files
-        try:
-            with open(self.easy_expected_path, 'w', encoding='utf-8') as f:
-                json.dump(pack, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            self.log(tr('log_update_entry_fail').format(
-                filename=res['filename'], error=str(e)), 'ERROR')
-            return
-        self.log(tr('log_easy_switch_upgrade').format(ok=ok, fail=len(sel) - ok),
-                 'SUCCESS' if ok else 'ERROR')
-        self.refresh_mod_list()
-        messagebox.showinfo(tr('dialog_title_done'),
-                            tr('dialog_update_success').format(count=ok))
-        try:
-            self.easy_win.destroy()
-        except Exception:
-            pass
+                def run_one(r):
+                    try:
+                        return build_one(r)
+                    except Exception as e:
+                        err, fn = str(e), r['res']['filename']
+                        self.root.after(0, lambda: alive() and self.log(
+                            tr('log_update_entry_fail').format(filename=fn, error=err),
+                            'ERROR'))
+                        fail_n[0] += 1
+                        return None
+                with ThreadPoolExecutor(max_workers=6) as ex:
+                    for item in ex.map(run_one, sel):
+                        if item:
+                            built.append(item)
+                self.root.after(0, lambda: apply_built(built, fail_n[0], my))
+            self._thread(task)
+        show_step(1)
 
     # ---------- 统计面板 ----------
     def show_stats(self):

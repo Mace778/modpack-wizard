@@ -37,6 +37,8 @@ const is_current_pack_open = new Function('return ' +
 const remove_duplicate_entry = new Function('return ' +
   extractFunction('function remove_duplicate_entry(pack,entry,local_jars,override_files){',
     'remove_duplicate_entry'))();
+const easy_switch_selectable = new Function('return ' +
+  extractFunction('function easy_switch_selectable(res){', 'easy_switch_selectable'))();
 
 const E = {
   display_name: ' sodium ',
@@ -122,6 +124,14 @@ const deletedPath = lastPathPack.files[0];
 const staleOverrides = new Map([[deletedPath.path, { file: 'stale' }]]);
 remove_duplicate_entry(lastPathPack, deletedPath, new Map(), staleOverrides);
 t('删除最后一个路径条目时清理覆盖源', staleOverrides.has(deletedPath.path), false);
+
+t('易切可选：兼容项', easy_switch_selectable({ status: 'ok' }), true);
+t('易切不可选：不支持项', easy_switch_selectable({ status: 'bad' }), false);
+t('易切不可选：未知项', easy_switch_selectable({ status: 'unknown' }), false);
+t('易切不可选：本地项', easy_switch_selectable({ status: 'local' }), false);
+t('易切不可选：缺失状态', easy_switch_selectable({}), false);
+t('易切不可选：null', easy_switch_selectable(null), false);
+t('易切不可选：undefined', easy_switch_selectable(undefined), false);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
