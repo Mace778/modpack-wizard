@@ -23,21 +23,6 @@
       --nav-width: 180px;
     }
 
-    [data-theme="dark"] {
-      --bg: #0f172a;
-      --panel: #111827;
-      --panel-soft: #1f2937;
-      --border: #334155;
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --accent: #60a5fa;
-      --accent-strong: #3b82f6;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --shadow: 0 8px 24px rgba(2, 6, 23, 0.42);
-    }
-
     * { box-sizing: border-box; }
 
     html, body {
@@ -307,6 +292,7 @@
 
     .muted {
       color: var(--muted);
+      line-height: 1.6;
     }
 
     @media (max-width: 720px) {
@@ -337,7 +323,7 @@
     <header id="topbar">
       <div id="title-wrap">
         <div id="app-title">ModpackWizard</div>
-        <div id="app-subtitle">Lean & efficient</div>
+        <div id="app-subtitle">Simple desktop style</div>
       </div>
     </header>
 
@@ -414,25 +400,16 @@
         <section id="settings" class="page">
           <div class="panel settings-box">
             <div class="section">
-              <h2>Appearance</h2>
-              <div class="row">
-                <span class="label">Language</span>
-                <select id="langSelect" aria-label="Language selector">
-                  <option value="zh_CN">中文</option>
-                  <option value="en_US">English</option>
-                </select>
-              </div>
-              <div class="row">
-                <span class="label">Theme</span>
-                <select id="themeSelect" aria-label="Theme selector">
-                  <option value="dark">Dark</option>
-                  <option value="light">Light</option>
-                </select>
+              <h2>General</h2>
+              <div class="muted">
+                This interface uses a clean standard desktop style with no WinUI or Fluent visual layer.
               </div>
             </div>
             <div class="section">
               <h2>About</h2>
-              <div class="muted">This UI has been simplified to remove the WinUI/Fluent visual layer and use a neutral, standard application style.</div>
+              <div class="muted">
+                The project now runs with a neutral application look and basic controls only.
+              </div>
             </div>
           </div>
         </section>
@@ -441,27 +418,6 @@
   </div>
 
   <script>
-    const body = document.body;
-    const langSelect = document.getElementById('langSelect');
-    const themeSelect = document.getElementById('themeSelect');
-
-    const setTheme = (theme) => {
-      body.setAttribute('data-theme', theme);
-      themeSelect.value = theme;
-      try {
-        localStorage.setItem('modpackwizard_theme', theme);
-      } catch (e) {}
-    };
-
-    const setLanguage = (language) => {
-      const lang = language === 'en_US' ? 'en_US' : 'zh_CN';
-      document.documentElement.lang = lang === 'en_US' ? 'en' : 'zh-CN';
-      langSelect.value = lang;
-      try {
-        localStorage.setItem('modpackwizard_lang', lang);
-      } catch (e) {}
-    };
-
     document.querySelectorAll('.nav-btn').forEach((button) => {
       button.addEventListener('click', () => {
         const target = button.dataset.page;
@@ -469,14 +425,6 @@
         document.querySelectorAll('.page').forEach((page) => page.classList.toggle('active', page.id === target));
       });
     });
-
-    themeSelect.addEventListener('change', (e) => setTheme(e.target.value));
-    langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
-
-    const savedTheme = localStorage.getItem('modpackwizard_theme') || 'dark';
-    const savedLang = localStorage.getItem('modpackwizard_lang') || 'zh_CN';
-    setTheme(savedTheme);
-    setLanguage(savedLang);
   </script>
 </body>
 </html>
