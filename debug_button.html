@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>调试版本易切按钮</title>
+    <style>
+        .btn-accent2 { background: #8b5cf6; padding: 8px 16px; border: none; border-radius: 4px; color: white; cursor: pointer; }
+        #bottomBtns { display: flex; gap: 6px; padding: 6px 0; justify-content: center; }
+        .page { display: none; }
+        .page.show { display: flex; }
+        #pageEdit { display: flex; }
+    </style>
+</head>
+<body>
+    <div class="page show" id="pageEdit">
+        <div id="editGrid">
+            <div id="editLeft">
+                <div class="group">
+                    <div class="gtitle">测试区域</div>
+                    <div id="bottomBtns">
+                        <button class="btn-accent2" id="btnEasySwitch">版本易切</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟简单的i18n
+        const LANG = {
+            zh_CN: {
+                'btn_easy_switch': '🔁 版本易切'
+            }
+        };
+
+        function apply_texts() {
+            const t = k => LANG['zh_CN'][k] || k;
+            const btn = document.getElementById('btnEasySwitch');
+            if (btn) {
+                btn.textContent = t('btn_easy_switch');
+                console.log('按钮文本已设置:', btn.textContent);
+            } else {
+                console.error('按钮未找到');
+            }
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成');
+            apply_texts();
+            
+            // 检查按钮是否存在
+            const btn = document.getElementById('btnEasySwitch');
+            if (btn) {
+                console.log('按钮存在，文本:', btn.textContent);
+                console.log('按钮样式:', window.getComputedStyle(btn).display);
+            } else {
+                console.error('按钮不存在');
+            }
+        });
+    </script>
+</body>
+</html>

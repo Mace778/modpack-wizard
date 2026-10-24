@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>版本易切功能测试</title>
+    <style>
+        .btn-accent2 { 
+            background: #8b5cf6; 
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 4px; 
+            color: white; 
+            cursor: pointer; 
+            margin: 4px;
+        }
+        .btn-accent2:hover { background: #7c3aed; }
+        #bottomBtns { 
+            display: flex; 
+            gap: 6px; 
+            padding: 6px 0; 
+            justify-content: center; 
+            flex-wrap: wrap;
+        }
+        .page { display: none; }
+        .page.show { display: flex; }
+        #pageEdit { 
+            display: flex; 
+            width: 100%;
+            flex-direction: column;
+        }
+        .group { 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page show" id="pageEdit">
+        <div id="editGrid">
+            <div id="editLeft">
+                <div class="group">
+                    <div class="gtitle">测试区域</div>
+                    <div style="margin: 10px 0;">
+                        <button class="btn-accent2" id="btnEasySwitch" onclick="easy_switch_check()">版本易切</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简化的i18n
+        const LANG = {
+            zh_CN: {
+                'btn_easy_switch': '🔁 版本易切',
+                'dialog_file_not_found': '文件不存在',
+                'easy_switch_no_mods': '整合包中没有模组条目',
+                'easy_switch_title': '版本易切 — 切换目标 MC/加载器'
+            }
+        };
+
+        const CURRENT_LANG = 'zh_CN';
+
+        function tr(key) {
+            return LANG[CURRENT_LANG][key] || key;
+        }
+
+        function apply_texts() {
+            console.log('应用文本...');
+            const btn = document.getElementById('btnEasySwitch');
+            if (btn) {
+                btn.textContent = tr('btn_easy_switch');
+                console.log('按钮文本已设置为:', btn.textContent);
+            } else {
+                console.error('按钮未找到');
+            }
+        }
+
+        function easy_switch_check() {
+            console.log('版本易切按钮被点击');
+            alert('版本易切功能测试成功！');
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM内容加载完成');
+            apply_texts();
+            
+            // 检查按钮
+            const btn = document.getElementById('btnEasySwitch');
+            if (btn) {
+                console.log('✅ 按钮存在');
+                console.log('按钮文本:', btn.textContent);
+                console.log('按钮样式:', window.getComputedStyle(btn).display);
+                console.log('按钮可见性:', btn.offsetParent !== null);
+            } else {
+                console.error('❌ 按钮不存在');
+            }
+        });
+
+        // 窗口加载完成后执行
+        window.addEventListener('load', function() {
+            console.log('窗口加载完成');
+            // 再次检查按钮
+            const btn = document.getElementById('btnEasySwitch');
+            if (btn) {
+                console.log('✅ 按钮在窗口加载后仍然存在');
+            }
+        });
+    </script>
+</body>
+</html>

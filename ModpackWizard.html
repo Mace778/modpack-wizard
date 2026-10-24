@@ -71,21 +71,7 @@
 --mica:#252525;--mica-strong:#2d2d2d;
 --border:#3a3a3a;--text:#e5e5e5;--muted:#9ca3af;
 --header:#1f1f1f;--zebra:#2a2a2a;--row-hover:#30343a;--selected:#33465c}
-/* WinUI 浅色：与 :root 一致，显式声明使风格自包含 */
-[data-style="winui"]{
---accent:#0078D4;--accent-h:#106EBE;
---mica:#F3F3F3;--mica-strong:#FFFFFF;
---border:#E5E5E5;--text:#1A1A1A;--muted:#5D5D5D;
---header:#e8e8e8;--zebra:#fafafa;--row-hover:#e5efff;--selected:#cce4f7;
---radius-ctrl:4px;--radius-card:8px;
---font-family:'Segoe UI Variable Text','Microsoft YaHei UI','Segoe UI',system-ui,sans-serif}
-/* WinUI 深色 */
-[data-style="winui"][data-theme="dark"]{
---accent:#4CC2FF;--accent-h:#6FD0FF;
---mica:#202020;--mica-strong:#2B2B2B;
---border:#3D3D3D;--text:#FFFFFF;--muted:#C5C5C5;
---header:#1a1a1a;--zebra:#1f1f1f;--row-hover:#232c3a;--selected:#294058}
-/* WinUI 专属：焦点环与微动效（经典风格不加，保持原观感） */
+/* winui 风格与 :root 默认 token 完全一致，无需再声明；仅 WinUI 专属的焦点环与微动效在此 */
 [data-style="winui"] button:focus-visible,
 [data-style="winui"] input:focus-visible,
 [data-style="winui"] select:focus-visible{
@@ -106,24 +92,34 @@ height:var(--ctrl-height);padding:0 14px;color:var(--text-dark);transition:backg
 input,select{font:13px var(--font-family);padding:5px 9px;border:1px solid var(--border);
 border-radius:var(--radius-ctrl);background:var(--mica-strong);color:var(--text);outline:none;height:var(--ctrl-height)}
 input:focus{border-color:var(--accent)}
-#bar{display:flex;align-items:center;gap:8px;height:56px;margin:12px 12px 10px;padding:0 20px;
-background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);flex-shrink:0}#bar .t{font-size:20px;font-weight:600;color:var(--accent);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#bar .sub{font-size:12px;color:var(--muted);margin-left:2px;white-space:nowrap}#bar .tool{margin-left:auto;display:flex;gap:10px}
+#bar{display:flex;align-items:center;gap:8px;height:58px;margin:12px 12px 10px;padding:0 20px;
+background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);
+box-shadow:0 1px 4px rgba(0,0,0,.06);flex-shrink:0}
+#bar .t{font-size:20px;font-weight:700;color:var(--accent);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#bar .sub{font-size:12px;color:var(--muted);margin-left:2px;white-space:nowrap}#bar .tool{margin-left:auto;display:flex;gap:10px}
 #body{flex:1;display:grid;grid-template-columns:minmax(170px,170px) minmax(0,1fr);gap:8px;padding:0 12px;overflow:hidden;min-height:0}
 #nav{background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);
 padding:14px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
 #nav .nt{font-weight:600;color:var(--accent);font-size:14px;padding:4px 8px 14px;line-height:1.4}
-#nav button{height:44px;text-align:left;padding:0 14px;background:var(--gray);color:var(--text-light);width:100%}
-#nav button:hover{background:var(--gray-h)}#nav button.on{background:var(--accent);color:var(--text-dark)}
+#nav button{height:42px;text-align:left;padding:0 12px;background:transparent;color:var(--text-light);width:100%;
+position:relative;font-size:13px;transition:background .12s,color .12s}
+#nav button:hover{background:var(--gray)}
+#nav button.on{background:var(--row-hover);color:var(--accent);font-weight:600}
+#nav button.on::after{content:'';position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:2px;background:var(--accent)}
 #pages{position:relative;overflow:hidden;min-height:0;min-width:0}
 .page{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
 .page.show{display:flex;animation:page-enter .14s ease-out both}
 @keyframes page-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.page.show{animation:none}}
 #pageHome{align-items:center;overflow-y:auto;padding-top:46px}
-.home-title{font-size:26px;font-weight:600;color:var(--accent)}
+.home-title{font-size:30px;font-weight:700;
+background:linear-gradient(135deg,var(--accent),var(--accent2));
+-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 .home-sub{color:var(--muted);margin:6px 0 26px;font-size:13px}
-.home-card{width:520px;max-width:92%;height:78px;border-radius:var(--radius-card);color:#fff;font-size:15px;
-font-weight:600;line-height:1.5;margin:7px 0;text-align:left;padding:0 22px;white-space:normal}
+.home-card{width:520px;max-width:92%;height:88px;border-radius:var(--radius-card);color:#fff;font-size:15px;
+font-weight:600;line-height:1.5;margin:7px 0;text-align:left;padding:0 22px;white-space:normal;
+box-shadow:0 2px 8px rgba(0,0,0,.12);transition:transform .15s,box-shadow .15s,filter .15s}
+.home-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.2);filter:brightness(1.05)}
+.home-card:active{transform:translateY(0) scale(.99)}
 .home-card small{display:block;font-size:12px;font-weight:400;opacity:.92}
 #pageSettings{overflow-y:auto;align-items:center}
 .settings-box{width:480px;max-width:92%;margin-top:36px}
@@ -131,7 +127,9 @@ font-weight:600;line-height:1.5;margin:7px 0;text-align:left;padding:0 22px;whit
 #editLeft{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-width:0}
 #right{display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .group{background:var(--mica);border:1px solid var(--border);border-radius:var(--radius-card);
-padding:0 14px 12px;margin-bottom:10px}.group>.gtitle{font-weight:600;color:var(--accent);padding:10px 0 6px}#groupList{display:flex;flex-direction:column;flex:1;min-height:0}.radio-row{display:flex;gap:24px;padding:2px 0}
+padding:0 14px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.group>.gtitle{font-weight:600;color:var(--accent);padding:10px 0 6px;display:flex;align-items:center;gap:8px}
+.group>.gtitle::before{content:'';width:4px;height:14px;border-radius:2px;background:var(--accent);flex-shrink:0}#groupList{display:flex;flex-direction:column;flex:1;min-height:0}.radio-row{display:flex;gap:24px;padding:2px 0}
 .radio-item{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;user-select:none}.radio-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--accent);position:relative;flex-shrink:0}
 .radio-item.on .radio-dot::after{content:'';position:absolute;inset:2px;border-radius:50%;background:var(--accent)}.mode-hint{font-style:italic;font-size:12px;color:var(--accent);padding-top:5px}.frow{display:flex;align-items:center;gap:5px}.frow .lbl{font-size:12px;flex-shrink:0}
 .frow input{flex:1;min-width:80px}
@@ -141,39 +139,46 @@ border:3px dashed var(--accent);pointer-events:none}#dropOverlay.show{display:fl
 margin:2px 8px 4px;color:var(--text)}#infoToggle{width:90px;margin-bottom:6px}
 #infoContent{background:var(--mica-strong);border-radius:var(--radius-card);overflow:hidden;
 transition:height .15s;height:2px;padding:0 5px}#infoContent.open{height:auto;padding:8px 5px}.info-grid{display:grid;grid-template-columns:auto 220px auto;gap:6px 6px;align-items:center}.info-grid .ilbl{font-size:12px;text-align:right;padding-right:4px}
-.info-grid select,.info-grid input{width:220px}.mini-btn{width:30px;height:30px;border-radius:8px;font-size:13px;padding:0}.compat{font-size:12px;font-weight:600}.compat.ok{color:var(--success)}.compat.bad{color:var(--danger)}.compat.warn{color:var(--warning)}
+.info-grid select,.info-grid input{width:220px}
+.mini-btn{width:30px;height:30px;border-radius:6px;font-size:11px;padding:1px 8px;cursor:pointer;color:var(--text-light);background:var(--mica-strong);border:1px solid var(--border)}
+.compat{font-size:12px;font-weight:600}.compat.ok{color:var(--success)}.compat.bad{color:var(--danger)}.compat.warn{color:var(--warning)}
 .tool-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}.tool-row button{flex-shrink:0}#searchEntry{flex:1;min-width:120px}#btnClearSearch{width:30px;padding:0}#btnAddLocal{display:none}body.offline #btnAddLocal{display:block}
 .tbl-hdr{display:flex;height:40px;background:var(--header);border:1px solid var(--border);
 border-radius:var(--radius-card);align-items:center;overflow:hidden}
 .tbl-hdr div{font-weight:600;font-size:13px;color:var(--text);padding:4px;overflow:hidden;
 text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
 #tree{overflow-y:auto;border-radius:var(--radius-card);margin-top:4px;flex:1;min-height:120px;
-background:var(--zebra)}.mrow{display:flex;height:32px;align-items:center;border-radius:var(--radius-ctrl);cursor:default;overflow:hidden}.mrow div{font-size:12px;padding:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}.mrow.zebra{background:var(--zebra)}
-.mrow:hover{background:var(--row-hover)}.mrow.sel{background:var(--selected)}.empty-hint{padding:20px;text-align:center;color:var(--muted);font-size:12px}#groupLog{flex:1;display:flex;flex-direction:column;min-height:0;margin-bottom:0}
+background:var(--zebra)}.mrow{display:flex;height:32px;align-items:center;border-radius:var(--radius-ctrl);cursor:default;overflow:hidden;transition:background .1s,box-shadow .1s}.mrow div{font-size:12px;padding:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}.mrow.zebra{background:var(--zebra)}
+.mrow:hover{background:var(--row-hover)}.mrow.sel{background:var(--selected);box-shadow:inset 3px 0 0 var(--accent)}.empty-hint{margin:10px;padding:26px 20px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--border);border-radius:var(--radius-card)}#groupLog{flex:1;display:flex;flex-direction:column;min-height:0;margin-bottom:0}
 #logText{flex:1;overflow-y:auto;font:12px Consolas,'Cascadia Mono',monospace;white-space:pre-wrap;word-break:break-all;background:var(--mica-strong);border:1px solid var(--border);
 border-radius:var(--radius-ctrl);padding:6px 8px;min-height:100px}
-#status{height:30px;background:var(--gray);color:var(--text-light);display:flex;align-items:center;
-padding:0 12px;font-size:12px;flex-shrink:0;margin-top:0}#statusTxt{flex:1}
-#progressPct{display:inline-block;width:42px;text-align:right;color:var(--text-light);flex-shrink:0}
+#status{height:32px;background:var(--mica-strong);color:var(--text);border-top:1px solid var(--border);display:flex;align-items:center;
+padding:0 14px;font-size:12px;flex-shrink:0;margin-top:0}#statusTxt{flex:1}
+#progressPct{display:inline-block;width:42px;text-align:right;color:var(--muted);flex-shrink:0}
 #progressPct:empty{display:none}
 #progress{width:210px;height:8px;border-radius:var(--radius-ctrl);overflow:hidden;background:rgba(128,128,128,.4);
 display:none;margin-left:10px;flex-shrink:0}#progress i{display:block;height:100%;width:0;
 background:var(--accent);border-radius:var(--radius-ctrl);transition:width .15s}
 @keyframes indet{0%{margin-left:-40%;width:40%}100%{margin-left:100%;width:40%}}
 #progress.indet i{animation:indet 1s linear infinite;transition:none}
-.mini-btn{font-size:11px;padding:1px 8px;border-radius:6px;cursor:pointer;color:var(--text-light);
-background:var(--mica-strong);border:1px solid var(--border)}
 #editGrid.no-log{grid-template-columns:1fr}#editGrid.no-log #right{display:none}
 .chk{width:16px;height:16px;border-radius:var(--radius-ctrl);border:2px solid var(--accent);display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--text-dark);font-size:11px;line-height:1;flex-shrink:0}.chk.on{background:var(--accent)}.chk.on::after{content:'✓'}#bottomBtns{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;justify-content:center;flex-shrink:0}#bottomBtns button{width:120px}#btnPack{width:auto}
-.win-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:99;
+.win-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);display:none;z-index:99;
 align-items:center;justify-content:center}.win-ov.show{display:flex}
-.win{background:var(--mica);border:1px solid var(--border);border-radius:var(--radius-card);
-box-shadow:0 10px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden}
+.win{background:var(--mica);border:1px solid var(--border);border-radius:max(var(--radius-card),10px);
+box-shadow:0 16px 48px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden;animation:win-pop .16s ease-out}
+@keyframes win-pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@media(prefers-reduced-motion:reduce){.win{animation:none}}
 .win-hd{padding:10px 16px;font-weight:600;color:var(--accent);font-size:16px;border-bottom:1px solid var(--border);
 display:flex;justify-content:space-between;align-items:center}.win-hd .x{background:none;border:none;color:var(--muted);font-size:16px;height:auto;padding:2px 6px}.win-hd .x:hover{color:var(--text)}.win-bd{flex:1;overflow:auto;padding:8px 10px;min-height:0}
 .win-ft{padding:8px 10px;display:flex;gap:8px;justify-content:center;border-top:1px solid var(--border)}.sel-row{display:flex;align-items:center;border-radius:var(--radius-ctrl);padding:2px 0;cursor:pointer}.sel-row:hover{background:var(--row-hover)}.sel-row.on{background:var(--accent);color:#fff}
 .sel-row.zebra{background:var(--zebra)}.sel-row.zebra:hover,.sel-row.zebra.on{background:var(--row-hover)}.sel-row.zebra.on{background:var(--accent);color:#fff}.sel-row div{font-size:12px;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
 .hint{font-size:12px;color:var(--muted)}.italic-warn{font-style:italic;font-size:12px;color:var(--warning);text-align:center;padding:2px 0}.bold-md{font-size:16px;font-weight:600;text-align:center;padding:10px 0 2px}
+/* ===== 细滚动条 ===== */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-h);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--muted);border:2px solid transparent;background-clip:content-box}
 /* ===== 响应式断点 ===== */
 @media (max-width:1200px){
   #editGrid{grid-template-columns:1fr}
@@ -184,9 +189,12 @@ display:flex;justify-content:space-between;align-items:center}.win-hd .x{backgro
 @media (max-width:900px){
   #body{grid-template-columns:56px minmax(0,1fr)}
   #nav .nt{display:none}
-  #nav button{font-size:0;padding:0;position:relative}
-  #nav button::before{content:'●';font-size:20px;line-height:1}
-  #nav button.on::before{color:#fff}
+  #nav{padding:10px 6px}
+  #nav button{font-size:0;padding:0;text-align:center}
+  /* 窄屏隐藏文字后用 ::before 显示图标（宽屏时 LANG 文案自带图标，不重复加） */
+  #nav button::before{font-size:18px}
+  #navHome::before{content:'🏠'}#navEdit::before{content:'✏️'}#navSettings::before{content:'⚙️'}
+  #nav button.on::after{display:none}
 }
 @media (max-width:600px){
   #bar{margin:8px 8px 8px;padding:0 10px}
@@ -325,6 +333,7 @@ display:flex;justify-content:space-between;align-items:center}.win-hd .x{backgro
     <button class="btn-gray" id="btnStats" onclick="show_stats()"></button>
     <button class="btn-warning" id="btnPrePack" onclick="pre_pack_check()"></button>
     <button class="btn-success" id="btnDlAll" onclick="download_all_mods()"></button>
+    <button class="btn-accent2" id="btnEasySwitch" onclick="easy_switch_check()"></button>
   </div>
     </div>
     <div id="right">
@@ -404,6 +413,7 @@ zh_CN:{'app_title':'⚡ 整合包模组管理工具','app_sub':'精简高效','f
 'new_pack_loader_ver_required':'请填写 Forge/NeoForge 加载器版本（可在其官网查询）',
 'cf_export_ok':'已生成 CurseForge .zip:\n{path}',
 'btn_dl_all':'⬇ 全部下载','dlg_dl_all_title':'下载所有文件','dlg_dl_all_done':'下载完成：成功 {ok}，失败 {fail}',
+'btn_easy_switch':'🔁 版本易切','easy_switch_title':'版本易切 — 切换目标 MC/加载器','easy_switch_target_mc':'目标 MC 版本','easy_switch_target_loader':'目标加载器','easy_switch_search_btn':'🔍 检查兼容性','easy_switch_checking':'正在检查兼容性... {i}/{count}','easy_switch_stats':'✅ 兼容 {ok}  |  ❌ 不支持 {bad}  |  ⚠️ 无法检测 {unk}  |  📂 本地 {local}','easy_switch_col_name':'项目名称','easy_switch_col_type':'类型','easy_switch_col_status':'状态','easy_switch_col_target_ver':'目标版本','easy_switch_status_ok':'✅ 兼容','easy_switch_status_bad':'❌ 不支持','easy_switch_status_unknown':'⚠️ 未知','easy_switch_status_local':'📂 本地','easy_switch_no_compatible':'没有可升级的模组','easy_switch_no_mods':'整合包中没有模组条目','easy_switch_select_mc':'请选择目标 MC 版本','easy_switch_upgrade_btn':'⬆ 升级选中','log_easy_switch_start':'开始版本易切检查（目标 MC={mc}，加载器={loader}）...','log_easy_switch_done':'版本易切检查完成：兼容 {ok}，不支持 {bad}，无法检测 {unk}','log_easy_switch_upgrade':'版本易切升级完成：成功 {ok}，失败 {fail}',
 'log_mc_fetching':'获取 Minecraft 版本列表...','log_mc_fetched':'✅ 获取 {count} 个 MC 版本','log_mc_fetch_fail':'获取 MC 版本失败',
 'log_loader_fetching':'正在获取 {loader} 版本...','log_loader_fetch_fail':'获取 {loader} 版本失败（网络异常？）',
 'log_mc_compat':'🔍 MC {mc} 兼容 {count} 个 {loader} 版本','log_mc_compat_none':'未找到 MC {mc} 兼容版本，显示全部 {count} 个',
@@ -493,6 +503,7 @@ en_US:{'app_title':'⚡ Modpack Manager','app_sub':'Lean & efficient','file_labe
 'new_pack_loader_ver_required':'Please enter the Forge/NeoForge loader version (see their official site)',
 'cf_export_ok':'CurseForge .zip created:\n{path}',
 'btn_dl_all':'⬇ Download all','dlg_dl_all_title':'Download All Files','dlg_dl_all_done':'Download done: success {ok}, failed {fail}',
+'btn_easy_switch':'🔁 Version Switch','easy_switch_title':'Version Switch — Target MC/Loader','easy_switch_target_mc':'Target MC','easy_switch_target_loader':'Target Loader','easy_switch_search_btn':'🔍 Check Compatibility','easy_switch_checking':'Checking... {i}/{count}','easy_switch_stats':'✅ OK {ok}  |  ❌ Bad {bad}  |  ⚠️ Unknown {unk}  |  📂 Local {local}','easy_switch_col_name':'Name','easy_switch_col_type':'Type','easy_switch_col_status':'Status','easy_switch_col_target_ver':'Target Ver','easy_switch_status_ok':'✅ Compatible','easy_switch_status_bad':'❌ Unsupported','easy_switch_status_unknown':'⚠️ Unknown','easy_switch_status_local':'📂 Local','easy_switch_no_compatible':'No upgradable mods','easy_switch_no_mods':'No mod entries in pack','easy_switch_select_mc':'Please select target MC version','easy_switch_upgrade_btn':'⬆ Upgrade Selected','log_easy_switch_start':'Version switch check started (target MC={mc}, loader={loader})...','log_easy_switch_done':'Version switch done: compatible {ok}, unsupported {bad}, unknown {unk}','log_easy_switch_upgrade':'Upgrade done: success {ok}, failed {fail}',
 'log_mc_fetching':'Fetching Minecraft versions...','log_mc_fetched':'✅ Fetched {count} MC versions','log_mc_fetch_fail':'Failed to fetch MC versions',
 'log_loader_fetching':'Fetching {loader} versions...','log_loader_fetch_fail':'Failed to fetch {loader} versions (network issue?)',
 'log_mc_compat':'🔍 MC {mc}: {count} compatible {loader} versions','log_mc_compat_none':'No MC {mc} compatible versions found, showing all {count}',
@@ -562,8 +573,13 @@ function build_project_search_facets(add_type,mc_version,loader_api){
   return facets;}
 function type_label(t){return t==='rp'?tr('type_rp'):t==='sp'?tr('type_sp'):tr('type_mod');}
 let INDEX_DATA=null,ALL_MODS=[],ROWS=[],NAME_BATCH=0,FILTER_TIMER=null,ROW_RENDER_BATCH=0,ROW_RENDER_PENDING=false,PACK_OPEN_BATCH=0;
+// ---------- 超时配置 ----------
+const REQUEST_TIMEOUT = 30000; // 请求超时时间（毫秒）
+const CF_WIDGET_TIMEOUT = 15000; // CF widget 请求超时时间（毫秒）
+
 let FABRIC_CACHE={all:null,byMc:{}},MC_CACHE=null,NAME_CACHE={};
 const ROW_CACHE=new Map();
+const COL_WIDTHS=['22%','19%','9%','8%','42%'];
 const $=id=>document.getElementById(id);
 const tr=k=>LANG[CURRENT_LANG][k]||k;
 function trf(key,params){let s=LANG[CURRENT_LANG][key]||key;
@@ -590,10 +606,10 @@ async function sha1_hex(buf){const h=await crypto.subtle.digest('SHA-1',buf);
   return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
 async function sha512_hex(buf){const h=await crypto.subtle.digest('SHA-512',buf);
   return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
-async function api_get(url){const opt=(window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(30000)}:undefined;
+async function api_get(url){const opt=(window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(CF_WIDGET_TIMEOUT)}:undefined;
   const r=await fetch(url,opt);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 /* 裸 fetch 统一 30s 超时（旧浏览器无 AbortSignal.timeout 则不限制） */
-function fetch_to(){return (window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(30000)}:undefined;}
+function fetch_to(){return (window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(REQUEST_TIMEOUT)}:undefined;}
 async function api_search_projects(query,add_type,mc_version,loader_api){
   const params=new URLSearchParams({query,limit:'20',
     facets:JSON.stringify(build_project_search_facets(add_type,mc_version,loader_api))});
@@ -698,7 +714,7 @@ async function cf_get_project(pid,tries=4,force_refresh=false){
     if(now-ts<ttl)return data;}
   let lastErr=null;
   for(let i=0;i<tries;i++){
-    try{const opt=(window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(30000)}:undefined;
+    try{const opt=(window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(REQUEST_TIMEOUT)}:undefined;
       const r=await fetch(`https://api.cfwidget.com/${pid}`,opt);
       let j=null;try{j=await r.json();}catch{}
       const err=(j&&j.error)||'';
@@ -806,9 +822,23 @@ function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
   $('navHome').textContent=t('nav_home');$('navEdit').textContent=t('nav_edit');
   $('navSettings').textContent=t('nav_settings');
   $('homeTitle').textContent=t('app_title');$('homeSub').textContent=t('app_sub');
-  $('cardLocal').innerHTML=`${t('home_import_local')}<small>${t('home_import_local_desc')}</small>`;
-  $('cardOnline').innerHTML=`${t('home_import_online')}<small>${t('home_import_online_desc')}</small>`;
-  $('cardNew').innerHTML=`${t('home_new_pack')}<small>${t('home_new_pack_desc')}</small>`;
+  const cardLocal = document.getElementById('cardLocal');
+cardLocal.textContent = t('home_import_local');
+const cardLocalDesc = document.createElement('small');
+cardLocalDesc.textContent = t('home_import_local_desc');
+cardLocal.appendChild(cardLocalDesc);
+
+const cardOnline = document.getElementById('cardOnline');
+cardOnline.textContent = t('home_import_online');
+const cardOnlineDesc = document.createElement('small');
+cardOnlineDesc.textContent = t('home_import_online_desc');
+cardOnline.appendChild(cardOnlineDesc);
+
+const cardNew = document.getElementById('cardNew');
+cardNew.textContent = t('home_new_pack');
+const cardNewDesc = document.createElement('small');
+cardNewDesc.textContent = t('home_new_pack_desc');
+cardNew.appendChild(cardNewDesc);
   $('gSettings').textContent=t('settings_title');
   $('lblLang').textContent=t('settings_lang');$('lblTheme').textContent=t('settings_theme');
   $('lblStyle').textContent=t('settings_style');
@@ -831,7 +861,7 @@ function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
   btnCheckUpd:'check_update_btn',btnExport:'export_btn',btnImport:'import_btn',
   btnSwitchVer:'switch_ver_btn',btnDiff:'diff_btn',btnDuplicate:'duplicate_btn',
   btnCompat:'compat_btn',btnStats:'stats_btn',
-  btnPrePack:'pre_pack_btn',btnDlAll:'btn_dl_all',gLog:'log_label',
+  btnPrePack:'pre_pack_btn',btnDlAll:'btn_dl_all',btnEasySwitch:'btn_easy_switch',gLog:'log_label',
   lblShowLog:'settings_show_log'};
   for(const id in M)$(id).textContent=t(M[id]);
   $('urlEntry').placeholder=t('add_mod_placeholder');
@@ -841,9 +871,15 @@ function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
   $('typeMod').classList.toggle('on',ADD_TYPE==='mod');
   $('typeRp').classList.toggle('on',ADD_TYPE==='rp');
   $('typeSp').classList.toggle('on',ADD_TYPE==='sp');
-  const widths=['22%','19%','9%','8%','42%'];
-  $('listHdr').innerHTML=[t('col_name'),t('col_filename'),t('col_version'),t('col_type'),t('col_path')]
-    .map((h,i)=>`<div style="width:${widths[i]}">${h}</div>`).join('');
+  const listHdr = document.getElementById('listHdr');
+listHdr.replaceChildren();
+const headers = [t('col_name'),t('col_filename'),t('col_version'),t('col_type'),t('col_path')];
+headers.forEach((header, index) => {
+    const div = document.createElement('div');
+    div.style.width = COL_WIDTHS[index];
+    div.textContent = header;
+    listHdr.appendChild(div);
+});
   refresh_format_buttons();
   render_rows();
   if(!$('statusTxt').textContent||$('statusTxt').textContent==='Ready ✅'||$('statusTxt').textContent==='就绪 ✅')
@@ -919,7 +955,8 @@ async function handle_open_file(f){
     if(nOv+nCli)log(trf('log_ov_applied',{n:nOv+nCli,c:nCli}),'SUCCESS');
     if(nSrv)log(trf('log_ov_server',{n:nSrv}),'WARNING');
     alert(trf('dialog_success_open',{file:f.name}));
-  }catch(e){log(trf('dialog_open_fail',{error:e.message}),'ERROR');
+  }catch(e){if(!is_current_pack_open(batch))return;
+    log(trf('dialog_open_fail',{error:e.message}),'ERROR');
     progress_hide();
     alert(trf('dialog_open_fail',{error:e.message}));set_status(tr('status_ready'));}}
 $('fileMrpack').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
@@ -943,7 +980,7 @@ function apply_metadata(data){try{
   else fill_select(lsel,[]);  /* 新包无 loader 依赖时清空下拉，防止上一包的版本残留被写进 deps */
   check_loader_compatibility();
   log(trf('log_loaded_info',{name:data.name||'',mc:deps.minecraft||'',loader:loader,ver:lv}));
-}catch(e){if(!is_current_pack_open(batch))return;
+}catch(e){if(data!==INDEX_DATA)return;
   log(trf('dialog_parse_error',{error:e.message}),'ERROR');
   progress_hide();set_status(tr('status_ready'));}}
 function reload_metadata(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
@@ -1031,8 +1068,7 @@ function render_rows(filtered){
   if(!filtered.length){
     tree.appendChild(el('div','empty-hint',
       $('searchEntry').value.trim()?tr('search_no_result'):tr('edit_empty_mods')));return;}
-  const widths=['22%','19%','9%','8%','42%'];
-  const chunkSize=60;
+  const chunkSize=60,unknownLabel=tr('unknown');
   ROW_RENDER_PENDING=filtered.length>0;
   function renderChunk(start=0){
     if(generation!==ROW_RENDER_BATCH||!tree.isConnected)return;
@@ -1041,13 +1077,12 @@ function render_rows(filtered){
       const entry=filtered[idx],key=entry._rowKey||`${entry.path||''}\u0000${idx}`;
       let row=ROW_CACHE.get(key);
       if(!row){row=el('div',null,null,'mrow');row._cells=[];
-        widths.forEach((width,i)=>{const cell=el('div','width:'+width);
-          cell.onclick=()=>toggle_row(row);cell.ondblclick=()=>show_mod_detail(row);
+        COL_WIDTHS.forEach(w=>{const cell=el('div','width:'+w);
           row.appendChild(cell);row._cells.push(cell);});
         ROW_CACHE.set(key,row);}
       row._raw=entry;row._selected=false;
       row.classList.toggle('zebra',idx%2===1);row.classList.remove('sel');
-      const vals=[entry.display_name||entry.filename||tr('unknown'),entry.filename||'',
+      const vals=[entry.display_name||entry.filename||unknownLabel,entry.filename||'',
         entry.version||'',type_label(entry.etype||'mod'),entry.path||''];
       row._cells.forEach((cell,i)=>{if(cell.textContent!==String(vals[i]))cell.textContent=vals[i];});
       fragment.appendChild(row);ROWS.push(row);}
@@ -1067,13 +1102,19 @@ function delete_selected(){const sel=selected_rows();
   INDEX_DATA.files=current_files().filter(f=>!paths.has(f.path));
   log(trf('log_delete_mod',{count:sel.length}),'SUCCESS');
   refresh_mod_list();save_index_to_state();reload_metadata();}
+function remove_duplicate_entry(pack,entry,local_jars,override_files){
+  const path=entry.path;
+  pack.files=(pack.files||[]).filter(f=>f!==entry);
+  if(!(pack.files||[]).some(f=>f.path===path)){
+    local_jars&&local_jars.delete(path);override_files&&override_files.delete(path);}
+  return pack.files.length;}
 function open_mods_folder(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
   alert(tr('browser_no_folder'));}
 async function fetch_mc_versions(){log(tr('log_mc_fetching'));
   set_status(tr('status_loading'));
   try{const versions=await api_fetch_mc_versions();
     const sel=$('comboMc');const cur=sel.value.trim();
-    sel.innerHTML='';
+    sel.innerHTML = ''; // 清空现有内容
     versions.forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});
     /* 保留当前已选版本（打开整合包后后台加载列表不应覆盖包内版本） */
     if(cur&&!versions.includes(cur)){
@@ -1115,7 +1156,7 @@ function apply_loader_versions(all_versions,compatible,mc_ver){
     if(mc_ver&&!compatible.length)log(trf('log_mc_compat_none',{mc:mc_ver,count:all_versions.length}),'WARNING');
     else log(trf('log_loader_fetched',{count:all_versions.length,loader}),'SUCCESS');}
   check_loader_compatibility();}
-function fill_select(sel,list){sel.innerHTML='';
+function fill_select(sel,list){sel.innerHTML = ''; // 清空现有内容
   list.forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});}
 async function update_loader_dropdown_for_mc(mc_ver){
   const loader=$('comboLoaderType').value||'Fabric';
@@ -1472,7 +1513,7 @@ function show_mod_detail(row){const mod=row._raw;
 function check_updates(){
   if(!confirm(tr('dialog_update_experimental'))){log(tr('log_update_cancel'),'WARNING');return;}
   if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
-  const files=current_files();
+  const pack=INDEX_DATA,files=pack.files||[];
   if(!files.length){alert(tr('update_no_mods'));return;}
   const mc_ver=$('comboMc').value.trim();
   const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
@@ -1494,7 +1535,9 @@ function check_updates(){
     const result=await check_single_mod(m,mc_ver,m.etype==='mod'?loader_api:null);
     done++;set_status(`${tr('status_checking')}... ${done}/${total}`);progress_set(done,total);
     if(result)updates.push(result);})
-    .then(()=>on_check_done(updates)).catch(()=>progress_hide());}
+    .then(()=>{if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');
+      progress_hide();set_status(tr('status_ready'));return;}on_check_done(updates,pack);})
+    .catch(()=>{if(INDEX_DATA===pack){progress_hide();set_status(tr('status_ready'));}});}
 async function check_single_mod(m,mc_ver,loader_api){
   if(m.cf)return cf_check_single(m,mc_ver,loader_api);
   try{const latest=await api_get_latest_version(m.project_id,mc_ver,loader_api);
@@ -1530,11 +1573,11 @@ async function cf_check_single(m,mc_ver,loader){
       latest_data:{cfProjectID:pid,cfFileID:latest.file_id,
         filename:latest.name||'',fileSize:latest.filesize||0}};}
   catch(e){log(trf('log_cf_check_fail',{pid:m.entry.cf.projectID,error:e&&e.message||e}),'WARNING');return null;}}
-function on_check_done(updates){progress_hide();set_status(tr('status_ready'));
+function on_check_done(updates,expected_pack=INDEX_DATA){progress_hide();set_status(tr('status_ready'));
   if(!updates.length){alert(tr('dialog_no_update'));
     log(tr('log_update_done'),'SUCCESS');return;}
-  show_update_dialog(updates);}
-function show_update_dialog(updates){
+  show_update_dialog(updates,expected_pack);}
+function show_update_dialog(updates,expected_pack=INDEX_DATA){
   build_win(trf('dialog_update_found',{count:updates.length}),'800px','520px',win=>{
     win.bd.parentNode.insertBefore(el('div',null,tr('dialog_update_warning'),'italic-warn'),win.bd);
     const col_widths=['32%','22%','22%','24%'];
@@ -1557,6 +1600,8 @@ function show_update_dialog(updates){
       refresh_count();}
     function apply_updates(){const to_update=rows.filter(r=>r._selected);
       if(!to_update.length){alert(tr('dialog_update_select'));return;}
+      if(INDEX_DATA!==expected_pack){log(tr('log_async_pack_changed'),'WARNING');
+        close_win();return;}
       if(!confirm(trf('dialog_update_apply',{count:to_update.length})))return;
       if(to_update.some(r=>r._upd.cf))log(tr('log_cf_nohash'),'WARNING');
       const files=current_files();
@@ -1840,11 +1885,13 @@ function online_import_pack(){
     const stLbl=el('div','text-align:center;padding:4px;flex-shrink:0','','hint');
     const btn=mkbtn(tr('online_search_btn'),'btn-accent2','100px',async()=>{
       const q=inp.value.trim();if(!q)return;
-      stLbl.textContent=tr('online_searching');resBox.innerHTML='';
+      stLbl.textContent=tr('online_searching');
+resBox.innerHTML = ''; // 清空现有内容
       try{
         const url=`https://api.modrinth.com/v2/search?query=${encodeURIComponent(q)}&limit=20&facets=${encodeURIComponent('[["project_type:modpack"]]')}`;
         const d=await api_get(url);const hits=d.hits||[];
-        stLbl.textContent='';resBox.innerHTML='';
+        stLbl.textContent='';
+resBox.innerHTML = ''; // 清空现有内容
         if(!hits.length){stLbl.textContent=tr('online_no_results');return;}
         hits.forEach(h=>{
           const row=el('div','padding:6px 10px;border-radius:6px;cursor:default','','sel-row');
@@ -1997,7 +2044,7 @@ function mkbtn(text,cls,width,onclick){const b=document.createElement('button');
 function el(tag,css,txt,cls){const e=document.createElement(tag);if(cls)e.className=cls;
   if(css)e.style.cssText=css;if(txt!=null)e.textContent=txt;return e;}
 function detect_duplicates(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
-  const files=current_files();
+  const pack=INDEX_DATA,files=pack.files||[];
   const by_pid=new Map(),by_sha=new Map();
   files.forEach((f,i)=>{
     const pid=parse_project_id_from_url((f.downloads||[])[0]||'');
@@ -2025,9 +2072,10 @@ function detect_duplicates(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));
         row.appendChild(c);
         if(i>0){const del=mkbtn(tr('dialog_dup_delete_extras'),'btn-danger','110px',()=>{
           if(!confirm(trf('dialog_confirm_delete',{count:1})))return;
-          window._localJars&&window._localJars.delete(entry.path);
+          if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');
+            close_win();return;}
           /* 按对象身份删除：同 path 的"保留"条目不受影响 */
-          INDEX_DATA.files=current_files().filter(f=>f!==entry);
+          remove_duplicate_entry(pack,entry,window._localJars,window._ovFiles);
           row.remove();removed++;removedLbl.textContent=trf('log_delete_mod',{count:removed});
           refresh_mod_list();save_index_to_state();});
           row.appendChild(del);}
@@ -2036,7 +2084,7 @@ function detect_duplicates(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));
     win.bd.appendChild(removedLbl);
     win.ft.append(mkbtn(tr('button_close'),'btn-gray','80px',close_win));});}
 async function compatibility_check(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
-  const files=current_files();if(!files.length){alert(tr('dialog_no_mods'));return;}
+  const pack=INDEX_DATA,files=pack.files||[];if(!files.length){alert(tr('dialog_no_mods'));return;}
   const mc=$('comboMc').value.trim();
   const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
   const to_check=[];
@@ -2070,6 +2118,8 @@ async function compatibility_check(){if(!INDEX_DATA){alert(tr('dialog_file_not_f
           gv:gv.join(','),ld:ld.join(',')});}
     }catch{}
     done++;status.textContent=trf('dialog_compat_checking',{done,total});progress_set(done,total);});
+  if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');
+    progress_hide();set_status(tr('status_ready'));close_win();return;}
   progress_hide();set_status(tr('status_ready'));
   if(!bad.length){alert(tr('dialog_compat_none'));
     log(trf('log_compat_done',{count:0}),'SUCCESS');close_win();return;}
@@ -2092,6 +2142,142 @@ async function compatibility_check(){if(!INDEX_DATA){alert(tr('dialog_file_not_f
 function format_size(b){if(!b)return'0 B';
   const u=['B','KB','MB','GB'];let i=0;
   while(b>=1024&&i<u.length-1){b/=1024;i++;}return b.toFixed(2)+' '+u[i];}
+async function easy_switch_check(){
+  try{await _easy_switch_run();}
+  catch(e){log('版本易切失败: '+e,'ERROR');alert('版本易切失败: '+e);}}
+async function _easy_switch_run(){
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const pack=INDEX_DATA,files=pack.files||[];
+  if(!files.length){alert(tr('easy_switch_no_mods'));return;}
+  const expected_pack=pack;
+  let mcList=[];
+  try{mcList=Array.from(new Set([
+    ...($('comboMc').value?[$('comboMc').value]:[]),
+    ...(await api_fetch_mc_versions()).slice(0,30)]));}
+  catch(e){log('MC 版本列表获取失败: '+e,'WARNING');mcList=[$('comboMc').value||'1.20.1'];}
+  if(!mcList.length)mcList=[$('comboMc').value||'1.20.1'];
+  build_win(tr('easy_switch_title'),'760px','560px',win=>{
+    let selMc,selLd;
+    const form=el('div','padding:8px 12px;display:flex;gap:10px;align-items:center');
+    form.append(
+      el('label','font-size:12px;color:var(--muted)',tr('easy_switch_target_mc')+':'),
+      (selMc=el('select','width:140px')),
+      el('label','font-size:12px;color:var(--muted)',tr('easy_switch_target_loader')+':'),
+      (selLd=el('select','width:120px')),
+      mkbtn(tr('easy_switch_search_btn'),'btn-accent2','150px',startSearch));
+    mcList.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;selMc.appendChild(o);});
+    ['Fabric','Forge','NeoForge'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;selLd.appendChild(o);});
+    selMc.value=$('comboMc').value||mcList[0]||'';
+    selLd.value=$('comboLoaderType').value||'Fabric';
+    win.bd.appendChild(form);
+    const statsLbl=el('div','text-align:center;padding:6px;font-weight:600;color:var(--accent)',null,'hint');
+    const statusLbl=el('div','text-align:center;padding:4px',tr('easy_switch_stats').replace('{ok}','-').replace('{bad}','-').replace('{unk}','-').replace('{local}','-'),'hint');
+    win.bd.append(statsLbl,statusLbl);
+    const scroll=el('div','overflow:auto;flex:1;background:var(--zebra);border-radius:var(--radius-card);margin:4px 10px');
+    win.bd.appendChild(scroll);
+    win.ft.append(
+      mkbtn(tr('button_select_all'),'btn-gray','140px',()=>{rows.forEach(r=>{r._selected=!rows.every(x=>x._selected);r.classList.toggle('on',r._selected);updateStats();});}),
+      mkbtn(tr('easy_switch_upgrade_btn'),'btn-success','140px',doUpgrade),
+      mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    let rows=[],results=[],searching=false;
+    function updateStats(){
+      if(!results.length)return;
+      const ok=results.filter(r=>r.status==='ok').length;
+      const bad=results.filter(r=>r.status==='bad').length;
+      const unk=results.filter(r=>r.status==='unknown').length;
+      const loc=results.filter(r=>r.status==='local').length;
+      statusLbl.textContent=trf('easy_switch_stats',{ok,bad,unk,local:loc});
+      statsLbl.textContent=trf('update_selected',{n:rows.filter(r=>r._selected).length,total:results.filter(r=>r.status==='ok'||r.status==='unknown').length});}
+    async function startSearch(){
+      if(searching)return;
+      const targetMc=selMc.value.trim();
+      const targetLoader=LOADER_API[selLd.value]||'fabric';
+      if(!targetMc){alert(tr('easy_switch_select_mc'));return;}
+      searching=true;rows=[];results=[];scroll.replaceChildren();
+      log(trf('log_easy_switch_start',{mc:targetMc,loader:targetLoader}));
+      set_status(tr('status_loading'));progress_show();
+      const todo=files.map(f=>{
+        const pid=parse_project_id_from_url((f.downloads||[])[0]||'');
+        const cf=f.cf;
+        return {pid,cf,entry:f,etype:entry_type(f),
+          filename:(f.path||'').split(/[/\\]/).pop()};});
+      const total=todo.length,done=0;
+      await pool_run(todo,20,async m=>{
+        let res={entry:m.entry,etype:m.etype,filename:m.filename,status:'local',targetVer:''};
+        try{
+          if(m.cf){
+            // cf_get_project_versions 已按目标 mc/loader 过滤，有结果即兼容
+            const vs=await cf_get_project_versions(m.cf.projectID,targetMc,
+              m.etype==='mod'?targetLoader:null);
+            if(vs&&vs.length){
+              const latest=vs.reduce((a,b)=>b.file_id>a.file_id?b:a);
+              const name=CF_NAME_CACHE.get(m.cf.projectID)||m.filename;
+              res={...res,status:'ok',targetVer:extract_version(latest.name||''),
+                name,latestData:{cfProjectID:m.cf.projectID,cfFileID:latest.file_id,
+                  filename:latest.name||m.filename,fileSize:latest.filesize||0}};}
+            else{res.status='bad';}
+          }else if(m.pid){
+            const vs=await api_get_all_versions(m.pid,targetMc,m.etype==='mod'?targetLoader:null);
+            if(vs&&vs.length){
+              const latest=vs[0];
+              const name=await api_fetch_project_name(m.pid);
+              res={...res,status:'ok',targetVer:latest.version_number||extract_version(latest.name||''),
+                latestData:latest,name};}
+            else{res.status='bad';}}
+        }catch(e){res.status='unknown';}
+        done++;progress_set(done,total);
+        if(INDEX_DATA!==expected_pack)return res;
+        results.push(res);return res;});
+      if(INDEX_DATA!==expected_pack){log(tr('log_async_pack_changed'),'WARNING');
+        progress_hide();set_status(tr('status_ready'));close_win();return;}
+      progress_hide();set_status(tr('status_ready'));searching=false;
+      log(trf('log_easy_switch_done',{ok:results.filter(r=>r.status==='ok').length,
+        bad:results.filter(r=>r.status==='bad').length,unk:results.filter(r=>r.status==='unknown').length}));
+      // 渲染结果
+      const col_ws=['26%','8%','14%','18%','34%'];
+      const hdr=el('div',null,null,'tbl-hdr');hdr.style.margin='0 10px 2px';
+      [tr('easy_switch_col_name'),tr('easy_switch_col_type'),tr('easy_switch_col_status'),
+       tr('easy_switch_col_target_ver'),''].forEach((h,i)=>hdr.appendChild(el('div','width:'+col_ws[i],h)));
+      scroll.appendChild(hdr);
+      results.forEach(r=>{
+        const row=el('div',null,null,'sel-row');row._res=r;
+        row._selected=(r.status==='ok');
+        const statusTxt=tr('easy_switch_status_'+r.status)||r.status;
+        row.append(
+          el('div','width:'+col_ws[0],r.name||r.filename),
+          el('div','width:'+col_ws[1],type_label(r.etype)),
+          el('div','width:'+col_ws[2],statusTxt),
+          el('div','width:'+col_ws[3],r.targetVer||'-'),
+          el('div','width:'+col_ws[4],r.entry.path));
+        row.onclick=()=>{if(r.status==='ok'||r.status==='unknown'||r.status==='local'){
+          row._selected=!row._selected;row.classList.toggle('on',row._selected);updateStats();}};
+        if(row._selected)row.classList.add('on');
+        rows.push(row);scroll.appendChild(row);});
+      updateStats();}
+    function doUpgrade(){
+      const sel=rows.filter(r=>r._selected);
+      if(!sel.length){alert(tr('easy_switch_no_compatible'));return;}
+      if(INDEX_DATA!==expected_pack){log(tr('log_async_pack_changed'),'WARNING');return;}
+      if(!confirm(trf('dialog_update_apply',{count:sel.length})))return;
+      const files=current_files();
+      const path_to_idx={};files.forEach((f,i)=>path_to_idx[f.path]=i);
+      let ok=0,fail=0;
+      sel.forEach(r=>{
+        const res=r._res;const idx=path_to_idx[res.entry.path];
+        if(idx===undefined||!res.latestData){fail++;return;}
+        try{
+          if(res.status==='ok'){
+            if('cfProjectID' in res.latestData){
+              files[idx]=build_cf_entry({cf:true,current_entry:res.entry,latest_data:res.latestData});}
+            else{
+              files[idx]=build_mod_entry(res.latestData,(res.entry.path||'mods/').split('/')[0]);}
+            ok++;}
+          else{fail++;}}catch(e){fail++;}});
+      INDEX_DATA.files=files;
+      log(trf('log_easy_switch_upgrade',{ok,fail}),ok?'SUCCESS':'ERROR');
+      close_win();refresh_mod_list();save_index_to_state();reload_metadata();
+      alert(trf('dialog_update_success',{count:ok}));}
+    startSearch();});}
 function show_stats(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
   const files=current_files();
   const total=files.length;let size=0,no_url=0;
@@ -2109,7 +2295,7 @@ function show_stats(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;
   const srcLbl={Modrinth:'Modrinth','CurseForge':'CurseForge',local:tr('source_local')};
   build_win(tr('dialog_stats_title'),'500px','460px',win=>{
     const add=(lbl,val)=>{const d=el('div','padding:6px 20px;font-size:13px');
-      d.innerHTML=`<b>${lbl}</b>: ${val}`;win.bd.appendChild(d);};
+      d.textContent = `${lbl}: ${val}`; win.bd.appendChild(d);};
     add(tr('dialog_stats_count'),total);
     add(tr('dialog_stats_size'),format_size(size));
     add(tr('dialog_stats_no_url'),no_url);
@@ -2248,6 +2434,10 @@ try{
 }catch(e){console.warn('Fluent theme init skipped:',e);}
 apply_texts();
 $('entryName').value=tr('new_pack_default_name');
+// 列表行点击委托到容器，避免每行闭包开销
+const treeEl=$('tree');
+treeEl.addEventListener('click',e=>{const row=e.target.closest('.mrow');if(row)toggle_row(row);});
+treeEl.addEventListener('dblclick',e=>{const row=e.target.closest('.mrow');if(row)show_mod_detail(row);});
 show_page('home');
 log(tr('status_ready'));
 setTimeout(fetch_mc_versions,100);

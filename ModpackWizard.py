@@ -56,6 +56,14 @@ C = {
     'text_dark':    ('#ffffff', '#ffffff'),   # 彩色按钮一律白字
 }
 
+# ---------- 请求超时配置 ----------
+REQUEST_TIMEOUT = 10  # 请求超时时间（秒）
+STREAM_TIMEOUT = 60  # 流式下载超时时间（秒）
+CF_WIDGET_TIMEOUT = 15  # CF widget 请求超时时间（秒）
+MODRINTH_SHORT_TIMEOUT = 5  # Modrinth 短请求超时（秒）
+MODRINTH_MEDIUM_TIMEOUT = 8  # Modrinth 中等请求超时（秒）
+MODRINTH_LONG_TIMEOUT = 10  # Modrinth 长请求超时（秒）
+
 # ---------- 配置管理 ----------
 CONFIG_FILE = os.path.expanduser("~/.modpackwizard_config.json")
 
@@ -142,8 +150,20 @@ LANG = {
   'btn_detect_dup': '🔁 重复', 'btn_compat_check': '✅ 兼容', 'btn_stats': '📊 统计',
   'btn_backup_mgr': '💾 备份', 'btn_pre_pack': '📋 校验',
   'btn_dl_all': '⬇ 全部下载', 'btn_switch_ver': '🔄 切版本',
-  
-  
+  'btn_easy_switch': '🔁 版本易切',
+  'easy_switch_title': '版本易切 — 切换目标 MC/加载器',
+  'easy_switch_target_mc': '目标 MC 版本', 'easy_switch_target_loader': '目标加载器',
+  'easy_switch_search_btn': '🔍 检查兼容性', 'easy_switch_checking': '检查中... {i}/{count}',
+  'easy_switch_stats': '✅ 兼容 {ok}  ❌ 不支持 {bad}  ⚠️ 无法检测 {unk}  📂 本地 {local}',
+  'easy_switch_col_name': '项目名称', 'easy_switch_col_type': '类型',
+  'easy_switch_col_status': '状态', 'easy_switch_col_target_ver': '目标版本',
+  'easy_switch_status_ok': '✅ 兼容', 'easy_switch_status_bad': '❌ 不支持',
+  'easy_switch_status_unknown': '⚠️ 未知', 'easy_switch_status_local': '📂 本地',
+  'easy_switch_no_compatible': '没有可升级的模组', 'easy_switch_no_mods': '整合包中没有模组条目',
+  'easy_switch_select_mc': '请选择目标 MC 版本', 'easy_switch_upgrade_btn': '⬆ 升级选中',
+  'log_easy_switch_start': '版本易切开始（目标 MC={mc}，加载器={loader}）...',
+  'log_easy_switch_done': '版本易切完成：兼容 {ok}，不支持 {bad}，无法检测 {unk}',
+  'log_easy_switch_upgrade': '升级完成：成功 {ok}，失败 {fail}',
   'dlg_dup_title': '重复检测', 'dlg_dup_none': '未发现重复', 'dlg_dup_intro': '检测到 {count} 组重复：',
   'dlg_dup_delete_extra': '删除多余的（保留每组第一个）', 'dlg_compat_title': '兼容性体检', 'dlg_compat_ok': '所有模组兼容',
   'dlg_compat_issues': '发现 {count} 个不兼容模组：', 'dlg_compat_skip_cf': '已跳过 {count} 个 CurseForge 条目', 'dlg_stats_title': '统计面板',
@@ -282,8 +302,20 @@ LANG = {
   'btn_detect_dup': '🔁 Dupes', 'btn_compat_check': '✅ Compat', 'btn_stats': '📊 Stats',
   'btn_backup_mgr': '💾 Backups', 'btn_pre_pack': '📋 Check',
   'btn_dl_all': '⬇ Download all', 'btn_switch_ver': '🔄 Switch',
-  
-  
+  'btn_easy_switch': '🔁 Version Switch',
+  'easy_switch_title': 'Version Switch — Target MC/Loader',
+  'easy_switch_target_mc': 'Target MC', 'easy_switch_target_loader': 'Target Loader',
+  'easy_switch_search_btn': '🔍 Check Compatibility', 'easy_switch_checking': 'Checking... {i}/{count}',
+  'easy_switch_stats': '✅ OK {ok}  ❌ Bad {bad}  ⚠️ Unknown {unk}  📂 Local {local}',
+  'easy_switch_col_name': 'Name', 'easy_switch_col_type': 'Type',
+  'easy_switch_col_status': 'Status', 'easy_switch_col_target_ver': 'Target Ver',
+  'easy_switch_status_ok': '✅ Compatible', 'easy_switch_status_bad': '❌ Unsupported',
+  'easy_switch_status_unknown': '⚠️ Unknown', 'easy_switch_status_local': '📂 Local',
+  'easy_switch_no_compatible': 'No upgradable mods', 'easy_switch_no_mods': 'No mod entries in pack',
+  'easy_switch_select_mc': 'Please select target MC version', 'easy_switch_upgrade_btn': '⬆ Upgrade Selected',
+  'log_easy_switch_start': 'Version switch started (target MC={mc}, loader={loader})...',
+  'log_easy_switch_done': 'Version switch done: compatible {ok}, unsupported {bad}, unknown {unk}',
+  'log_easy_switch_upgrade': 'Upgrade done: success {ok}, failed {fail}',
   'dlg_dup_title': 'Duplicate Detection', 'dlg_dup_none': 'No duplicates found', 'dlg_dup_intro': 'Found {count} duplicate groups:',
   'dlg_dup_delete_extra': 'Delete extras (keep first of each group)', 'dlg_compat_title': 'Compatibility Check', 'dlg_compat_ok': 'All mods are compatible',
   'dlg_compat_issues': 'Found {count} incompatible mods:', 'dlg_compat_skip_cf': 'Skipped {count} CurseForge mods', 'dlg_stats_title': 'Statistics',
@@ -423,7 +455,7 @@ class ModrinthAPI:
         if cached and not force_refresh:
             return cached, self.cache.fabric_mc_map
         try:
-            resp = self.session.get("https://meta.fabricmc.net/v2/versions/loader", timeout=10)
+            resp = self.session.get("https://meta.fabricmc.net/v2/versions/loader", timeout=REQUEST_TIMEOUT)
             if resp.status_code == 200:
                 data = resp.json()
                 versions, mc_map = [], {}
@@ -452,7 +484,7 @@ class ModrinthAPI:
         if not force_refresh and mc_version in self.cache.fabric_by_mc:
             return self.cache.fabric_by_mc[mc_version]
         try:
-            resp = self.session.get(f"https://meta.fabricmc.net/v2/versions/loader/{mc_version}", timeout=10)
+            resp = self.session.get(f"https://meta.fabricmc.net/v2/versions/loader/{mc_version}", timeout=REQUEST_TIMEOUT)
             if resp.status_code == 200:
                 versions = []
                 for item in resp.json():
@@ -482,7 +514,7 @@ class ModrinthAPI:
         try:
             resp = self.session.get(
                 "https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml",
-                timeout=10)
+                timeout=REQUEST_TIMEOUT)
             if resp.status_code == 200:
                 root = ET.fromstring(resp.text)
                 prefix = mc_version + '-'
@@ -508,7 +540,7 @@ class ModrinthAPI:
         try:
             resp = self.session.get(
                 "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge",
-                timeout=10)
+                timeout=REQUEST_TIMEOUT)
             if resp.status_code == 200:
                 nums = mc_version.split('.')
                 if len(nums) == 3:
@@ -539,7 +571,7 @@ class ModrinthAPI:
         if name := self.cache.get_name(project_id):
             return name
         try:
-            resp = self.session.get(f"https://api.modrinth.com/v2/project/{project_id}", timeout=5)
+            resp = self.session.get(f"https://api.modrinth.com/v2/project/{project_id}", timeout=MODRINTH_SHORT_TIMEOUT)
             if resp.status_code == 200:
                 name = resp.json().get('title', project_id)
                 self.cache.set_name(project_id, name)
@@ -552,7 +584,7 @@ class ModrinthAPI:
     def fetch_project_meta(self, project_id):
         """返回项目完整信息（含 project_type: mod/resourcepack/shader/modpack）"""
         try:
-            resp = self.session.get(f"https://api.modrinth.com/v2/project/{project_id}", timeout=8)
+            resp = self.session.get(f"https://api.modrinth.com/v2/project/{project_id}", timeout=MODRINTH_MEDIUM_TIMEOUT)
             if resp.status_code == 200:
                 data = resp.json()
                 self.cache.set_name(project_id, data.get('title', project_id))
@@ -565,7 +597,7 @@ class ModrinthAPI:
         if self.cache.mc_versions:
             return self.cache.mc_versions
         try:
-            resp = self.session.get("https://api.modrinth.com/v2/tag/game_version", timeout=10)
+            resp = self.session.get("https://api.modrinth.com/v2/tag/game_version", timeout=REQUEST_TIMEOUT)
             if resp.status_code == 200:
                 versions = [v['version'] for v in resp.json() if v.get('version_type') in ('release','beta','alpha')]
                 self.cache.mc_versions = versions
@@ -580,7 +612,7 @@ class ModrinthAPI:
             params={'query': query, 'limit': 20,
                     'facets': json.dumps(
                         build_project_search_facets(add_type, mc_version, loader_api))},
-            timeout=15)
+            timeout=CF_WIDGET_TIMEOUT)
         resp.raise_for_status()
         hits = resp.json().get('hits', [])
         return hits if isinstance(hits, list) else []
@@ -593,7 +625,7 @@ class ModrinthAPI:
             params['loaders'] = f'["{loader_api}"]'
         try:
             resp = self.session.get(f"https://api.modrinth.com/v2/project/{project_id}/version",
-                                    params=params, timeout=10)
+                                    params=params, timeout=REQUEST_TIMEOUT)
             if resp.status_code == 200:
                 return resp.json()
         except Exception:
@@ -694,7 +726,7 @@ def compute_sha1(filepath):
 def compute_sha512(filepath):
     return _hashfile(filepath, hashlib.sha512)
 
-# ---------- CurseForge 支持（cfwidget 元数据 + forgecdn 直链） ----------
+# ---------- 缓存管理 ----------
 CF_WIDGET_CACHE = {}          # pid -> (timestamp, data|None)
 CF_CACHE_TTL = 3600           # 缓存有效期（秒），过期自动刷新（定期更新机制）
 CF_CACHE_FAIL_TTL = 300       # 获取失败的缓存有效期较短，便于重试
@@ -714,7 +746,7 @@ def cf_get_project(pid, tries=4, force_refresh=False):
     last_err = None
     for i in range(tries):
         try:
-            resp = requests.get(f"https://api.cfwidget.com/{pid}", timeout=15)
+            resp = requests.get(f"https://api.cfwidget.com/{pid}", timeout=MODRINTH_LONG_TIMEOUT)
             if resp.status_code == 200:
                 data = resp.json()
                 if isinstance(data, dict) and data.get('files'):
@@ -793,7 +825,7 @@ def cf_manifest_to_index(m):
 def compute_hashes_from_url(url):
     """流式下载并计算 sha1/sha512 与大小（用于 CurseForge 更新条目回填校验值）"""
     sha1, sha512, size = hashlib.sha1(), hashlib.sha512(), 0
-    with requests.get(url, stream=True, timeout=60) as resp:
+    with requests.get(url, stream=True, timeout=STREAM_TIMEOUT) as resp:
         resp.raise_for_status()
         for chunk in resp.iter_content(chunk_size=65536):
             if chunk:
@@ -980,6 +1012,10 @@ class ModPackApp:
         else:
             row.configure(fg_color=row._base_fg if hasattr(row, '_base_fg') else "transparent")
 
+    def _loader_api(self):
+        """获取当前加载器对应的 API 标识（fabric/forge/neoforge）"""
+        return LOADER_API.get(self.loader_var.get(), "fabric")
+
     # ---------- 页面切换 ----------
     def show_page(self, page):
         previous = self.current_page
@@ -993,7 +1029,7 @@ class ModPackApp:
         self.pages[page].tkraise()
         for name, btn in self.nav_buttons.items():
             active = (name == page)
-            btn.configure(fg_color=C['accent'] if active else C['gray'],
+            btn.configure(fg_color=C['accent'] if active else 'transparent',
                           hover_color=C['accent_hover'] if active else C['gray_hover'],
                           text_color=C['text_dark'] if active else C['text_light'])
 
@@ -1011,9 +1047,9 @@ class ModPackApp:
                      text_color=C['accent']).pack(fill='x', padx=12, pady=(16, 10))
         self.nav_buttons = {}
         for key, page in [('nav_home', 'home'), ('nav_edit', 'edit'), ('nav_settings', 'settings')]:
-            b = ctk.CTkButton(nav, text=tr(key), command=lambda p=page: self.show_page(p),
-                              height=44, corner_radius=8, font=FONT_SM, border_width=0,
-                              fg_color=C['gray'], hover_color=C['gray_hover'], text_color=C['text_light'])
+            b = ctk.CTkButton(nav, text='  ' + tr(key), command=lambda p=page: self.show_page(p),
+                              height=44, corner_radius=8, font=FONT_SM, border_width=0, anchor='w',
+                              fg_color='transparent', hover_color=C['gray_hover'], text_color=C['text_light'])
             b.pack(fill='x', padx=10, pady=4)
             self.nav_buttons[page] = b
 
@@ -1033,7 +1069,8 @@ class ModPackApp:
         self.show_page(self.current_page)
 
         # 底部状态栏
-        status = ctk.CTkFrame(self.root, height=30, fg_color=C['gray'], corner_radius=0)
+        status = ctk.CTkFrame(self.root, height=32, fg_color=C['mica_strong'], corner_radius=0,
+                              border_width=1, border_color=C['border'])
         status.pack(fill='x', side='bottom')
         status.pack_propagate(False)
         self.status_var = ctk.StringVar(value=tr('status_ready'))
@@ -1064,7 +1101,7 @@ class ModPackApp:
                 ('home_import_online', 'home_import_online_desc', self.online_import_pack, 'accent2'),
                 ('home_new_pack', 'home_new_pack_desc', self.new_pack_wizard, 'success')]:
             b = ctk.CTkButton(cards, text=f"{tr(title_key)}\n{tr(desc_key)}", command=cmd,
-                              width=460, height=80, corner_radius=12, font=FONT_MD_BOLD,
+                              width=460, height=84, corner_radius=12, font=FONT_MD_BOLD,
                               fg_color=C[color], hover_color=C[f'{color}_hover'],
                               text_color=C['text_dark'], border_width=0)
             b.pack(pady=8)
@@ -1204,7 +1241,8 @@ class ModPackApp:
                                 (tr('btn_compat_check'), self.compatibility_check, 'gray'),
                                 (tr('btn_stats'), self.show_stats, 'gray'),
                                 (tr('btn_pre_pack'), self.pre_pack_check, 'warning'),
-                                (tr('btn_dl_all'), self.download_all_mods, 'success')]:
+                                (tr('btn_dl_all'), self.download_all_mods, 'success'),
+                                (tr('btn_easy_switch'), self.easy_switch_check, 'accent2')]:
             self._btn(bf, txt, cmd, color, width=100, padx=3)
 
         # 模组列表组
@@ -1547,7 +1585,7 @@ class ModPackApp:
         self.set_status(tr('online_downloading'))
         def task():
             try:
-                with requests.get(url, stream=True, timeout=60) as resp:
+                with requests.get(url, stream=True, timeout=STREAM_TIMEOUT) as resp:
                     resp.raise_for_status()
                     with open(save_path, 'wb') as f:
                         for chunk in resp.iter_content(8192):
@@ -1713,7 +1751,7 @@ class ModPackApp:
                         fn = os.path.basename(rel)
                         try:
                             self.root.after(0, lambda f=fn: self.log(tr('log_downloading').format(filename=f)))
-                            with requests.get(e['downloads'][0], stream=True, timeout=60) as resp:
+                            with requests.get(e['downloads'][0], stream=True, timeout=STREAM_TIMEOUT) as resp:
                                 resp.raise_for_status()
                                 fd, tmp = tempfile.mkstemp(suffix=os.path.splitext(fn)[1])
                                 os.close(fd)
@@ -2235,7 +2273,7 @@ class ModPackApp:
         self.log(tr('log_fetch_versions').format(pid=project_id))
         self.set_status(tr('status_loading'))
         mc_ver = self.combo_mc.get().strip()
-        loader_api = LOADER_API.get(self.loader_var.get(), "fabric")
+        loader_api = self._loader_api()
         sel_type = self.add_type.get()  # 主线程取值，避免跨线程访问 Tk 变量
         pack_path = self.index_path.get().strip()
 
@@ -2337,8 +2375,7 @@ class ModPackApp:
             add_type = self.add_type.get()
             pack_path = self.index_path.get().strip()
             mc_version = self.combo_mc.get().strip()
-            loader_api = (LOADER_API.get(self.loader_var.get(), "fabric")
-                          if add_type == 'mod' else None)
+            loader_api = self._loader_api() if add_type == 'mod' else None
             status_lb.configure(text=tr('search_projecting'))
             for widget in results_box.winfo_children():
                 widget.destroy()
@@ -2504,7 +2541,7 @@ class ModPackApp:
             self.root.after(0, lambda: self.log(tr('log_no_link').format(filename=filename), "WARNING"))
             return False
         try:
-            with requests.get(download_url, stream=True, timeout=30) as resp:
+            with requests.get(download_url, stream=True, timeout=STREAM_TIMEOUT) as resp:
                 resp.raise_for_status()
                 with open(dest, 'wb') as f:
                     for chunk in resp.iter_content(chunk_size=8192):
@@ -2586,7 +2623,7 @@ class ModPackApp:
             if not messagebox.askyesno(tr('dialog_title_tip'), tr('dialog_dep_confirm')):
                 return
             mc_ver = self.combo_mc.get().strip()
-            loader_api = LOADER_API.get(self.loader_var.get(), "fabric")
+            loader_api = self._loader_api()
             self.set_status(tr('status_loading'))
             dep_total = len(missing)
             self.progress_show()
@@ -2714,7 +2751,7 @@ class ModPackApp:
         self.set_status(tr('status_loading'))
         self.progress_show()
         mc_ver = self.combo_mc.get().strip()
-        loader_api = LOADER_API.get(self.loader_var.get(), "fabric")
+        loader_api = self._loader_api()
         def task():
             new_entries = []
             try:
@@ -3018,7 +3055,7 @@ class ModPackApp:
             messagebox.showinfo(tr('dialog_title_tip'), tr('update_no_mods'))
             return
         mc_ver = self.combo_mc.get().strip()
-        loader_api = LOADER_API.get(self.loader_var.get(), "fabric")
+        loader_api = self._loader_api()
         mods_to_check = []
         for entry in files:
             etype = entry_type(entry)
@@ -3580,7 +3617,7 @@ class ModPackApp:
             return
         files = data.get('files', [])
         mc_ver = self.combo_mc.get().strip()
-        loader_api = LOADER_API.get(self.loader_var.get(), "fabric")
+        loader_api = self._loader_api()
         to_check, cf_count = [], 0
         for entry in files:
             if entry.get('cf'):
@@ -3655,6 +3692,284 @@ class ModPackApp:
             lb.pack(fill='x', padx=4, pady=2)
             row.pack(fill='x', pady=1)
         self._btn(win, tr('button_close'), win.destroy, 'gray', width=100, padx=0)
+
+    def easy_switch_check(self):
+        """版本易切：检查当前整合包切换目标 MC/加载器后的兼容性并支持升级"""
+        path = self._index_path_or_warn()
+        if not path:
+            return
+        data = self._load_index(path)
+        if data is None:
+            return
+        files = data.get('files', [])
+        if not files:
+            messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_no_mods'))
+            return
+        expected_path = path
+
+        # 弹窗：目标 MC + 加载器选择
+        win = self._win(tr('easy_switch_title'), "760x560")
+        self.easy_win = win
+        form = ctk.CTkFrame(win, fg_color="transparent")
+        form.pack(fill='x', padx=12, pady=(10, 4))
+        ctk.CTkLabel(form, text=tr('easy_switch_target_mc'), font=FONT_SM,
+                     text_color=C['muted']).pack(side='left')
+        self.easy_mc_var = ctk.StringVar(value=self.combo_mc.get().strip() or "1.20.1")
+        ctk.CTkEntry(form, textvariable=self.easy_mc_var, width=140,
+                     font=FONT_SM).pack(side='left', padx=(4, 16))
+        ctk.CTkLabel(form, text=tr('easy_switch_target_loader'), font=FONT_SM,
+                     text_color=C['muted']).pack(side='left')
+        self.easy_loader_var = ctk.StringVar(value=self.loader_var.get())
+        ctk.CTkComboBox(form, values=["Fabric", "Forge", "NeoForge"],
+                        variable=self.easy_loader_var, width=120,
+                        font=FONT_SM, state="readonly").pack(side='left', padx=4)
+        self._btn(form, tr('easy_switch_search_btn'), self._easy_switch_start,
+                  'accent2', width=150, padx=12)
+
+        # 状态 + 统计
+        self.easy_status_lbl = ctk.CTkLabel(win, text=tr('easy_switch_stats').format(ok='-', bad='-',
+            unk='-', local='-'), font=FONT_SM, text_color=C['muted'])
+        self.easy_status_lbl.pack(fill='x', pady=2)
+        self.easy_stats_lbl = ctk.CTkLabel(win, text="", font=FONT_BOLD, text_color=C['accent'])
+        self.easy_stats_lbl.pack(fill='x', pady=2)
+
+        # 结果列表
+        self.easy_scroll = ctk.CTkScrollableFrame(win, fg_color=C['zebra'], corner_radius=10)
+        self.easy_scroll.pack(fill='both', expand=True, padx=10, pady=4)
+
+        btns = ctk.CTkFrame(win, fg_color="transparent")
+        btns.pack(fill='x', pady=8)
+        self._btn(btns, tr('button_select_all'), self._easy_switch_toggle_all, 'gray', width=140, padx=6)
+        self._btn(btns, tr('easy_switch_upgrade_btn'), self._easy_switch_upgrade, 'success', width=140, padx=6)
+        self._btn(btns, tr('button_close'), win.destroy, 'gray', width=80, padx=6)
+
+        self.easy_rows = []
+        self.easy_results = []
+        self.easy_expected_path = expected_path
+        self._easy_switch_start()
+
+    def _easy_switch_start(self):
+        """后台并发检查兼容性"""
+        target_mc = self.easy_mc_var.get().strip()
+        target_loader = LOADER_API.get(self.easy_loader_var.get(), "fabric")
+        if not target_mc:
+            messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_select_mc'))
+            return
+        self.log(tr('log_easy_switch_start').format(mc=target_mc, loader=target_loader))
+        self.set_status(tr('status_loading'))
+        self.progress_show()
+        todo = []
+        for entry in self._load_index(self.easy_expected_path).get('files', []):
+            pid = parse_project_id_from_url((entry.get('downloads') or [None])[0] or '')
+            todo.append({
+                'pid': pid, 'cf': entry.get('cf'), 'entry': entry,
+                'etype': entry_type(entry),
+                'filename': os.path.basename(entry.get('path', ''))
+            })
+
+        def task():
+            results = []
+            total = len(todo)
+            done = 0
+            with ThreadPoolExecutor(max_workers=20) as ex:
+                futs = {ex.submit(self._easy_switch_check_one, m, target_mc, target_loader): m
+                        for m in todo}
+                for fut in as_completed(futs):
+                    m = futs[fut]
+                    done += 1
+                    self.root.after(0, lambda d=done, t=total: self.progress_set(d, t))
+                    try:
+                        res = fut.result()
+                    except Exception:
+                        res = {'entry': m['entry'], 'etype': m['etype'],
+                               'filename': m['filename'], 'status': 'unknown'}
+                    results.append(res)
+            self.root.after(0, lambda: self._easy_switch_done(results))
+        self._thread(task)
+
+    def _easy_switch_check_one(self, m, target_mc, target_loader):
+        """检查单个条目标 MC/loader 下的兼容性"""
+        res = {'entry': m['entry'], 'etype': m['etype'],
+               'filename': m['filename'], 'status': 'local',
+               'target_ver': '', 'latest_data': None, 'name': None}
+        try:
+            if m.get('cf'):
+                vs = cf_get_project_versions(m['cf']['projectID'], target_mc,
+                                              target_loader if m['etype'] == 'mod' else None)
+                if vs:
+                    latest = max(vs, key=lambda v: v['file_id'])
+                    name = self.cache.get_name(m['cf']['projectID']) or m['filename']
+                    res['name'] = name
+                    res['target_ver'] = extract_version(latest.get('name', ''))
+                    res['latest_data'] = {'cfProjectID': m['cf']['projectID'],
+                                          'cfFileID': latest['file_id'],
+                                          'filename': latest.get('name', ''),
+                                          'filesize': latest.get('filesize', 0)}
+                    # CF 兼容判定：有版本即可升级，不做 mc/loader 过滤（cf_get_project_versions 已过滤）
+                    res['status'] = 'ok'
+                else:
+                    res['status'] = 'bad'
+            elif m.get('pid'):
+                vs = self.api.get_all_versions(m['pid'], target_mc,
+                                               target_loader if m['etype'] == 'mod' else None)
+                if vs:
+                    latest = vs[0]
+                    res['name'] = self.cache.get_name(m['pid']) or m['filename']
+                    res['target_ver'] = latest.get('version_number') or extract_version(latest.get('name', ''))
+                    res['latest_data'] = latest
+                    res['status'] = 'ok'
+                else:
+                    res['status'] = 'bad'
+        except Exception:
+            res['status'] = 'unknown'
+        return res
+
+    def _easy_switch_done(self, results):
+        """渲染版本易切检查结果"""
+        self.progress_hide()
+        self.set_status(tr('status_ready'))
+        self.easy_results = results
+        if not results:
+            return
+        ok = sum(1 for r in results if r['status'] == 'ok')
+        bad = sum(1 for r in results if r['status'] == 'bad')
+        unk = sum(1 for r in results if r['status'] == 'unknown')
+        self.log(tr('log_easy_switch_done').format(ok=ok, bad=bad, unk=unk),
+            'WARNING' if bad else 'SUCCESS')
+
+        # 清空列表
+        for w in self.easy_scroll.winfo_children():
+            w.destroy()
+        self.easy_rows = []
+        self._easy_switch_update_stats()
+
+        status_map = {'ok': tr('easy_switch_status_ok'),
+                      'bad': tr('easy_switch_status_bad'),
+                      'unknown': tr('easy_switch_status_unknown'),
+                      'local': tr('easy_switch_status_local')}
+        for r in results:
+            wrap = ctk.CTkFrame(self.easy_scroll, fg_color="transparent", corner_radius=4)
+            wrap.pack(fill='x', pady=1)
+            row = ctk.CTkFrame(wrap, fg_color="transparent", corner_radius=4)
+            row.pack(fill='x', padx=2)
+            row._res = r
+            row._selected = (r['status'] == 'ok')
+
+            name = r.get('name') or r['filename']
+            status_txt = status_map.get(r['status'], r['status'])
+            target = r.get('target_ver') or '-'
+            path = r['entry'].get('path', '')
+
+            ctk.CTkLabel(row, text=name, width=200, anchor='w',
+                         font=FONT_SM).pack(side='left', padx=4)
+            ctk.CTkLabel(row, text={'mod': tr('type_mod'), 'rp': tr('type_rp'), 'sp': tr('type_sp')}.get(r['etype'], r['etype']), width=60,
+                         font=FONT_SM).pack(side='left')
+            ctk.CTkLabel(row, text=status_txt, width=100,
+                         font=FONT_SM).pack(side='left')
+            ctk.CTkLabel(row, text=target, width=120,
+                         font=FONT_SM).pack(side='left')
+            ctk.CTkLabel(row, text=path, anchor='w',
+                         font=FONT_SM, text_color=C['muted']).pack(side='left', padx=4, fill='x')
+
+            def toggle(_e=None, row=row):
+                if row._res['status'] in ('ok', 'unknown', 'local'):
+                    row._selected = not row._selected
+                    row.configure(fg_color=C['selected'] if row._selected else "transparent")
+                    self._easy_switch_update_stats()
+
+            row.bind('<Button-1>', toggle)
+            for w in row.winfo_children():
+                w.bind('<Button-1>', toggle)
+            if row._selected:
+                row.configure(fg_color=C['selected'])
+
+            self.easy_rows.append(row)
+
+    def _easy_switch_update_stats(self):
+        if not self.easy_results:
+            return
+        ok = sum(1 for r in self.easy_results if r['status'] == 'ok')
+        bad = sum(1 for r in self.easy_results if r['status'] == 'bad')
+        unk = sum(1 for r in self.easy_results if r['status'] == 'unknown')
+        self.easy_status_lbl.configure(
+            text=tr('easy_switch_stats').format(ok=ok, bad=bad, unk=unk, local=sum(1 for r in self.easy_results if r['status'] == 'local')))
+        total_upg = sum(1 for r in self.easy_rows
+                        if r._res['status'] in ('ok', 'unknown', 'local'))
+        selected = sum(1 for r in self.easy_rows if r._selected)
+        self.easy_stats_lbl.configure(
+            text=tr('update_selected').format(n=selected, total=total_upg))
+
+    def _easy_switch_toggle_all(self):
+        target = not all(r._selected for r in self.easy_rows
+                         if r._res['status'] in ('ok', 'unknown', 'local'))
+        for r in self.easy_rows:
+            if r._res['status'] in ('ok', 'unknown', 'local'):
+                r._selected = target
+                r.configure(fg_color=C['selected'] if target else "transparent")
+        self._easy_switch_update_stats()
+
+    def _easy_switch_upgrade(self):
+        sel = [r for r in self.easy_rows if r._selected]
+        if not sel:
+            messagebox.showinfo(tr('dialog_title_tip'), tr('easy_switch_no_compatible'))
+            return
+        if self.index_path.get().strip() != self.easy_expected_path:
+            self.log(tr('log_async_pack_changed'), 'WARNING')
+            return
+        if not messagebox.askyesno(tr('dialog_title_tip'),
+                                   tr('dialog_update_apply').format(count=len(sel))):
+            return
+        try:
+            with open(self.easy_expected_path, 'r', encoding='utf-8') as f:
+                pack = json.load(f)
+        except Exception as e:
+            self.log(tr('log_read_fail').format(error=str(e)), 'ERROR')
+            return
+        files = pack.get('files', [])
+        path_to_idx = {f.get('path'): i for i, f in enumerate(files)}
+        ok = 0
+        for row in sel:
+            res = row._res
+            idx = path_to_idx.get(res['entry'].get('path'))
+            if idx is None or not res.get('latest_data'):
+                continue
+            try:
+                if res['status'] == 'ok':
+                    ld = res['latest_data']
+                    old_prefix = (res['entry'].get('path', 'mods/').split('/')[0])
+                    if 'cfProjectID' in ld:
+                        # CF 条目：构造 cf_cdn_url + cf 字段
+                        pid_fid_url = f"https://mediafilez.forgecdn.net/files/{ld['cfFileID'] // 1000}/{ld['cfFileID'] % 1000}/{ld['filename']}"
+                        old_cf = res['entry'].get('cf', {})
+                        files[idx] = {
+                            'path': f"{old_prefix}/{ld['filename']}",
+                            'hashes': {}, 'env': res['entry'].get('env', {}),
+                            'downloads': [pid_fid_url],
+                            'fileSize': ld.get('filesize', 0),
+                            'cf': {'projectID': ld['cfProjectID'], 'fileID': ld['cfFileID'],
+                                   'required': old_cf.get('required', True)}}
+                    else:
+                        files[idx] = build_mod_entry(ld, old_prefix)
+                    ok += 1
+            except Exception:
+                pass
+        pack['files'] = files
+        try:
+            with open(self.easy_expected_path, 'w', encoding='utf-8') as f:
+                json.dump(pack, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            self.log(tr('log_update_entry_fail').format(
+                filename=res['filename'], error=str(e)), 'ERROR')
+            return
+        self.log(tr('log_easy_switch_upgrade').format(ok=ok, fail=len(sel) - ok),
+                 'SUCCESS' if ok else 'ERROR')
+        self.refresh_mod_list()
+        messagebox.showinfo(tr('dialog_title_done'),
+                            tr('dialog_update_success').format(count=ok))
+        try:
+            self.easy_win.destroy()
+        except Exception:
+            pass
 
     # ---------- 统计面板 ----------
     def show_stats(self):
@@ -3794,8 +4109,7 @@ class ModPackApp:
             return
         old_path = mod.get('path')
         self.set_status(tr('status_loading'))
-        loader_api = (LOADER_API.get(self.loader_var.get(), "fabric")
-                      if mod.get('etype', 'mod') == 'mod' else None)
+        loader_api = self._loader_api() if mod.get('etype', 'mod') == 'mod' else None
         self._fetch_versions_and_show(project_id, self.combo_mc.get().strip(),
                                        loader_api,
                                        self._show_switch_selector, old_path)
@@ -3924,7 +4238,7 @@ class ModPackApp:
                     fail += 1
                 else:
                     try:
-                        with requests.get(url, stream=True, timeout=60) as resp:
+                        with requests.get(url, stream=True, timeout=STREAM_TIMEOUT) as resp:
                             resp.raise_for_status()
                             with open(dest, 'wb') as f:
                                 for chunk in resp.iter_content(chunk_size=8192):
