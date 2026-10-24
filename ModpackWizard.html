@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ModpackWizard</title>
   <style>
     :root {
-      --bg: #f3f4f6;
+      --bg: #f5f7fb;
       --panel: #ffffff;
-      --panel-soft: #f8fafc;
-      --border: #dfe3e8;
-      --text: #111827;
-      --muted: #6b7280;
+      --panel-2: #f8fafc;
+      --line: #dde3ee;
+      --text: #1f2937;
+      --muted: #667085;
       --accent: #2563eb;
-      --accent-strong: #1d4ed8;
+      --accent-strong: #1749c9;
       --success: #16a34a;
       --warning: #d97706;
       --danger: #dc2626;
-      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-      --radius: 12px;
-      --radius-sm: 8px;
-      --nav-width: 180px;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --nav-width: 190px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     html, body {
       margin: 0;
@@ -35,8 +37,12 @@
 
     body {
       display: flex;
-      flex-direction: column;
       min-height: 100vh;
+      flex-direction: column;
+    }
+
+    button, input, select {
+      font: inherit;
     }
 
     #app {
@@ -50,30 +56,32 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
+      padding: 18px 22px;
       background: var(--panel);
+      border-bottom: 1px solid var(--line);
       box-shadow: var(--shadow);
+      z-index: 2;
     }
 
-    #title-wrap {
+    #brand {
       display: flex;
       align-items: baseline;
       gap: 12px;
       min-width: 0;
     }
 
-    #app-title {
-      font-size: 1.7rem;
-      font-weight: 700;
+    #brand-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1.2;
       color: var(--accent);
-      letter-spacing: 0.02em;
       white-space: nowrap;
     }
 
-    #app-subtitle {
-      font-size: 0.92rem;
+    #brand-sub {
+      font-size: 0.9rem;
       color: var(--muted);
+      white-space: nowrap;
     }
 
     #main {
@@ -85,20 +93,20 @@
     #nav {
       width: var(--nav-width);
       background: var(--panel);
-      border-right: 1px solid var(--border);
-      padding: 14px 10px;
+      border-right: 1px solid var(--line);
+      padding: 18px 10px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
     .nav-title {
+      padding: 6px 12px 12px;
+      font-size: 0.76rem;
       font-weight: 700;
-      color: var(--muted);
-      padding: 8px 10px 12px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
       letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     .nav-btn {
@@ -106,29 +114,28 @@
       background: transparent;
       color: var(--text);
       text-align: left;
-      border-radius: var(--radius-sm);
+      border-radius: 10px;
       padding: 11px 12px;
-      font-size: 0.95rem;
       cursor: pointer;
       transition: 120ms ease;
+      font-weight: 600;
     }
 
     .nav-btn:hover {
-      background: var(--panel-soft);
-      border-color: var(--border);
+      border-color: var(--line);
+      background: var(--panel-2);
     }
 
     .nav-btn.active {
-      background: rgba(37, 99, 235, 0.09);
-      border-color: rgba(37, 99, 235, 0.2);
+      background: rgba(37, 99, 235, 0.08);
+      border-color: rgba(37, 99, 235, 0.18);
       color: var(--accent-strong);
-      font-weight: 600;
     }
 
     #content {
       flex: 1;
       min-width: 0;
-      padding: 20px;
+      padding: 22px;
       overflow: auto;
     }
 
@@ -143,7 +150,7 @@
 
     .panel {
       background: var(--panel);
-      border: 1px solid var(--border);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
@@ -156,21 +163,22 @@
 
     .home-box {
       width: min(760px, 100%);
-      padding: 28px 24px;
+      padding: 30px 24px;
       text-align: center;
     }
 
     .home-title {
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 800;
       margin: 0 0 10px;
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      font-weight: 800;
       letter-spacing: 0.02em;
+      color: var(--text);
     }
 
     .home-sub {
+      margin: 0 0 28px;
       color: var(--muted);
       font-size: 1rem;
-      margin-bottom: 26px;
     }
 
     .card-grid {
@@ -182,18 +190,18 @@
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 4px;
       align-items: flex-start;
-      padding: 18px 20px;
-      border: 1px solid var(--border);
+      gap: 4px;
+      padding: 18px 22px;
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
       color: var(--text);
       cursor: pointer;
-      transition: transform 120ms ease, border-color 120ms ease;
-      font-size: 1.05rem;
-      font-weight: 600;
       text-align: left;
+      transition: transform 120ms ease, border-color 120ms ease;
+      font-weight: 700;
+      font-size: 1.06rem;
     }
 
     .home-card:hover {
@@ -203,14 +211,23 @@
 
     .home-card small {
       color: var(--muted);
+      font-size: 0.84rem;
       font-weight: 400;
-      font-size: 0.85rem;
     }
 
     .settings-box {
-      max-width: 620px;
+      max-width: 680px;
       padding: 22px 20px;
       margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 18px;
+    }
+
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
     }
 
     .row {
@@ -218,23 +235,21 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .label {
+      min-width: 90px;
       font-weight: 600;
-      min-width: 88px;
-    }
-
-    select, input, button {
-      font: inherit;
     }
 
     select, input {
+      width: 100%;
+      max-width: 280px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: 10px;
       padding: 9px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--panel-soft);
       color: var(--text);
       outline: none;
     }
@@ -245,13 +260,14 @@
     }
 
     button {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
       color: var(--text);
       padding: 9px 14px;
       cursor: pointer;
       transition: 120ms ease;
+      font-weight: 600;
     }
 
     button:hover {
@@ -269,25 +285,16 @@
       border-color: var(--accent-strong);
     }
 
-    .danger {
-      background: rgba(220, 38, 38, 0.08);
-      border-color: rgba(220, 38, 38, 0.18);
-      color: var(--danger);
-    }
-
     .success {
-      background: rgba(22, 163, 74, 0.09);
-      border-color: rgba(22, 163, 74, 0.2);
+      background: rgba(22, 163, 74, 0.08);
+      border-color: rgba(22, 163, 74, 0.18);
       color: var(--success);
     }
 
-    .section {
-      margin-bottom: 18px;
-    }
-
-    .section h2 {
-      font-size: 1rem;
-      margin: 0 0 12px;
+    .danger {
+      background: rgba(220, 38, 38, 0.06);
+      border-color: rgba(220, 38, 38, 0.2);
+      color: var(--danger);
     }
 
     .muted {
@@ -295,7 +302,7 @@
       line-height: 1.6;
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 760px) {
       #main {
         flex-direction: column;
       }
@@ -303,7 +310,7 @@
       #nav {
         width: 100%;
         border-right: none;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--line);
         flex-direction: row;
         flex-wrap: wrap;
       }
@@ -313,7 +320,7 @@
       }
 
       #content {
-        padding: 12px;
+        padding: 14px;
       }
     }
   </style>
@@ -321,9 +328,9 @@
 <body>
   <div id="app">
     <header id="topbar">
-      <div id="title-wrap">
-        <div id="app-title">ModpackWizard</div>
-        <div id="app-subtitle">Simple desktop style</div>
+      <div id="brand">
+        <div id="brand-title">ModpackWizard</div>
+        <div id="brand-sub">Simple desktop UI</div>
       </div>
     </header>
 
@@ -363,28 +370,29 @@
               <h2>Pack information</h2>
               <div class="row">
                 <span class="label">Name</span>
-                <input type="text" value="My Modpack" aria-label="Pack name">
+                <input type="text" value="My Modpack" aria-label="Pack name" />
               </div>
               <div class="row">
                 <span class="label">Version</span>
-                <input type="text" value="1.0.0" aria-label="Pack version">
+                <input type="text" value="1.0.0" aria-label="Pack version" />
               </div>
               <div class="row">
                 <span class="label">MC</span>
-                <select aria-label="Minecraft version">
+                <select aria-label="MC version">
                   <option>1.20.1</option>
                   <option>1.19.2</option>
                 </select>
               </div>
               <div class="row">
                 <span class="label">Loader</span>
-                <select aria-label="Loader type">
+                <select aria-label="Loader">
                   <option>Fabric</option>
                   <option>Forge</option>
                   <option>NeoForge</option>
                 </select>
               </div>
             </div>
+
             <div class="section">
               <h2>Actions</h2>
               <div class="row">
@@ -405,10 +413,22 @@
                 This interface uses a clean standard desktop style with no WinUI or Fluent visual layer.
               </div>
             </div>
+
             <div class="section">
-              <h2>About</h2>
-              <div class="muted">
-                The project now runs with a neutral application look and basic controls only.
+              <h2>Appearance</h2>
+              <div class="row">
+                <span class="label">Language</span>
+                <select>
+                  <option>中文</option>
+                  <option>English</option>
+                </select>
+              </div>
+              <div class="row">
+                <span class="label">Theme</span>
+                <select>
+                  <option>Light</option>
+                  <option>Dark</option>
+                </select>
               </div>
             </div>
           </div>
@@ -421,8 +441,12 @@
     document.querySelectorAll('.nav-btn').forEach((button) => {
       button.addEventListener('click', () => {
         const target = button.dataset.page;
-        document.querySelectorAll('.nav-btn').forEach((el) => el.classList.toggle('active', el === button));
-        document.querySelectorAll('.page').forEach((page) => page.classList.toggle('active', page.id === target));
+        document.querySelectorAll('.nav-btn').forEach((item) => {
+          item.classList.toggle('active', item === button);
+        });
+        document.querySelectorAll('.page').forEach((page) => {
+          page.classList.toggle('active', page.id === target);
+        });
       });
     });
   </script>
