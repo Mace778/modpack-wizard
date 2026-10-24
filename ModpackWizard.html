@@ -1,454 +1,2516 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ModpackWizard</title>
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --panel: #ffffff;
-      --panel-2: #f8fafc;
-      --line: #dde3ee;
-      --text: #1f2937;
-      --muted: #667085;
-      --accent: #2563eb;
-      --accent-strong: #1749c9;
-      --success: #16a34a;
-      --warning: #d97706;
-      --danger: #dc2626;
-      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-      --radius: 14px;
-      --radius-sm: 10px;
-      --nav-width: 190px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif;
-    }
-
-    body {
-      display: flex;
-      min-height: 100vh;
-      flex-direction: column;
-    }
-
-    button, input, select {
-      font: inherit;
-    }
-
-    #app {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-height: 0;
-    }
-
-    #topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 22px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      z-index: 2;
-    }
-
-    #brand {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    #brand-title {
-      font-size: 1.8rem;
-      font-weight: 800;
-      line-height: 1.2;
-      color: var(--accent);
-      white-space: nowrap;
-    }
-
-    #brand-sub {
-      font-size: 0.9rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    #main {
-      display: flex;
-      flex: 1;
-      min-height: 0;
-    }
-
-    #nav {
-      width: var(--nav-width);
-      background: var(--panel);
-      border-right: 1px solid var(--line);
-      padding: 18px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .nav-title {
-      padding: 6px 12px 12px;
-      font-size: 0.76rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .nav-btn {
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--text);
-      text-align: left;
-      border-radius: 10px;
-      padding: 11px 12px;
-      cursor: pointer;
-      transition: 120ms ease;
-      font-weight: 600;
-    }
-
-    .nav-btn:hover {
-      border-color: var(--line);
-      background: var(--panel-2);
-    }
-
-    .nav-btn.active {
-      background: rgba(37, 99, 235, 0.08);
-      border-color: rgba(37, 99, 235, 0.18);
-      color: var(--accent-strong);
-    }
-
-    #content {
-      flex: 1;
-      min-width: 0;
-      padding: 22px;
-      overflow: auto;
-    }
-
-    .page {
-      display: none;
-      min-height: 100%;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    #home {
-      display: grid;
-      place-items: center;
-      min-height: 100%;
-    }
-
-    .home-box {
-      width: min(760px, 100%);
-      padding: 30px 24px;
-      text-align: center;
-    }
-
-    .home-title {
-      margin: 0 0 10px;
-      font-size: clamp(2.2rem, 4vw, 3.2rem);
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      color: var(--text);
-    }
-
-    .home-sub {
-      margin: 0 0 28px;
-      color: var(--muted);
-      font-size: 1rem;
-    }
-
-    .card-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .home-card {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-      padding: 18px 22px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, #ffffff, #f8fafc);
-      color: var(--text);
-      cursor: pointer;
-      text-align: left;
-      transition: transform 120ms ease, border-color 120ms ease;
-      font-weight: 700;
-      font-size: 1.06rem;
-    }
-
-    .home-card:hover {
-      transform: translateY(-1px);
-      border-color: var(--accent);
-    }
-
-    .home-card small {
-      color: var(--muted);
-      font-size: 0.84rem;
-      font-weight: 400;
-    }
-
-    .settings-box {
-      max-width: 680px;
-      padding: 22px 20px;
-      margin: 0 auto;
-    }
-
-    .section {
-      margin-bottom: 18px;
-    }
-
-    .section h2 {
-      margin: 0 0 12px;
-      font-size: 1rem;
-    }
-
-    .row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .label {
-      min-width: 90px;
-      font-weight: 600;
-    }
-
-    select, input {
-      width: 100%;
-      max-width: 280px;
-      border: 1px solid var(--line);
-      background: var(--panel-2);
-      border-radius: 10px;
-      padding: 9px 10px;
-      color: var(--text);
-      outline: none;
-    }
-
-    select:focus, input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    button {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: var(--panel-2);
-      color: var(--text);
-      padding: 9px 14px;
-      cursor: pointer;
-      transition: 120ms ease;
-      font-weight: 600;
-    }
-
-    button:hover {
-      border-color: var(--accent);
-    }
-
-    .primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: white;
-    }
-
-    .primary:hover {
-      background: var(--accent-strong);
-      border-color: var(--accent-strong);
-    }
-
-    .success {
-      background: rgba(22, 163, 74, 0.08);
-      border-color: rgba(22, 163, 74, 0.18);
-      color: var(--success);
-    }
-
-    .danger {
-      background: rgba(220, 38, 38, 0.06);
-      border-color: rgba(220, 38, 38, 0.2);
-      color: var(--danger);
-    }
-
-    .muted {
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    @media (max-width: 760px) {
-      #main {
-        flex-direction: column;
-      }
-
-      #nav {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--line);
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-
-      .nav-title {
-        display: none;
-      }
-
-      #content {
-        padding: 14px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>⚡ 整合包模组管理工具</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@fluentui/web-components@3.1.3/+esm" crossorigin>
+<link rel="preconnect" href="https://api.modrinth.com" crossorigin>
+<style>
+/* WinUI 3 Design Tokens - Light */
+:root{
+--accent:#0078D4;--accent-h:#106EBE;--accent2:#8b5cf6;--accent2-h:#7c3aed;
+--success:#16a34a;--warning:#d97706;--danger:#dc2626;
+--gray:#e0e0e0;--gray-h:#d0d0d0;
+--text-light:#1A1A1A;--text-dark:#fff;
+--mica:#F3F3F3;--mica-strong:#FFFFFF;
+--header:#e8e8e8;--zebra:#fafafa;--border:#E5E5E5;
+--row-hover:#e5efff;--selected:#cce4f7;--text:#1A1A1A;--muted:#5D5D5D;
+--radius-ctrl:4px;--radius-card:8px;--ctrl-height:32px;
+--font-family:'Segoe UI Variable Text','Microsoft YaHei UI','Segoe UI',system-ui,sans-serif}
+/* WinUI 3 Design Tokens - Dark */
+[data-theme="dark"]{
+--accent:#4CC2FF;--accent-h:#6FD0FF;--accent2:#7d5ba6;--accent2-h:#6b4a8f;
+--success:#3a8a3a;--warning:#b08a2a;--danger:#b8383d;
+--gray:#2a2a2a;--gray-h:#3d3d3d;
+--text-light:#e5e5e5;--text-dark:#fff;
+--mica:#202020;--mica-strong:#2B2B2B;
+--header:#1a1a1a;--zebra:#1f1f1f;--border:#3D3D3D;
+--row-hover:#232c3a;--selected:#294058;--text:#FFFFFF;--muted:#C5C5C5}
+/* Fluent Web Components 主题变量映射（WinUI 3） */
+:root{
+--fill-color-default:var(--mica-strong);
+--fill-color-primary:var(--accent);
+--fill-color-secondary:var(--gray);
+--fill-color-text-primary:var(--text);
+--fill-color-text-secondary:var(--muted);
+--accent-fill-rest:var(--accent);--accent-fill-hover:var(--accent-h);
+--accent-fill-active:var(--accent);--accent-fill-focus:var(--accent);
+--accent-foreground-rest:#fff;--accent-foreground-hover:#fff;
+--neutral-fill-rest:var(--gray);--neutral-fill-hover:var(--gray-h);
+--neutral-fill-active:var(--gray-h);--neutral-fill-focus:var(--gray);
+--neutral-foreground-rest:var(--text);--neutral-foreground-hover:var(--text);
+--neutral-divider-rest:var(--border);
+--control-corner-radius:var(--radius-ctrl);--control-height:var(--ctrl-height);
+--font-size-base-100:13px;--font-size-base-200:14px;
+--font-family-base:var(--font-family)}
+[data-theme="dark"]{
+--fill-color-default:var(--mica-strong);
+--fill-color-primary:var(--accent);
+--fill-color-secondary:var(--gray);
+--fill-color-text-primary:var(--text);
+--fill-color-text-secondary:var(--muted);
+--accent-fill-rest:var(--accent);--accent-fill-hover:var(--accent-h);
+--accent-fill-active:var(--accent);--accent-fill-focus:var(--accent);
+--accent-foreground-rest:#1a1a1a;--accent-foreground-hover:#1a1a1a;
+--neutral-fill-rest:var(--gray);--neutral-fill-hover:var(--gray-h);
+--neutral-fill-active:var(--gray-h);--neutral-fill-focus:var(--gray);
+--neutral-foreground-rest:var(--text);--neutral-foreground-hover:var(--text);
+--neutral-divider-rest:var(--border)}
+/* ===== 风格维度：classic / winui（与明暗正交，共 4 套） ===== */
+/* 经典浅色：更圆的圆角、更浅的背景、Segoe UI 字体 */
+[data-style="classic"]{
+--accent:#0078d4;--accent-h:#106ebe;
+--mica:#fafbfc;--mica-strong:#f0f2f5;
+--border:#d0d0d0;--text:#1a1a1a;--muted:#6b7280;
+--header:#e8e8e8;--zebra:#f4f4f4;--row-hover:#eef2f7;--selected:#d6e4f5;
+--radius-ctrl:8px;--radius-card:12px;
+--font-family:'Segoe UI',system-ui,sans-serif}
+/* 经典深色 */
+[data-style="classic"][data-theme="dark"]{
+--accent:#2d7dd2;--accent-h:#2a6cb0;
+--mica:#252525;--mica-strong:#2d2d2d;
+--border:#3a3a3a;--text:#e5e5e5;--muted:#9ca3af;
+--header:#1f1f1f;--zebra:#2a2a2a;--row-hover:#30343a;--selected:#33465c}
+/* winui 风格与 :root 默认 token 完全一致，无需再声明；仅 WinUI 专属的焦点环与微动效在此 */
+[data-style="winui"] button:focus-visible,
+[data-style="winui"] input:focus-visible,
+[data-style="winui"] select:focus-visible{
+outline:2px solid var(--accent);outline-offset:1px}
+[data-style="winui"] button{transition:background .12s,transform .06s}
+[data-style="winui"] button:active{transform:scale(.98)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font:13px var(--font-family);background:var(--mica);color:var(--text);
+height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* Fluent Button Base */
+button,.btn{font:12px var(--font-family);cursor:pointer;border:none;border-radius:var(--radius-ctrl);
+height:var(--ctrl-height);padding:0 14px;color:var(--text-dark);transition:background .12s;white-space:nowrap}button:active{opacity:.85}
+.btn-gray{background:var(--gray);color:var(--text-light)}.btn-gray:hover{background:var(--gray-h)}
+.btn-accent{background:var(--accent)}.btn-accent:hover{background:var(--accent-h)}
+.btn-accent2{background:var(--accent2)}.btn-accent2:hover{background:var(--accent2-h)}
+.btn-success{background:var(--success)}.btn-danger{background:var(--danger)}.btn-warning{background:var(--warning)}
+/* Fluent Input/Select */
+input,select{font:13px var(--font-family);padding:5px 9px;border:1px solid var(--border);
+border-radius:var(--radius-ctrl);background:var(--mica-strong);color:var(--text);outline:none;height:var(--ctrl-height)}
+input:focus{border-color:var(--accent)}
+#bar{display:flex;align-items:center;gap:8px;height:58px;margin:12px 12px 10px;padding:0 20px;
+background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);
+box-shadow:0 1px 4px rgba(0,0,0,.06);flex-shrink:0}
+#bar .t{font-size:20px;font-weight:700;color:var(--accent);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#bar .sub{font-size:12px;color:var(--muted);margin-left:2px;white-space:nowrap}#bar .tool{margin-left:auto;display:flex;gap:10px}
+#body{flex:1;display:grid;grid-template-columns:minmax(170px,170px) minmax(0,1fr);gap:8px;padding:0 12px;overflow:hidden;min-height:0}
+#nav{background:var(--mica-strong);border:1px solid var(--border);border-radius:var(--radius-card);
+padding:14px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+#nav .nt{font-weight:600;color:var(--accent);font-size:14px;padding:4px 8px 14px;line-height:1.4}
+#nav button{height:42px;text-align:left;padding:0 12px;background:transparent;color:var(--text-light);width:100%;
+position:relative;font-size:13px;transition:background .12s,color .12s}
+#nav button:hover{background:var(--gray)}
+#nav button.on{background:var(--row-hover);color:var(--accent);font-weight:600}
+#nav button.on::after{content:'';position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:2px;background:var(--accent)}
+#pages{position:relative;overflow:hidden;min-height:0;min-width:0}
+.page{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+.page.show{display:flex;animation:page-enter .14s ease-out both}
+@keyframes page-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.page.show{animation:none}}
+#pageHome{align-items:center;overflow-y:auto;padding-top:46px}
+.home-title{font-size:30px;font-weight:700;
+background:linear-gradient(135deg,var(--accent),var(--accent2));
+-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.home-sub{color:var(--muted);margin:6px 0 26px;font-size:13px}
+.home-card{width:520px;max-width:92%;height:88px;border-radius:var(--radius-card);color:#fff;font-size:15px;
+font-weight:600;line-height:1.5;margin:7px 0;text-align:left;padding:0 22px;white-space:normal;
+box-shadow:0 2px 8px rgba(0,0,0,.12);transition:transform .15s,box-shadow .15s,filter .15s}
+.home-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.2);filter:brightness(1.05)}
+.home-card:active{transform:translateY(0) scale(.99)}
+.home-card small{display:block;font-size:12px;font-weight:400;opacity:.92}
+#pageSettings{overflow-y:auto;align-items:center}
+.settings-box{width:480px;max-width:92%;margin-top:36px}
+#editGrid{flex:1;display:grid;grid-template-columns:minmax(0,4fr) minmax(0,1fr);gap:8px;overflow:hidden;min-height:0}
+#editLeft{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-width:0}
+#right{display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.group{background:var(--mica);border:1px solid var(--border);border-radius:var(--radius-card);
+padding:0 14px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.group>.gtitle{font-weight:600;color:var(--accent);padding:10px 0 6px;display:flex;align-items:center;gap:8px}
+.group>.gtitle::before{content:'';width:4px;height:14px;border-radius:2px;background:var(--accent);flex-shrink:0}#groupList{display:flex;flex-direction:column;flex:1;min-height:0}.radio-row{display:flex;gap:24px;padding:2px 0}
+.radio-item{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;user-select:none}.radio-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--accent);position:relative;flex-shrink:0}
+.radio-item.on .radio-dot::after{content:'';position:absolute;inset:2px;border-radius:50%;background:var(--accent)}.mode-hint{font-style:italic;font-size:12px;color:var(--accent);padding-top:5px}.frow{display:flex;align-items:center;gap:5px}.frow .lbl{font-size:12px;flex-shrink:0}
+.frow input{flex:1;min-width:80px}
+#dropOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:9999;font-size:22px;font-weight:600;color:#fff;
+border:3px dashed var(--accent);pointer-events:none}#dropOverlay.show{display:flex}
+.chg-detail{white-space:pre-wrap;font-size:11px;line-height:1.5;padding:6px 10px;max-height:150px;overflow:auto;border-radius:8px;background:var(--mica-strong);
+margin:2px 8px 4px;color:var(--text)}#infoToggle{width:90px;margin-bottom:6px}
+#infoContent{background:var(--mica-strong);border-radius:var(--radius-card);overflow:hidden;
+transition:height .15s;height:2px;padding:0 5px}#infoContent.open{height:auto;padding:8px 5px}.info-grid{display:grid;grid-template-columns:auto 220px auto;gap:6px 6px;align-items:center}.info-grid .ilbl{font-size:12px;text-align:right;padding-right:4px}
+.info-grid select,.info-grid input{width:220px}
+.mini-btn{width:30px;height:30px;border-radius:6px;font-size:11px;padding:1px 8px;cursor:pointer;color:var(--text-light);background:var(--mica-strong);border:1px solid var(--border)}
+.compat{font-size:12px;font-weight:600}.compat.ok{color:var(--success)}.compat.bad{color:var(--danger)}.compat.warn{color:var(--warning)}
+.tool-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}.tool-row button{flex-shrink:0}#searchEntry{flex:1;min-width:120px}#btnClearSearch{width:30px;padding:0}#btnAddLocal{display:none}body.offline #btnAddLocal{display:block}
+.tbl-hdr{display:flex;height:40px;background:var(--header);border:1px solid var(--border);
+border-radius:var(--radius-card);align-items:center;overflow:hidden}
+.tbl-hdr div{font-weight:600;font-size:13px;color:var(--text);padding:4px;overflow:hidden;
+text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+#tree{overflow-y:auto;border-radius:var(--radius-card);margin-top:4px;flex:1;min-height:120px;
+background:var(--zebra)}.mrow{display:flex;height:32px;align-items:center;border-radius:var(--radius-ctrl);cursor:default;overflow:hidden;transition:background .1s,box-shadow .1s}.mrow div{font-size:12px;padding:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}.mrow.zebra{background:var(--zebra)}
+.mrow:hover{background:var(--row-hover)}.mrow.sel{background:var(--selected);box-shadow:inset 3px 0 0 var(--accent)}.empty-hint{margin:10px;padding:26px 20px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--border);border-radius:var(--radius-card)}#groupLog{flex:1;display:flex;flex-direction:column;min-height:0;margin-bottom:0}
+#logText{flex:1;overflow-y:auto;font:12px Consolas,'Cascadia Mono',monospace;white-space:pre-wrap;word-break:break-all;background:var(--mica-strong);border:1px solid var(--border);
+border-radius:var(--radius-ctrl);padding:6px 8px;min-height:100px}
+#status{height:32px;background:var(--mica-strong);color:var(--text);border-top:1px solid var(--border);display:flex;align-items:center;
+padding:0 14px;font-size:12px;flex-shrink:0;margin-top:0}#statusTxt{flex:1}
+#progressPct{display:inline-block;width:42px;text-align:right;color:var(--muted);flex-shrink:0}
+#progressPct:empty{display:none}
+#progress{width:210px;height:8px;border-radius:var(--radius-ctrl);overflow:hidden;background:rgba(128,128,128,.4);
+display:none;margin-left:10px;flex-shrink:0}#progress i{display:block;height:100%;width:0;
+background:var(--accent);border-radius:var(--radius-ctrl);transition:width .15s}
+@keyframes indet{0%{margin-left:-40%;width:40%}100%{margin-left:100%;width:40%}}
+#progress.indet i{animation:indet 1s linear infinite;transition:none}
+#editGrid.no-log{grid-template-columns:1fr}#editGrid.no-log #right{display:none}
+.chk{width:16px;height:16px;border-radius:var(--radius-ctrl);border:2px solid var(--accent);display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--text-dark);font-size:11px;line-height:1;flex-shrink:0}.chk.on{background:var(--accent)}.chk.on::after{content:'✓'}#bottomBtns{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;justify-content:center;flex-shrink:0}#bottomBtns button{width:120px}#btnPack{width:auto}
+.win-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);display:none;z-index:99;
+align-items:center;justify-content:center}.win-ov.show{display:flex}
+.win{background:var(--mica);border:1px solid var(--border);border-radius:max(var(--radius-card),10px);
+box-shadow:0 16px 48px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden;animation:win-pop .16s ease-out}
+@keyframes win-pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@media(prefers-reduced-motion:reduce){.win{animation:none}}
+.win-hd{padding:10px 16px;font-weight:600;color:var(--accent);font-size:16px;border-bottom:1px solid var(--border);
+display:flex;justify-content:space-between;align-items:center}.win-hd .x{background:none;border:none;color:var(--muted);font-size:16px;height:auto;padding:2px 6px}.win-hd .x:hover{color:var(--text)}.win-bd{flex:1;overflow:auto;padding:8px 10px;min-height:0}
+.win-ft{padding:8px 10px;display:flex;gap:8px;justify-content:center;border-top:1px solid var(--border)}.sel-row{display:flex;align-items:center;border-radius:var(--radius-ctrl);padding:2px 0;cursor:pointer}.sel-row:hover{background:var(--row-hover)}.sel-row.on{background:var(--accent);color:#fff}
+.sel-row.zebra{background:var(--zebra)}.sel-row.zebra:hover,.sel-row.zebra.on{background:var(--row-hover)}.sel-row.zebra.on{background:var(--accent);color:#fff}.sel-row div{font-size:12px;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.hint{font-size:12px;color:var(--muted)}.italic-warn{font-style:italic;font-size:12px;color:var(--warning);text-align:center;padding:2px 0}.bold-md{font-size:16px;font-weight:600;text-align:center;padding:10px 0 2px}
+/* ===== 细滚动条 ===== */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-h);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--muted);border:2px solid transparent;background-clip:content-box}
+/* ===== 响应式断点 ===== */
+@media (max-width:1200px){
+  #editGrid{grid-template-columns:1fr}
+  #right{display:none}
+  #editGrid.force-log{grid-template-columns:minmax(0,4fr) minmax(0,1fr)}
+  #editGrid.force-log #right{display:flex}
+}
+@media (max-width:900px){
+  #body{grid-template-columns:56px minmax(0,1fr)}
+  #nav .nt{display:none}
+  #nav{padding:10px 6px}
+  #nav button{font-size:0;padding:0;text-align:center}
+  /* 窄屏隐藏文字后用 ::before 显示图标（宽屏时 LANG 文案自带图标，不重复加） */
+  #nav button::before{font-size:18px}
+  #navHome::before{content:'🏠'}#navEdit::before{content:'✏️'}#navSettings::before{content:'⚙️'}
+  #nav button.on::after{display:none}
+}
+@media (max-width:600px){
+  #bar{margin:8px 8px 8px;padding:0 10px}
+  #bar .t{font-size:15px;flex:1}
+  #bar .sub{display:none}
+}
+</style>
 </head>
-<body>
-  <div id="app">
-    <header id="topbar">
-      <div id="brand">
-        <div id="brand-title">ModpackWizard</div>
-        <div id="brand-sub">Simple desktop UI</div>
+<body><div id="bar">
+  <span class="t" id="tTitle"></span><span class="sub" id="tSub"></span>
+</div>
+<div id="body">
+<div id="nav">
+  <div class="nt" id="navTitle"></div>
+  <button id="navHome" onclick="show_page('home')"></button>
+  <button id="navEdit" onclick="show_page('edit')"></button>
+  <button id="navSettings" onclick="show_page('settings')"></button>
+</div>
+<div id="pages">
+  <div class="page" id="pageHome">
+    <div class="home-title" id="homeTitle"></div>
+    <div class="home-sub" id="homeSub"></div>
+    <button class="home-card btn-accent" id="cardLocal" onclick="open_mrpack()"></button>
+    <button class="home-card btn-accent2" id="cardOnline" onclick="online_import_pack()"></button>
+    <button class="home-card btn-success" id="cardNew" onclick="new_pack_wizard()"></button>
+  </div>
+  <div class="page" id="pageSettings">
+    <div class="settings-box">
+      <div class="group"><div class="gtitle" id="gSettings"></div>
+        <div style="padding:4px 6px">
+          <div style="font-weight:600;padding:6px 0" id="lblLang"></div>
+          <div class="radio-row">
+            <span class="radio-item" id="langZh" onclick="set_lang('zh_CN')"><span class="radio-dot"></span><span id="langZhTxt"></span></span>
+            <span class="radio-item" id="langEn" onclick="set_lang('en_US')"><span class="radio-dot"></span><span id="langEnTxt"></span></span>
+          </div>
+          <div style="font-weight:600;padding:14px 0 6px" id="lblTheme"></div>
+          <div class="frow" style="gap:8px">
+            <button class="btn-gray" style="width:120px" id="btnThemeDark" onclick="set_theme('dark')"></button>
+            <button class="btn-gray" style="width:120px" id="btnThemeLight" onclick="set_theme('light')"></button>
+          </div>
+          <div style="font-weight:600;padding:14px 0 6px" id="lblStyle"></div>
+          <div class="radio-row">
+            <span class="radio-item" id="styleClassic" onclick="set_style('classic')"><span class="radio-dot"></span><span id="styleClassicTxt"></span></span>
+            <span class="radio-item" id="styleWinui" onclick="set_style('winui')"><span class="radio-dot"></span><span id="styleWinuiTxt"></span></span>
+          </div>
+          <div class="radio-row" style="padding-top:16px">
+            <span class="radio-item" onclick="toggle_log()"><span class="chk" id="chkShowLog"></span><span id="lblShowLog"></span></span>
+          </div>
+        </div>
       </div>
-    </header>
-
-    <div id="main">
-      <nav id="nav" aria-label="Main navigation">
-        <div class="nav-title">Menu</div>
-        <button class="nav-btn active" data-page="home">Home</button>
-        <button class="nav-btn" data-page="edit">Edit Pack</button>
-        <button class="nav-btn" data-page="settings">Settings</button>
-      </nav>
-
-      <main id="content">
-        <section id="home" class="page active">
-          <div class="panel home-box">
-            <h1 class="home-title">ModpackWizard</h1>
-            <div class="home-sub">Modpack management for Modrinth and CurseForge workflows.</div>
-            <div class="card-grid">
-              <button class="home-card" type="button">
-                <span>Import Local Pack</span>
-                <small>Open a .mrpack or .zip file</small>
-              </button>
-              <button class="home-card" type="button">
-                <span>Import by Name</span>
-                <small>Search online and download a pack</small>
-              </button>
-              <button class="home-card" type="button">
-                <span>New Pack</span>
-                <small>Create a new pack in Modrinth or CurseForge format</small>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section id="edit" class="page">
-          <div class="panel settings-box">
-            <div class="section">
-              <h2>Pack information</h2>
-              <div class="row">
-                <span class="label">Name</span>
-                <input type="text" value="My Modpack" aria-label="Pack name" />
-              </div>
-              <div class="row">
-                <span class="label">Version</span>
-                <input type="text" value="1.0.0" aria-label="Pack version" />
-              </div>
-              <div class="row">
-                <span class="label">MC</span>
-                <select aria-label="MC version">
-                  <option>1.20.1</option>
-                  <option>1.19.2</option>
-                </select>
-              </div>
-              <div class="row">
-                <span class="label">Loader</span>
-                <select aria-label="Loader">
-                  <option>Fabric</option>
-                  <option>Forge</option>
-                  <option>NeoForge</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="section">
-              <h2>Actions</h2>
-              <div class="row">
-                <button type="button" class="primary">Pack .mrpack</button>
-                <button type="button">Export List</button>
-                <button type="button" class="success">Check Updates</button>
-                <button type="button" class="danger">Delete Selected</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="settings" class="page">
-          <div class="panel settings-box">
-            <div class="section">
-              <h2>General</h2>
-              <div class="muted">
-                This interface uses a clean standard desktop style with no WinUI or Fluent visual layer.
-              </div>
-            </div>
-
-            <div class="section">
-              <h2>Appearance</h2>
-              <div class="row">
-                <span class="label">Language</span>
-                <select>
-                  <option>中文</option>
-                  <option>English</option>
-                </select>
-              </div>
-              <div class="row">
-                <span class="label">Theme</span>
-                <select>
-                  <option>Light</option>
-                  <option>Dark</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
     </div>
   </div>
+  <div class="page" id="pageEdit">
+   <div id="editGrid">
+    <div id="editLeft">
+  <div class="group"><div class="gtitle" id="gFile"></div>
+    <div class="frow">
+      <span class="lbl" id="lblPath"></span>
+      <input id="entryFile" readonly placeholder="modrinth.index.json" style="flex:1">
+    </div>
+  </div>
+  <div class="group"><div class="gtitle" id="gInfo"></div>
+    <div class="tool-row" style="margin-bottom:6px">
+      <button class="btn-gray" id="infoToggle" style="width:90px" onclick="toggle_info()">▶ 展开</button>
+      <button class="btn-gray" id="btnBackup" onclick="manual_backup()"></button>
+      <button class="btn-gray" id="btnManageBackup" onclick="manage_backups()"></button>
+      <button class="btn-gray" id="btnReload" onclick="reload_metadata()"></button>
+      <button class="btn-accent" id="btnPack" onclick="pack_to_mrpack()"></button>
+      <button class="btn-accent2" id="btnExportZip" onclick="export_zip_dispatch()"></button>
+    </div>
+    <div id="infoContent">
+      <div class="info-grid">
+        <span class="ilbl" id="lblName"></span><input id="entryName" value="我的整合包">
+        <span></span>
+        <span class="ilbl" id="lblVersion"></span><input id="entryVersion" value="1.0.0">
+        <span></span>
+        <span class="ilbl" id="lblMc"></span>
+        <select id="comboMc"><option>1.20.1</option></select>
+        <button class="btn-gray mini-btn" onclick="fetch_mc_versions()">🔄</button>
+        <span class="ilbl" id="lblLoader"></span>
+        <select id="comboLoaderType" onchange="loader_type_changed()">
+          <option>Fabric</option><option>Forge</option><option>NeoForge</option>
+        </select>
+        <span></span>
+        <span class="ilbl" id="lblLoaderVer"></span>
+        <select id="comboLoaderVer"><option value=""></option></select>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button class="btn-gray mini-btn" onclick="fetch_loader_versions(true)">🔄</button>
+          <span class="compat" id="compatLabel"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="group"><div class="gtitle" id="gAdd"></div>
+    <div class="radio-row" style="margin-bottom:6px;align-items:center">
+      <span class="lbl" id="lblType" style="margin-right:8px"></span>
+      <span class="radio-item" id="typeMod" onclick="set_add_type('mod')"><span class="radio-dot"></span><span id="typeModTxt"></span></span>
+      <span class="radio-item" id="typeRp" onclick="set_add_type('rp')"><span class="radio-dot"></span><span id="typeRpTxt"></span></span>
+      <span class="radio-item" id="typeSp" onclick="set_add_type('sp')"><span class="radio-dot"></span><span id="typeSpTxt"></span></span>
+    </div>
+    <div class="frow">
+      <span class="lbl" id="lblAddPlaceholder"></span>
+      <input id="urlEntry" placeholder="https://modrinth.com/mod/... 或项目 ID" style="flex:1;min-width:120px">
+      <button class="btn-accent2" style="width:100px" id="btnFetch" onclick="fetch_versions_from_url()"></button>
+      <button class="btn-gray" style="width:120px" id="btnAddLocal" onclick="add_local_jar()"></button>
+    </div>
+    <div class="frow" style="margin-top:6px">
+      <span class="lbl"></span>
+      <input id="projectSearchEntry" style="flex:1;min-width:120px">
+      <button class="btn-accent2" style="width:120px" id="btnSearchProject" onclick="search_projects_to_add()"></button>
+    </div>
+  </div>
+  <div class="group" id="groupList" style="flex:1;display:flex;flex-direction:column">
+    <div class="gtitle" id="gList"></div>
+    <div class="tool-row">
+      <span style="font-size:14px">🔍</span>
+      <input id="searchEntry" oninput="debounce_filter()" style="flex:1;min-width:120px">
+      <button class="btn-gray" id="btnClearSearch" onclick="clear_search()">✕</button>
+    </div>
+    <div class="tool-row">
+      <button class="btn-accent" style="width:100px" id="btnRefresh" onclick="refresh_mod_list()"></button>
+      <button class="btn-danger" style="width:100px" id="btnDelete" onclick="delete_selected()"></button>
+      <button class="btn-warning" style="width:100px" id="btnFolder" onclick="open_mods_folder()"></button>
+      <button class="btn-accent2" style="width:150px" id="btnCheckUpd" onclick="check_updates()"></button>
+      <button class="btn-gray" style="width:100px" id="btnExport" onclick="export_mod_list()"></button>
+      <button class="btn-gray" style="width:100px" id="btnImport" onclick="import_mod_list()"></button>
+      <button class="btn-accent2" style="width:110px" id="btnSwitchVer" onclick="switch_mod_version()"></button>
+    </div>
+    <div class="tbl-hdr" id="listHdr"></div>
+    <div id="tree"></div>
+  </div>
+  <div id="bottomBtns">
+    <button class="btn-gray" id="btnDiff" onclick="diff_packs()"></button>
+    <button class="btn-gray" id="btnDuplicate" onclick="detect_duplicates()"></button>
+    <button class="btn-gray" id="btnCompat" onclick="compatibility_check()"></button>
+    <button class="btn-gray" id="btnStats" onclick="show_stats()"></button>
+    <button class="btn-warning" id="btnPrePack" onclick="pre_pack_check()"></button>
+    <button class="btn-success" id="btnDlAll" onclick="download_all_mods()"></button>
+    <button class="btn-accent2" id="btnEasySwitch" onclick="easy_switch_check()"></button>
+  </div>
+    </div>
+    <div id="right">
+      <div class="group" id="groupLog"><div class="gtitle"><span id="gLog"></span></div>
+        <div id="logText"></div>
+      </div>
+    </div>
+   </div>
+  </div>
+</div>
+</div>
+<div id="status">
+  <span id="statusTxt"></span>
+  <span id="progressPct"></span>
+  <div id="progress"><i></i></div>
+</div>
+<input type="file" id="fileMrpack" accept=".mrpack,.zip" hidden>
+<input type="file" id="fileJar" accept=".jar,.zip" hidden>
+<input type="file" id="fileCsv" accept=".csv" hidden>
+<input type="file" id="fileOverrides" webkitdirectory multiple hidden>
+<script>
+'use strict';
+const LANG={
+zh_CN:{'app_title':'⚡ 整合包模组管理工具','app_sub':'精简高效','file_label':'📁 文件',
+'path_label':'路径:','info_label':'📋 整合包信息',
+'info_name':'名称:','info_version':'版本:','info_mc':'MC版本:','info_loader':'加载器:','info_loader_ver':'加载器版本:','expand_btn':'▶ 展开',
+'collapse_btn':'▼ 折叠','compat_unknown':'⚠️ 未知','compat_unsupported':'⚠️ 未声明','compat_compatible':'✅ 兼容','compat_incompatible':'❌ 不兼容','compat_skipped':'➖ 不检测','add_mod_label':'➕ 添加模组',
+'add_mod_placeholder':'项目链接或 ID','fetch_btn':'🔍 获取版本','modlist_label':'📦 模组列表','refresh_btn':'🔄 刷新','delete_btn':'🗑️ 删除','folder_btn':'📂 打开文件夹',
+'check_update_btn':'🧪 检查更新（实验性）','backup_btn':'💾 备份','reload_btn':'🔄 重新加载','pack_btn':'📦 打包 .mrpack（含模组）','export_btn':'📤 导出列表',
+'import_btn':'📥 导入列表','log_label':'📋 日志','settings_show_log':'显示日志面板','status_ready':'就绪 ✅','status_loading':'加载中...','status_saved':'已保存 ✅','status_backup':'已备份',
+'status_packed':'打包完成','status_checking':'检查更新中...','status_downloading':'下载中...','col_name':'项目名称','col_filename':'文件名','col_version':'版本',
+'col_path':'路径','col_project_id':'项目 ID','dialog_confirm_delete':'确定删除选中的 {count} 个模组吗？','dialog_select_mod':'请至少选择一个模组','dialog_no_mods':'没有匹配的模组','dialog_file_not_found':'文件不存在',
+'dialog_open_mrpack_fail':'该 .mrpack 文件不包含 modrinth.index.json','dialog_parse_error':'文件解析失败: {error}','dialog_success_open':'已打开 {file}','dialog_version_fetch':'获取版本失败: {error}','dialog_no_version':'该项目没有版本',
+'dialog_select_version':'请先选择一个版本','dialog_version_exists':'模组 {filename} 已存在，是否仍然添加？','dialog_dep_prompt':'模组 {filename} 有以下依赖项：','dialog_dep_existing':'（已存在）','dialog_dep_missing':'（缺失）',
+'dialog_dep_confirm':'是否补齐缺失的依赖？','dialog_update_experimental':'🧪 检查更新功能目前为实验性阶段，可能存在版本检测不准确或误报的情况。\n\n建议在操作前先使用“备份”功能保存当前整合包文件，以防数据丢失。\n\n是否继续执行？','dialog_no_update':'所有模组都是最新版本','dialog_update_found':'发现 {count} 个模组有更新（实验性检测结果）','dialog_update_warning':'⚠️ 该功能为实验性，版本比较可能不准确，请以 Modrinth 页面为准。','dialog_update_apply':'确定更新 {count} 个模组吗？（实验性功能）',
+'dialog_update_success':'成功更新 {count} 个模组','dialog_update_select':'请至少选择一个模组来更新','dialog_pack_empty':'没有模组条目，仍然打包吗？','dialog_pack_success':'已生成 .mrpack 文件（含模组）:\n{path}','dialog_pack_fail':'打包失败: {error}','dialog_backup_success':'备份已保存到 {path}',
+'dialog_import_select':'请选择 CSV 文件','dialog_import_success':'成功导入 {count} 个模组','dialog_import_fail':'导入失败: {error}','dialog_export_success':'已导出列表到 {path}','dialog_local_jar_title':'添加本地 JAR','dialog_local_jar_prompt':'请选择一个 JAR 文件',
+'dialog_local_jar_id':'输入 Modrinth 项目 ID（可选）:','dialog_detail_title':'模组详情','dialog_detail_no_id':'此模组无项目 ID，仅显示本地信息。','log_download_done':'已下载: {filename}',
+'log_download_fail':'下载失败: {filename} - {error}','log_export':'已导出模组列表到 {path}','log_import':'从 {path} 导入 {count} 个模组','log_async_pack_changed':'整合包已切换，已丢弃尚未完成的操作','log_refresh':'已加载 {count} 个模组','log_local_jar':'已添加本地模组 {filename}','log_detail_view':'查看模组详情: {name}',
 
-  <script>
-    document.querySelectorAll('.nav-btn').forEach((button) => {
-      button.addEventListener('click', () => {
-        const target = button.dataset.page;
-        document.querySelectorAll('.nav-btn').forEach((item) => {
-          item.classList.toggle('active', item === button);
-        });
-        document.querySelectorAll('.page').forEach((page) => {
-          page.classList.toggle('active', page.id === target);
-        });
-      });
-    });
-  </script>
+'button_open_selected':'打开选中项','button_open_all':'打开全部','button_install_missing':'补齐缺失','button_close':'关闭','button_cancel':'取消',
+'button_select_this':'选择此版本','button_update_selected':'更新选中项','button_select_all':'☑ 全选/反选','button_show_all':'🔄 显示全部','button_show_recommended':'🔄 显示推荐/兼容','column_mod_name':'模组名',
+'column_current_ver':'当前版本','column_latest_ver':'最新版本','column_action':'操作','dialog_confirm_overrides':'是否包含 overrides？','dialog_overrides_prompt':'将自定义配置文件打包到 overrides 目录？','log_no_overrides':'未选择 overrides 文件夹，仅打包 index.json','log_ov_applied':'已应用 {n} 个覆盖文件（含 {c} 个客户端专用）','log_ov_server':'保留 {n} 个服务端专用覆盖文件（server-overrides，未合并到工作区）',
+'dialog_pack_error':'无法读取 index 文件','log_dep_fetch':'正在获取依赖 {name} 的最新版本...','log_dep_added':'已添加依赖 {name}','log_dep_exists':'依赖 {name} 已存在，跳过','dialog_dep_fetch_fail':'获取依赖 {name} 的版本失败',
+'dialog_dep_add_success':'成功添加 {count} 个依赖','dialog_dep_no_missing':'所有依赖均已存在，无需添加。','log_add_mod':'已添加模组 {filename}','log_delete_mod':'已删除 {count} 个模组','log_pack':'已打包: {path}','log_update_start':'开始检查更新（实验性）...',
+'log_update_done':'所有模组均为最新版本','log_update_success':'成功更新 {count} 个模组','log_theme_switch':'主题切换为 {theme}','log_style_switch':'风格切换为 {style}','log_lang_switch':'语言切换为 {lang}','dialog_open_cf_fail':'该 .zip 不是有效的 CurseForge 整合包（manifest.json 无效）','log_cf_open':'检测到 CurseForge 整合包，共 {count} 个模组条目',
+'log_cf_resolving':'正在解析 CurseForge 模组 {done}/{total}...','log_cf_done':'✅ CurseForge 模组解析完成','log_cf_fail':'⚠ 无法解析 CurseForge 模组 projectID={pid}，使用占位文件名','log_cf_nohash':'提示：浏览器环境无法计算 CurseForge 文件哈希，导出的条目不含校验值','export_zip_btn':'📦 导出 .zip','dialog_pack_success_zip':'已生成 .zip 文件:\n{path}',
+'diff_btn':'🔀 对比整合包','dialog_diff_pick_a':'选择第一个整合包（旧版本）','dialog_diff_pick_b':'选择第二个整合包（新版本）','diff_title':'整合包对比结果','diff_only':'— 仅在 {name} 中（{count}）—','diff_changed':'— 版本不同（{count}）—',
+'diff_same':'两个整合包内容一致','log_jar_identified':'识别本地 JAR: {filename} → {project} {version}','log_jar_unknown':'无法从 Modrinth 识别 {filename}，按本地 JAR 处理','dialog_changelog_title':'更新日志','dialog_changelog_none':'（无更新日志）','drop_hint':'拖拽打开整合包 / 添加 JAR',
+'duplicate_btn':'🔁 重复','compat_btn':'✅ 兼容','stats_btn':'📊 统计','manage_backup_btn':'💾 备份','pre_pack_btn':'📋 校验','switch_ver_btn':'🔄 切版本',
+'dialog_dup_title':'重复模组检测','dialog_dup_none':'✅ 没有发现重复的模组','dialog_dup_group':'重复组（{count} 个）',
+'dialog_dup_delete_extras':'删除多余的（保留每组第一个）','dialog_compat_title':'兼容性体检','dialog_compat_checking':'体检中... {done}/{total}','dialog_compat_none':'✅ 所有模组都与当前 MC/loader 兼容','dialog_compat_incompat':'以下模组可能与当前 MC/loader 不兼容：','dialog_compat_mc':'MC',
+'dialog_compat_loader':'加载器','dialog_stats_title':'整合包统计','dialog_stats_count':'模组总数','dialog_stats_size':'总体积','dialog_stats_no_url':'无下载链接条目','dialog_stats_sources':'来源分布','source_local':'本地',
+'dialog_backup_title':'备份管理','dialog_backup_empty':'暂无内存备份','dialog_backup_count':'内存中已有 {count} 份备份','dialog_backup_restore':'恢复','dialog_backup_delete':'删除','dialog_backup_no_select':'请先选择一个备份',
+'dialog_switch_select':'请先选中一行模组','dialog_prepack_title':'打包前校验','dialog_prepack_ok':'✅ 所有条目通过校验','dialog_prepack_problems':'发现以下问题：',
+'dialog_prepack_no_url':'{n} 个条目无下载链接','dialog_prepack_no_path':'{n} 个条目无 path','log_dup_found':'发现 {count} 组重复模组','log_compat_done':'兼容性体检完成，发现 {count} 个不兼容模组',
+'log_backup_restore':'已恢复备份: {name}','log_backup_delete':'已删除备份: {name}','log_switch_ver':'已切换 {name} 到版本 {version}',
+'nav_home':'🏠 主页','nav_edit':'✏️ 编辑整合包','nav_settings':'⚙️ 设置',
+'home_import_local':'📂 导入本地整合包','home_import_local_desc':'选择 .mrpack / .zip 文件打开',
+'home_import_online':'🌐 通过名称导入整合包','home_import_online_desc':'在线搜索并下载整合包',
+'home_new_pack':'📄 新建整合包','home_new_pack_desc':'创建 .mrpack 或 .zip（Modrinth / CurseForge）',
+'edit_empty_hint':'请先在主页导入或新建整合包','search_no_result':'未找到匹配的模组，请更换关键词',
+'search_project_placeholder':'输入项目名称关键词...','search_project_btn':'🔎 按名称搜索','search_project_title':'🔎 搜索并添加项目',
+'search_projecting':'正在搜索项目...','search_project_no_result':'没有找到匹配的项目','search_project_fail':'搜索项目失败: {error}',
+'search_project_select':'选择此项目',
+'settings_title':'⚙️ 设置','settings_lang':'语言','settings_theme':'主题','settings_style':'界面风格',
+  'theme_dark':'🌙 深色','theme_light':'☀️ 浅色','style_classic':'经典','style_winui':'WinUI','lang_zh':'中文','lang_en':'English',
+'type_label':'类型','type_mod':'🧩 模组','type_rp':'🎨 资源包','type_sp':'✨ 光影包',
+'add_local_file':'📂 添加本地文件','col_type':'类型','dlg_stats_types':'类型分布',
+'online_search_title':'🌐 通过名称导入整合包','online_search_placeholder':'输入整合包名称关键词...',
+'online_search_btn':'🔍 搜索','online_searching':'搜索中...','online_no_results':'没有找到匹配的整合包',
+'online_select':'选中此整合包','online_pick_version':'选择要下载的版本','online_downloading':'正在下载整合包...',
+'online_download_fail':'下载失败: {error}','online_by':'作者: {author} · 下载量: {dl}',
+'new_pack_title':'📄 新建整合包','new_pack_name':'名称','new_pack_version':'版本',
+'new_pack_format':'导出格式','fmt_modrinth':'Modrinth (.mrpack)','fmt_curseforge':'CurseForge (.zip)',
+'new_pack_create':'✅ 创建','new_pack_created':'✅ 已创建: {path}',
+'new_pack_loader_ver_required':'请填写 Forge/NeoForge 加载器版本（可在其官网查询）',
+'cf_export_ok':'已生成 CurseForge .zip:\n{path}',
+'btn_dl_all':'⬇ 全部下载','dlg_dl_all_title':'下载所有文件','dlg_dl_all_done':'下载完成：成功 {ok}，失败 {fail}',
+'btn_easy_switch':'🔁 版本易切','easy_switch_title':'版本易切 — 切换目标 MC/加载器','easy_switch_target_mc':'目标 MC 版本','easy_switch_target_loader':'目标加载器','easy_switch_search_btn':'🔍 检查兼容性','easy_switch_checking':'正在检查兼容性... {i}/{count}','easy_switch_stats':'✅ 兼容 {ok}  |  ❌ 不支持 {bad}  |  ⚠️ 无法检测 {unk}  |  📂 本地 {local}','easy_switch_col_name':'项目名称','easy_switch_col_type':'类型','easy_switch_col_status':'状态','easy_switch_col_target_ver':'目标版本','easy_switch_status_ok':'✅ 兼容','easy_switch_status_bad':'❌ 不支持','easy_switch_status_unknown':'⚠️ 未知','easy_switch_status_local':'📂 本地','easy_switch_no_compatible':'没有可升级的模组','easy_switch_no_mods':'整合包中没有模组条目','easy_switch_select_mc':'请选择目标 MC 版本','easy_switch_upgrade_btn':'⬆ 升级选中','log_easy_switch_start':'开始版本易切检查（目标 MC={mc}，加载器={loader}）...','log_easy_switch_done':'版本易切检查完成：兼容 {ok}，不支持 {bad}，无法检测 {unk}','log_easy_switch_upgrade':'版本易切升级完成：成功 {ok}，失败 {fail}','log_easy_switch_fail':'版本易切失败：{error}','easy_switch_loader_ver_fail':'未找到目标加载器版本，已取消升级（请检查目标 MC）','log_easy_switch_applied':'已同步包依赖：MC={mc}，{loader}={ver}',
+'log_mc_fetching':'获取 Minecraft 版本列表...','log_mc_fetched':'✅ 获取 {count} 个 MC 版本','log_mc_fetch_fail':'获取 MC 版本失败',
+'log_loader_fetching':'正在获取 {loader} 版本...','log_loader_fetch_fail':'获取 {loader} 版本失败（网络异常？）',
+'log_mc_compat':'🔍 MC {mc} 兼容 {count} 个 {loader} 版本','log_mc_compat_none':'未找到 MC {mc} 兼容版本，显示全部 {count} 个',
+'log_loader_fetched':'获取到 {count} 个 {loader} 版本','log_loader_compat_none':'未找到 MC {mc} 兼容的 {loader} 版本',
+'dup_keep':'保留','dup_extra':'多余','log_cf_discarded':'CF 解析完成，但已切换整合包，结果已丢弃',
+'dialog_csv_empty':'CSV 文件为空','log_csv_import_start':'开始从 {name} 导入...','csv_importing':'导入中... {i}/{count}',
+'log_no_compat_version':'无法找到兼容版本: {pid}','log_version_data_bad':'版本数据异常: {pid}',
+'update_selected':'已选 {n}/{total}','update_action':'⬆ 更新','log_update_entry_fail':'替换条目 {filename} 失败: {error}',
+'selector_title':'选择版本 - {id}','selector_title_count':'选择版本 - {id}（{count} 个版本）',
+'col_game_version':'游戏版本','col_loader':'加载器','col_date':'发布日期','col_recommended':'推荐',
+'data_error':'数据异常','selector_filter':'当前筛选：{filter}',
+'dep_select_first':'请先选择一个依赖','dep_none_added':'没有成功补齐任何依赖，请检查网络或手动添加。',
+'dep_loading':'加载中... ({id})','log_dep_add_fail':'补齐依赖 {name} 失败: {error}',
+'unknown':'未知','detail_loading':'正在获取详情...',
+'detail_cf_info':'标题: {title}\n描述: {desc}\n下载量: {downloads}',
+'detail_mr_info':'标题: {title}\n作者: {author}\n描述: {desc}\n下载量: {downloads}\n最后更新: {updated}',
+'update_no_mods':'当前整合包没有模组','update_no_pid':'没有模组包含有效的 Modrinth 项目 ID','log_update_no_pid':'没有可检查的模组（缺少项目 ID）',
+'browser_no_folder':'浏览器版无法直接打开本地文件夹。\n\n如需 mods 目录：打包 .mrpack 后用 Modrinth App 打开，或使用桌面版。',
+'log_dl_all_start':'开始下载全部 {count} 个文件（浏览器将逐个保存到下载目录）',
+'edit_empty_mods':'包内暂无模组','dialog_open_fail':'打开失败: {error}',
+'log_add_exists':'{filename} 已存在，取消添加','log_add_version_fail':'添加版本失败: {error}',
+'log_update_cancel':'用户取消检查更新','log_read_file_fail':'读取文件失败: {error}',
+'log_opening':'正在打开 {name}','log_ov_added':'已添加 {n} 个包内覆盖文件',
+'log_skip_nolink':'跳过 {filename}（无下载链接）',
+'ver_unknown':'未知版本','log_lang_rebuilt':'已用新语言重建界面',
+'warn_need_url':'请输入项目链接或 ID','err_parse_pid':'无法解析项目 ID',
+'log_fetch_versions':'获取项目 {pid} 的版本...',
+"log_loaded_info":"加载: 名称='{name}', MC='{mc}', 加载器='{loader}', 版本='{ver}'",
+'log_cf_check_fail':'[CF] 检查更新失败 {pid}: {error}','log_compare_fail':'对比失败:\n{error}',
+'log_pack_start':'开始打包为 {path}...','log_ov_user_added':'已添加 {n} 个用户选择的覆盖文件',
+'log_cf_pack_start':'开始生成 CurseForge .zip...','online_search_fail':'搜索失败: {error}',
+'new_pack_default_name':'我的整合包'},
+en_US:{'app_title':'⚡ Modpack Manager','app_sub':'Lean & efficient','file_label':'📁 File',
+'path_label':'Path:','info_label':'📋 Pack Info',
+'info_name':'Name:','info_version':'Version:','info_mc':'MC version:','info_loader':'Loader:','info_loader_ver':'Loader version:','expand_btn':'▶ Expand',
+'collapse_btn':'▼ Collapse','compat_unknown':'⚠️ Unknown','compat_unsupported':'⚠️ Unsupported','compat_compatible':'✅ Compatible','compat_incompatible':'❌ Incompatible','compat_skipped':'➖ Not checked','add_mod_label':'➕ Add mod',
+'add_mod_placeholder':'Project link or ID','fetch_btn':'🔍 Fetch versions','modlist_label':'📦 Mod list','refresh_btn':'🔄 Refresh','delete_btn':'🗑️ Delete','folder_btn':'📂 Open folder',
+'check_update_btn':'🧪 Check for updates (experimental)','backup_btn':'💾 Backup','reload_btn':'🔄 Reload','pack_btn':'📦 Pack .mrpack (with mods)','export_btn':'📤 Export list',
+'import_btn':'📥 Import list','log_label':'📋 Log','settings_show_log':'Show log panel','status_ready':'Ready ✅','status_loading':'Loading...','status_saved':'Saved ✅','status_backup':'Backed up',
+'status_packed':'Packed','status_checking':'Checking for updates...','status_downloading':'Downloading...','col_name':'Project Name','col_filename':'Filename','col_version':'Version',
+'col_path':'Path','col_project_id':'Project ID','dialog_confirm_delete':'Delete {count} selected mods?','dialog_select_mod':'Select at least one mod','dialog_no_mods':'No matching mods','dialog_file_not_found':'File not found',
+'dialog_open_mrpack_fail':'This .mrpack does not contain modrinth.index.json','dialog_parse_error':'Parse failed: {error}','dialog_success_open':'Opened {file}','dialog_version_fetch':'Failed to fetch versions: {error}','dialog_no_version':'No versions for this project',
+'dialog_select_version':'Select a version first','dialog_version_exists':'Mod {filename} already exists. Add anyway?','dialog_dep_prompt':'Mod {filename} has these dependencies:','dialog_dep_existing':'(already exists)','dialog_dep_missing':'(missing)',
+'dialog_dep_confirm':'Install missing dependencies?','dialog_update_experimental':'🧪 The update check is experimental and results may be inaccurate.\n\nPlease back up your pack before proceeding.\n\nContinue?','dialog_no_update':'All mods are up to date','dialog_update_found':'Found {count} mod updates (experimental)','dialog_update_warning':'⚠️ Experimental feature — version comparison may be inaccurate. Verify on Modrinth.','dialog_update_apply':'Update {count} mods? (experimental)',
+'dialog_update_success':'Updated {count} mods','dialog_update_select':'Select at least one mod to update','dialog_pack_empty':'No mods in this pack. Pack anyway?','dialog_pack_success':'Generated .mrpack (with mods):\n{path}','dialog_pack_fail':'Pack failed: {error}','dialog_backup_success':'Backup saved to {path}',
+'dialog_import_select':'Select a CSV file','dialog_import_success':'Imported {count} mods','dialog_import_fail':'Import failed: {error}','dialog_export_success':'Exported list to {path}','dialog_local_jar_title':'Add local JAR','dialog_local_jar_prompt':'Select a JAR file',
+'dialog_local_jar_id':'Enter Modrinth project ID (optional):','dialog_detail_title':'Mod Details','dialog_detail_no_id':'No project ID — local info only.','log_download_done':'Downloaded: {filename}',
+'log_download_fail':'Download failed: {filename} - {error}','log_export':'Exported list to {path}','log_import':'Imported {count} mods from {path}','log_async_pack_changed':'Pack changed; unfinished operations were discarded','log_refresh':'Loaded {count} mods','log_local_jar':'Added local mod {filename}','log_detail_view':'View details: {name}',
+
+'button_open_selected':'Open Selected','button_open_all':'Open All','button_install_missing':'Install Missing','button_close':'Close','button_cancel':'Cancel',
+'button_select_this':'Select This','button_update_selected':'Update Selected','button_select_all':'☑ Select All','button_show_all':'🔄 Show All','button_show_recommended':'🔄 Show Recommended/Compatible','column_mod_name':'Mod',
+'column_current_ver':'Current','column_latest_ver':'Latest','column_action':'Action','dialog_confirm_overrides':'Include overrides?','dialog_overrides_prompt':'Pack custom config files into overrides?','log_no_overrides':'No overrides folder selected, only index.json will be packed','log_ov_applied':'Applied {n} override files ({c} client-only)','log_ov_server':'Kept {n} server-only override files (server-overrides, not merged into workspace)',
+'dialog_pack_error':'Cannot read index file','log_dep_fetch':'Fetching latest version of {name}...','log_dep_added':'Added dependency {name}','log_dep_exists':'Dependency {name} exists, skipped','dialog_dep_fetch_fail':'Failed to fetch version for {name}',
+'dialog_dep_add_success':'Added {count} dependencies','dialog_dep_no_missing':'All dependencies already exist, nothing to add.','log_add_mod':'Added mod {filename}','log_delete_mod':'Deleted {count} mods','log_pack':'Packed: {path}','log_update_start':'Checking updates (experimental)...',
+'log_update_done':'All mods up to date','log_update_success':'Updated {count} mods','log_theme_switch':'Theme: {theme}','log_style_switch':'Style: {style}','log_lang_switch':'Language: {lang}','dialog_open_cf_fail':'This .zip is not a valid CurseForge modpack (invalid manifest.json)','log_cf_open':'CurseForge modpack detected: {count} mods',
+'log_cf_resolving':'Resolving CurseForge mods {done}/{total}...','log_cf_done':'✅ CurseForge mod resolution complete','log_cf_fail':'⚠ Cannot resolve CurseForge mod projectID={pid}, using placeholder filename','log_cf_nohash':'Note: browsers cannot compute CurseForge file hashes; entries are written without checksums','export_zip_btn':'📦 Export .zip','dialog_pack_success_zip':'Generated .zip file:\n{path}',
+'diff_btn':'🔀 Compare packs','dialog_diff_pick_a':'Select the first modpack (older)','dialog_diff_pick_b':'Select the second modpack (newer)','diff_title':'Pack Comparison','diff_only':'— Only in {name} ({count}) —','diff_changed':'— Version changed ({count}) —',
+'diff_same':'Both packs are identical','log_jar_identified':'Identified local JAR: {filename} → {project} {version}','log_jar_unknown':'Cannot identify {filename} on Modrinth, treating as local JAR','dialog_changelog_title':'Changelog','dialog_changelog_none':'(No changelog)',
+'duplicate_btn':'🔁 Dupes','compat_btn':'✅ Compat','stats_btn':'📊 Stats','manage_backup_btn':'💾 Backups','pre_pack_btn':'📋 Check','switch_ver_btn':'🔄 Switch',
+'dialog_dup_title':'Duplicate Detection','dialog_dup_none':'✅ No duplicate mods found','dialog_dup_group':'Duplicate group ({count})','dialog_dup_delete_extras':'Delete extras (keep first of each group)',
+'dialog_compat_title':'Compatibility Check','dialog_compat_checking':'Checking... {done}/{total}','dialog_compat_none':'✅ All mods compatible with the current MC/loader','dialog_compat_incompat':'These mods may be incompatible with the current MC/loader:','dialog_compat_mc':'MC','dialog_compat_loader':'Loader',
+'dialog_stats_title':'Pack Statistics','dialog_stats_count':'Total mods','dialog_stats_size':'Total size','dialog_stats_no_url':'Mods without a download URL','dialog_stats_sources':'Source distribution','source_local':'Local','dialog_backup_title':'Backup Management',
+'dialog_backup_empty':'No in-memory backups','dialog_backup_count':'{count} backups in memory','dialog_backup_restore':'Restore','dialog_backup_delete':'Delete','dialog_backup_no_select':'Select a backup first',
+'dialog_switch_select':'Select a row first','dialog_prepack_title':'Pre-pack Check','dialog_prepack_ok':'✅ All mods passed','dialog_prepack_problems':'Problems found:','dialog_prepack_no_url':'{n} mods have no download URL',
+'dialog_prepack_no_path':'{n} mods have no path',
+'log_dup_found':'Found {count} duplicate groups','log_compat_done':'Compatibility check done, {count} incompatible mods','log_backup_restore':'Restored backup: {name}',
+'log_backup_delete':'Deleted backup: {name}','log_switch_ver':'Switched {name} to version {version}','drop_hint':'Drop to open modpack / add JAR',
+'nav_home':'🏠 Home','nav_edit':'✏️ Edit Pack','nav_settings':'⚙️ Settings',
+'home_import_local':'📂 Import Local Pack','home_import_local_desc':'Open a .mrpack / .zip file',
+'home_import_online':'🌐 Import by Name','home_import_online_desc':'Search & download packs online',
+'home_new_pack':'📄 New Pack','home_new_pack_desc':'Create .mrpack or .zip (Modrinth / CurseForge)',
+'edit_empty_hint':'Please import or create a pack on Home first','search_no_result':'No matching mods found. Try another keyword',
+'search_project_placeholder':'Enter a project name...','search_project_btn':'🔎 Search by name','search_project_title':'🔎 Search and add a project',
+'search_projecting':'Searching projects...','search_project_no_result':'No matching projects found','search_project_fail':'Project search failed: {error}',
+'search_project_select':'Select this project',
+'settings_title':'⚙️ Settings','settings_lang':'Language','settings_theme':'Theme','settings_style':'Style',
+  'theme_dark':'🌙 Dark','theme_light':'☀️ Light','style_classic':'Classic','style_winui':'WinUI','lang_zh':'中文','lang_en':'English',
+'type_label':'Type','type_mod':'🧩 Mod','type_rp':'🎨 Resource Pack','type_sp':'✨ Shader Pack',
+'add_local_file':'📂 Add Local File','col_type':'Type','dlg_stats_types':'Type distribution',
+'online_search_title':'🌐 Import Pack by Name','online_search_placeholder':'Enter modpack name...',
+'online_search_btn':'🔍 Search','online_searching':'Searching...','online_no_results':'No modpacks found',
+'online_select':'Select this pack','online_pick_version':'Select version to download','online_downloading':'Downloading pack...',
+'online_download_fail':'Download failed: {error}','online_by':'By {author} · Downloads: {dl}',
+'new_pack_title':'📄 New Pack','new_pack_name':'Name','new_pack_version':'Version',
+'new_pack_format':'Format','fmt_modrinth':'Modrinth (.mrpack)','fmt_curseforge':'CurseForge (.zip)',
+'new_pack_create':'✅ Create','new_pack_created':'✅ Created: {path}',
+'new_pack_loader_ver_required':'Please enter the Forge/NeoForge loader version (see their official site)',
+'cf_export_ok':'CurseForge .zip created:\n{path}',
+'btn_dl_all':'⬇ Download all','dlg_dl_all_title':'Download All Files','dlg_dl_all_done':'Download done: success {ok}, failed {fail}',
+'btn_easy_switch':'🔁 Version Switch','easy_switch_title':'Version Switch — Target MC/Loader','easy_switch_target_mc':'Target MC','easy_switch_target_loader':'Target Loader','easy_switch_search_btn':'🔍 Check Compatibility','easy_switch_checking':'Checking... {i}/{count}','easy_switch_stats':'✅ OK {ok}  |  ❌ Bad {bad}  |  ⚠️ Unknown {unk}  |  📂 Local {local}','easy_switch_col_name':'Name','easy_switch_col_type':'Type','easy_switch_col_status':'Status','easy_switch_col_target_ver':'Target Ver','easy_switch_status_ok':'✅ Compatible','easy_switch_status_bad':'❌ Unsupported','easy_switch_status_unknown':'⚠️ Unknown','easy_switch_status_local':'📂 Local','easy_switch_no_compatible':'No upgradable mods','easy_switch_no_mods':'No mod entries in pack','easy_switch_select_mc':'Please select target MC version','easy_switch_upgrade_btn':'⬆ Upgrade Selected','log_easy_switch_start':'Version switch check started (target MC={mc}, loader={loader})...','log_easy_switch_done':'Version switch done: compatible {ok}, unsupported {bad}, unknown {unk}','log_easy_switch_upgrade':'Upgrade done: success {ok}, failed {fail}','log_easy_switch_fail':'Version switch failed: {error}','easy_switch_loader_ver_fail':'No compatible loader version found; upgrade cancelled (check the target MC)','log_easy_switch_applied':'Pack dependencies updated: MC={mc}, {loader}={ver}',
+'log_mc_fetching':'Fetching Minecraft versions...','log_mc_fetched':'✅ Fetched {count} MC versions','log_mc_fetch_fail':'Failed to fetch MC versions',
+'log_loader_fetching':'Fetching {loader} versions...','log_loader_fetch_fail':'Failed to fetch {loader} versions (network issue?)',
+'log_mc_compat':'🔍 MC {mc}: {count} compatible {loader} versions','log_mc_compat_none':'No MC {mc} compatible versions found, showing all {count}',
+'log_loader_fetched':'Fetched {count} {loader} versions','log_loader_compat_none':'No MC {mc} compatible {loader} versions found',
+'dup_keep':'Keep','dup_extra':'Extra','log_cf_discarded':'CF resolution finished, but the pack was switched; results were discarded',
+'dialog_csv_empty':'CSV file is empty','log_csv_import_start':'Importing from {name}...','csv_importing':'Importing... {i}/{count}',
+'log_no_compat_version':'No compatible version found: {pid}','log_version_data_bad':'Bad version data: {pid}',
+'update_selected':'Selected {n}/{total}','update_action':'⬆ Update','log_update_entry_fail':'Failed to replace {filename}: {error}',
+'selector_title':'Select version - {id}','selector_title_count':'Select version - {id} ({count} versions)',
+'col_game_version':'Game version','col_loader':'Loader','col_date':'Release date','col_recommended':'Featured',
+'data_error':'Data error','selector_filter':'Filter: {filter}',
+'dep_select_first':'Select a dependency first','dep_none_added':'No dependencies were added. Check your network or add them manually.',
+'dep_loading':'Loading... ({id})','log_dep_add_fail':'Failed to add dependency {name}: {error}',
+'unknown':'Unknown','detail_loading':'Loading details...',
+'detail_cf_info':'Title: {title}\nSummary: {desc}\nDownloads: {downloads}',
+'detail_mr_info':'Title: {title}\nAuthor: {author}\nSummary: {desc}\nDownloads: {downloads}\nLast updated: {updated}',
+'update_no_mods':'No mods in this pack','update_no_pid':'No mods contain a valid Modrinth project ID','log_update_no_pid':'No mods to check (missing project ID)',
+'browser_no_folder':'The browser version cannot open local folders.\n\nTo fill your mods folder: export the .mrpack and open it with the Modrinth App, or use the desktop version.',
+'log_dl_all_start':'Downloading all {count} files (browser will save them one by one)',
+'edit_empty_mods':'No mods in this pack yet','dialog_open_fail':'Failed to open: {error}',
+'log_add_exists':'{filename} already exists, add cancelled','log_add_version_fail':'Failed to add version: {error}',
+'log_update_cancel':'Update check cancelled','log_read_file_fail':'Failed to read file: {error}',
+'log_opening':'Opening {name}','log_ov_added':'Added {n} override files from the pack',
+'log_skip_nolink':'Skipped {filename} (no download link)',
+'ver_unknown':'Unknown version','log_lang_rebuilt':'UI rebuilt with new language',
+'warn_need_url':'Please enter a project URL or ID','err_parse_pid':'Cannot parse project ID',
+'log_fetch_versions':'Fetching versions for project {pid}...',
+"log_loaded_info":"Loaded: name='{name}', MC='{mc}', loader='{loader}', ver='{ver}'",
+'log_cf_check_fail':'[CF] Update check failed for {pid}: {error}','log_compare_fail':'Comparison failed:\n{error}',
+'log_pack_start':'Packing to {path}...','log_ov_user_added':'Added {n} user-selected override files',
+'log_cf_pack_start':'Generating CurseForge .zip...','online_search_fail':'Search failed: {error}',
+'new_pack_default_name':'My Modpack'}
+};
+const LOADER_KEYS={"Fabric":"fabric-loader","Forge":"forge","NeoForge":"neoforge"};
+const LOADER_API={"Fabric":"fabric","Forge":"forge","NeoForge":"neoforge"};
+let CURRENT_LANG,CURRENT_THEME,CURRENT_STYLE,SHOW_LOG=true;
+try{const cfg=JSON.parse(localStorage.getItem('modpackwizard_config')||'{}');
+  CURRENT_LANG=cfg.language==='en_US'?'en_US':'zh_CN';
+  CURRENT_THEME=cfg.theme==='light'?'light':'dark';
+  CURRENT_STYLE=cfg.style==='classic'?'classic':'winui';
+  SHOW_LOG=cfg.showLog!==false;}
+catch{CURRENT_LANG='zh_CN';CURRENT_THEME='dark';CURRENT_STYLE='winui';}
+function save_config(){try{
+  localStorage.setItem('modpackwizard_config',JSON.stringify({language:CURRENT_LANG,theme:CURRENT_THEME,style:CURRENT_STYLE,showLog:SHOW_LOG}));}catch{}}
+function apply_style(){document.documentElement.setAttribute('data-style',CURRENT_STYLE);}
+function set_style(style){if(CURRENT_STYLE===style)return;
+  CURRENT_STYLE=style;apply_style();save_config();
+  const sc=$('styleClassic'),sw=$('styleWinui');
+  if(sc)sc.classList.toggle('on',style==='classic');
+  if(sw)sw.classList.toggle('on',style==='winui');
+  log(trf('log_style_switch',{style:CURRENT_STYLE}));
+  set_status(`Style: ${CURRENT_STYLE}`);}
+let EXPANDED=false,PACK_FORMAT='modrinth',CURRENT_PAGE='home',ADD_TYPE='mod';
+const TYPE_PREFIX={mod:'mods',rp:'resourcepacks',sp:'shaderpacks'};
+function entry_type(e){const p=String((e&&e.path)||'').replace(/\\/g,'/');
+  if(p.startsWith('resourcepacks/'))return'rp';
+  if(p.startsWith('shaderpacks/'))return'sp';return'mod';}
+function entry_prefix(t){return TYPE_PREFIX[t]||'mods';}
+function begin_pack_open(){return++PACK_OPEN_BATCH;}
+function is_current_pack_open(batch){return batch===PACK_OPEN_BATCH;}
+function project_type_to_add_type(pt){return pt==='resourcepack'?'rp':pt==='shader'?'sp':'mod';}
+function build_project_search_facets(add_type,mc_version,loader_api){
+  const pt=add_type==='rp'?'resourcepack':add_type==='sp'?'shader':'mod';
+  const facets=[[`project_type:${pt}`]];
+  if(mc_version)facets.push([`versions:${mc_version}`]);
+  if(add_type==='mod'&&loader_api)facets.push([`categories:${loader_api}`]);
+  return facets;}
+function type_label(t){return t==='rp'?tr('type_rp'):t==='sp'?tr('type_sp'):tr('type_mod');}
+let INDEX_DATA=null,ALL_MODS=[],ROWS=[],NAME_BATCH=0,FILTER_TIMER=null,ROW_RENDER_BATCH=0,ROW_RENDER_PENDING=false,PACK_OPEN_BATCH=0;
+// ---------- 超时配置 ----------
+const REQUEST_TIMEOUT = 30000; // 请求超时时间（毫秒）
+const CF_WIDGET_TIMEOUT = 15000; // CF widget 请求超时时间（毫秒）
+// ---------- 懒加载重资源（首屏剥离 JSZip/Fluent，用时动态 import，并发调用共享同一 promise） ----------
+let _jszip_p=null;
+function loadJsZip(){
+  if(window.JSZip)return Promise.resolve(window.JSZip);
+  if(!_jszip_p)_jszip_p=import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm')
+    .then(m=>{window.JSZip=m.default;return window.JSZip;});
+  return _jszip_p;}
+function loadFluentUI(){
+  if(customElements.get('fluent-button'))return Promise.resolve();
+  return import('https://cdn.jsdelivr.net/npm/@fluentui/web-components@3.1.3/+esm');}
+
+let FABRIC_CACHE={all:null,byMc:{}},MC_CACHE=null,NAME_CACHE={};
+const ROW_CACHE=new Map();
+const COL_WIDTHS=['22%','19%','9%','8%','42%'];
+const $=id=>document.getElementById(id);
+const tr=k=>LANG[CURRENT_LANG][k]||k;
+function trf(key,params){let s=LANG[CURRENT_LANG][key]||key;
+  for(const k in params)s=s.replace('{'+k+'}',params[k]);return s;}
+function normalize_version(v){v=String(v||'').trim();
+  v=v.replace(/^mc[\d.\-]+-/,'');v=v.replace(/[+\-]fabric.*$/,'');
+  v=v.replace(/[+\-]forge.*$/,'');v=v.replace(/[+\-]neoforge.*$/,'');
+  v=v.replace(/\+\d{1,3}(\.\d{1,3}){0,2}$/,'');return v;}
+function extract_version(filename){const m=String(filename||'').match(/(\d+(?:\.\d+)+)/);
+  return m?m[1]:tr('ver_unknown');}
+function compare_simple(v1,v2){const p=v=>normalize_version(v).match(/\d+/g)||[];
+  const a=p(v1).map(Number),b=p(v2).map(Number);
+  if(!a.length&&!b.length)return 0;if(!a.length)return -1;if(!b.length)return 1;
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    const n1=a[i]||0,n2=b[i]||0;if(n1!==n2)return n1-n2;}return 0;}
+function parse_project_id_from_url(url){if(!url)return null;
+  let m=String(url).match(/cdn\.modrinth\.com\/data\/([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  m=String(url).match(/modrinth\.com\/(?:mod|project)\/([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
+  const last=String(url).split('/').pop();
+  if(/^[a-zA-Z0-9_-]+$/.test(last))return last;return null;}
+async function sha1_hex(buf){const h=await crypto.subtle.digest('SHA-1',buf);
+  return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function sha512_hex(buf){const h=await crypto.subtle.digest('SHA-512',buf);
+  return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+/* api_get：并发去重 + 可选 TTL 缓存（ttl 毫秒；0=仅去重不缓存，保证更新检查等场景结果新鲜） */
+const API_CACHE=new Map();
+async function api_get(url,ttl=0){
+  const hit=API_CACHE.get(url);
+  if(hit){
+    if(hit.p)return hit.p;
+    if(ttl>0&&Date.now()-hit.t<ttl)return hit.d;}
+  if(API_CACHE.size>800)API_CACHE.clear();
+  const opt=(window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(CF_WIDGET_TIMEOUT)}:undefined;
+  const p=(async()=>{const r=await fetch(url,opt);
+    if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})();
+  const entry={t:Date.now(),d:null,p};
+  API_CACHE.set(url,entry);
+  try{entry.d=await p;}catch(e){API_CACHE.delete(url);throw e;}
+  entry.t=Date.now();entry.p=null;return entry.d;}
+/* 裸 fetch 统一 30s 超时（旧浏览器无 AbortSignal.timeout 则不限制） */
+function fetch_to(){return (window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(REQUEST_TIMEOUT)}:undefined;}
+async function api_search_projects(query,add_type,mc_version,loader_api){
+  const params=new URLSearchParams({query,limit:'20',
+    facets:JSON.stringify(build_project_search_facets(add_type,mc_version,loader_api))});
+  const data=await api_get(`https://api.modrinth.com/v2/search?${params}`,60000);
+  return Array.isArray(data.hits)?data.hits:[];}
+async function api_fetch_mc_versions(){if(MC_CACHE)return MC_CACHE;
+  const d=await api_get('https://api.modrinth.com/v2/tag/game_version');
+  MC_CACHE=d.filter(v=>['release','beta','alpha'].includes(v.version_type)).map(v=>v.version);return MC_CACHE;}
+async function api_fetch_fabric_versions(force){
+  const cached=FABRIC_CACHE.all;
+  if(cached&&!force)return[cached,FABRIC_CACHE.map];
+  try{const d=await api_get('https://meta.fabricmc.net/v2/versions/loader');
+    const versions=[],map={};
+    for(const item of (Array.isArray(d)?d:[])){
+      const v=item&&item.loader?item.loader.version:(item&&item.version);
+      const gvs=(item&&item.gameVersions)||[];
+      if(v){versions.push(v);if(gvs.length)map[v]=gvs;}}
+    if(versions.length||cached===null){FABRIC_CACHE.all=versions;FABRIC_CACHE.map=map;FABRIC_CACHE.byMc={};
+      return[versions,map];}
+  }catch{}
+  if(cached)return[cached,FABRIC_CACHE.map];
+  return[[],{}];}
+async function api_fetch_fabric_for_mc(mc,force){
+  if(!force&&FABRIC_CACHE.byMc[mc])return FABRIC_CACHE.byMc[mc];
+  try{const d=await api_get(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(mc)}`);
+    const versions=(Array.isArray(d)?d:[]).map(x=>x&&x.loader?x.loader.version:(x&&x.version)).filter(Boolean);
+    if(versions.length){FABRIC_CACHE.byMc[mc]=versions;return versions;}}
+  catch{}
+  const[all,map]=await api_fetch_fabric_versions(false);
+  let compatible=Object.keys(map).filter(v=>(map[v]||[]).includes(mc));
+  if(!compatible.length)compatible=all.slice();
+  FABRIC_CACHE.byMc[mc]=compatible;return compatible;}
+const LOADER_VER_CACHE={forge:{},neoforge:{}};
+function _ver_num_sort_desc(vs){
+  return vs.filter(v=>/^\d+(\.\d+)*$/.test(v))
+    .sort((a,b)=>{const A=a.split('.').map(Number),B=b.split('.').map(Number);
+      for(let i=0;i<Math.max(A.length,B.length);i++){
+        const x=A[i]||0,y=B[i]||0;if(x!==y)return y-x;}return 0;});}
+async function api_fetch_forge_for_mc(mc,force){
+  if(!force&&LOADER_VER_CACHE.forge[mc])return LOADER_VER_CACHE.forge[mc];
+  let versions=[];
+  try{const r=await fetch('https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml',fetch_to());
+    if(r.ok){
+      const doc=new DOMParser().parseFromString(await r.text(),'text/xml');
+      const prefix=mc+'-';
+      for(const n of doc.getElementsByTagName('version')){
+        const v=(n.textContent||'').trim();
+        if(v.startsWith(prefix))versions.push(v.slice(prefix.length));}
+      versions=_ver_num_sort_desc(versions);}}
+  catch{}
+  LOADER_VER_CACHE.forge[mc]=versions;return versions;}
+async function api_fetch_neoforge_for_mc(mc,force){
+  if(!force&&LOADER_VER_CACHE.neoforge[mc])return LOADER_VER_CACHE.neoforge[mc];
+  let versions=[];
+  try{const d=await api_get('https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge');
+    const nums=mc.split('.'),prefix=nums.length===3?`${nums[1]}.${nums[2]}.`
+      :nums.length===2?`${nums[1]}.0.`:'';
+    if(prefix)versions=_ver_num_sort_desc((d.versions||[]).filter(v=>v.startsWith(prefix)));}
+  catch{}
+  LOADER_VER_CACHE.neoforge[mc]=versions;return versions;}
+async function api_fetch_loader_versions_for_mc(loader,mc){
+  if(loader==='Forge')return api_fetch_forge_for_mc(mc);
+  if(loader==='NeoForge')return api_fetch_neoforge_for_mc(mc);
+  return api_fetch_fabric_for_mc(mc);}
+async function api_fetch_project_name(pid){if(NAME_CACHE[pid])return NAME_CACHE[pid];
+  try{const d=await api_get(`https://api.modrinth.com/v2/project/${pid}`,300000);
+    NAME_CACHE[pid]=d.title||pid;}catch{NAME_CACHE[pid]=pid;}
+  return NAME_CACHE[pid];}
+async function api_fetch_project_meta(pid){
+  try{return await api_get(`https://api.modrinth.com/v2/project/${pid}`,300000);}catch{return null;}}
+async function api_get_all_versions(pid,mc,loader){
+  const all_v=[];let offset=0;const limit=100;
+  while(true){
+    const p=new URLSearchParams({limit:String(limit),offset:String(offset)});
+    if(mc)p.set('game_versions',JSON.stringify([mc]));
+    if(loader)p.set('loaders',JSON.stringify([loader]));
+    try{const batch=await api_get(`https://api.modrinth.com/v2/project/${pid}/version?${p}`);
+      if(!Array.isArray(batch)||!batch.length)break;
+      all_v.push(...batch);
+      if(batch.length<limit)break;
+      offset+=limit;}
+    catch{break;}}
+  return all_v;}
+async function api_get_latest_version(pid,mc,loader){
+  const p=new URLSearchParams({limit:'1'});
+  if(mc)p.set('game_versions',JSON.stringify([mc]));
+  if(loader)p.set('loaders',JSON.stringify([loader]));
+  try{const list=await api_get(`https://api.modrinth.com/v2/project/${pid}/version?${p}`);
+    return Array.isArray(list)&&list.length?list[0]:null;}catch{return null;}}
+async function pool_run(items,limit,worker){let i=0;
+  const runners=Array.from({length:Math.max(1,Math.min(limit,items.length))},async()=>{
+    while(i<items.length){const idx=i++;await worker(items[idx],idx);}});
+  await Promise.all(runners);}
+const CF_PROJ_CACHE=new Map(),CF_NAME_CACHE=new Map();
+const CF_CACHE_TTL=3600*1000,CF_CACHE_FAIL_TTL=300*1000;
+async function cf_get_project(pid,tries=4,force_refresh=false){
+  /* cfwidget 项目信息，带 TTL 缓存：成功 1h，失败 5min；force_refresh 强制刷新 */
+  const now=Date.now();
+  if(!force_refresh&&CF_PROJ_CACHE.has(pid)){
+    const{ts,data}=CF_PROJ_CACHE.get(pid);
+    const ttl=data!==null?CF_CACHE_TTL:CF_CACHE_FAIL_TTL;
+    if(now-ts<ttl)return data;}
+  let lastErr=null;
+  for(let i=0;i<tries;i++){
+    try{const opt=(window.AbortSignal&&AbortSignal.timeout)?{signal:AbortSignal.timeout(REQUEST_TIMEOUT)}:undefined;
+      const r=await fetch(`https://api.cfwidget.com/${pid}`,opt);
+      let j=null;try{j=await r.json();}catch{}
+      const err=(j&&j.error)||'';
+      /* cfwidget 排队时返回 202 + {error:'in_queue'}，r.ok 为 true，需在此识别重试 */
+      if(r.status===200&&j&&Array.isArray(j.files)&&j.files.length){
+        CF_PROJ_CACHE.set(pid,{ts:Date.now(),data:j});return j;}
+      if(err==='in_queue'||err==='creating'){lastErr=`HTTP ${r.status} ${err}`;}
+      else{lastErr=`HTTP ${r.status} ${err||(j?'empty response':'bad response')}`;break;}}
+    catch(e){lastErr=String(e&&e.message||e);break;}
+    await new Promise(res=>setTimeout(res,2500));}
+  if(lastErr)log(`[CF] cfwidget ${pid}: ${lastErr}`,'WARNING');
+  CF_PROJ_CACHE.set(pid,{ts:Date.now(),data:null});return null;}
+const CF_LOADER_TAGS={fabric:['Fabric'],forge:['Forge'],neoforge:['NeoForge']};
+const CF_LOADER_FAMILIES=['Fabric','Quilt','Forge','NeoForge'];
+async function cf_get_project_versions(pid,mc_ver,loader){
+  /* 获取 CurseForge 项目标准化版本列表：[{file_id,name,versions,filesize,released_at,url}]
+     loader 非空时按加载器标签过滤（cfwidget 文件 versions 数组同时含 MC 版本与加载器名） */
+  const pj=await cf_get_project(pid);
+  if(!pj||!pj.files)return[];
+  const tags=loader?(CF_LOADER_TAGS[loader]||[]):[];
+  const out=[];
+  for(const fo of pj.files){
+    const fv=fo.versions||[];
+    if(mc_ver&&fv.length&&!fv.includes(mc_ver))continue;
+    if(tags.length){
+      const hasLoaderTag=fv.some(v=>CF_LOADER_FAMILIES.includes(v));
+      if(hasLoaderTag&&!tags.some(t=>fv.includes(t)))continue;}
+    out.push({file_id:fo.id||0,name:fo.name||'',versions:fv,
+      filesize:fo.filesize||0,released_at:fo.releasedAt||fo.uploaded_at||'',
+      url:cf_cdn_url(fo.id||0,fo.name||'')});}
+  return out;}
+function cf_cdn_url(fid,name){
+  return `https://mediafilez.forgecdn.net/files/${Math.floor(fid/1000)}/${fid%1000}/${encodeURIComponent(name)}`;}
+function cf_manifest_to_index(m){
+  const mc=m.minecraft||{};const deps={minecraft:mc.version||''};
+  for(const ml of(mc.modLoaders||[])){const id=String(ml.id||'');
+    if(id.startsWith('fabric-'))deps['fabric-loader']=id.slice(7);
+    else if(id.startsWith('neoforge-'))deps['neoforge']=id.slice(9);
+    else if(id.startsWith('forge-'))deps['forge']=id.slice(6);}
+  return{formatVersion:1,game:'minecraft',name:m.name||'',versionId:String(m.version||''),
+    author:m.author||'',files:[],dependencies:deps};}
+function build_cf_entry(upd){
+  const cur=upd.current_entry,ld=upd.latest_data;
+  const prefix=(cur.path||'mods/').split('/')[0];
+  return{path:`${prefix}/${ld.filename}`,hashes:{},env:cur.env||{},
+    downloads:[cf_cdn_url(ld.cfFileID,ld.filename)],fileSize:ld.fileSize||0,
+    cf:{projectID:ld.cfProjectID,fileID:ld.cfFileID,
+      required:(cur.cf&&cur.cf.required!==undefined)?cur.cf.required:true}};}
+async function api_lookup_version_by_hash(sha1){
+  try{return await api_get(`https://api.modrinth.com/v2/version_file/${sha1}?algorithm=sha1`,600000);}
+  catch{return null;}}
+async function cf_resolve_entry(item){
+  const pj=await cf_get_project(item.projectID);
+  let filename='',filesize=0;
+  if(pj){CF_NAME_CACHE.set(item.projectID,pj.title||'');
+    const fo=(pj.files||[]).find(x=>x.id===item.fileID);
+    if(fo){filename=fo.name||'';filesize=fo.filesize||0;}}
+  if(!filename){filename=`cf-${item.fileID}.jar`;
+    log(trf('log_cf_fail',{pid:item.projectID}),'WARNING');}
+  return{path:`mods/${filename}`,hashes:{},env:{},
+    downloads:[cf_cdn_url(item.fileID,filename)],fileSize:filesize,
+    cf:{projectID:item.projectID,fileID:item.fileID,required:item.required}};}
+async function resolve_cf_files(pending){
+  const files=[];
+  await pool_run(pending,8,async item=>{files.push(await cf_resolve_entry(item));});
+  return files;}
+async function resolve_cf_entries(pending){
+  const total=pending.length;let done=0;
+  const pack=INDEX_DATA;  /* 捕获当前包引用：解析期间切换整合包时结果作废，不污染新包 */
+  set_status(tr('status_loading'));progress_show();
+  try{
+    await pool_run(pending,8,async item=>{
+      pack.files.push(await cf_resolve_entry(item));
+      done++;set_status(trf('log_cf_resolving',{done,total}));progress_set(done,total);
+      if(done%10===0||done===total)refresh_mod_list(true);});
+    if(INDEX_DATA!==pack){log(tr('log_cf_discarded'),'WARNING');return;}
+    log(tr('log_cf_done'),'SUCCESS');refresh_mod_list(true);
+  }finally{progress_hide();set_status(tr('status_ready'));}}
+function log(msg,level='INFO'){const box=$('logText');
+  const ts=new Date().toTimeString().slice(0,8);
+  const prefix={ERROR:'❌',SUCCESS:'✅',WARNING:'⚠️'}[level]||'ℹ️';
+  box.textContent+=`[${ts}] ${prefix} ${msg}\n`;box.scrollTop=box.scrollHeight;}
+function set_status(msg){$('statusTxt').textContent=msg;}
+function toggle_log(){SHOW_LOG=!SHOW_LOG;save_config();apply_log_state();}
+function apply_log_state(){
+  $('editGrid').classList.toggle('no-log',!SHOW_LOG);
+  // 窄屏断点默认折叠日志列；用户手动开启时强制显示
+  $('editGrid').classList.toggle('force-log',SHOW_LOG&&window.matchMedia('(max-width:1200px)').matches);
+  $('chkShowLog').classList.toggle('on',SHOW_LOG);}
+/* 全局进度条：progress_show(indeterminate)/progress_set(done,total)/progress_hide（含百分比）*/
+function progress_show(indet){const p=$('progress');p.classList.toggle('indet',!!indet);
+  p.style.display='block';$('progressPct').textContent=indet?'···':'0%';
+  if(!indet)progress_set(0,1);}
+function progress_set(done,total){
+  const pct=total?Math.max(0,Math.min(100,Math.round(done/total*100))):0;
+  $('progress').firstElementChild.style.width=pct+'%';
+  $('progressPct').textContent=pct+'%';}
+function progress_hide(){const p=$('progress');p.classList.remove('indet');
+  p.style.display='none';p.firstElementChild.style.width='0';
+  $('progressPct').textContent='';}
+function apply_texts(){const t=k=>LANG[CURRENT_LANG][k]||k;
+  document.title=t('app_title');
+  $('tTitle').textContent=t('app_title');$('tSub').textContent=t('app_sub');
+  $('navTitle').textContent=t('app_title');
+  $('navHome').textContent=t('nav_home');$('navEdit').textContent=t('nav_edit');
+  $('navSettings').textContent=t('nav_settings');
+  $('homeTitle').textContent=t('app_title');$('homeSub').textContent=t('app_sub');
+  const cardLocal = document.getElementById('cardLocal');
+cardLocal.textContent = t('home_import_local');
+const cardLocalDesc = document.createElement('small');
+cardLocalDesc.textContent = t('home_import_local_desc');
+cardLocal.appendChild(cardLocalDesc);
+
+const cardOnline = document.getElementById('cardOnline');
+cardOnline.textContent = t('home_import_online');
+const cardOnlineDesc = document.createElement('small');
+cardOnlineDesc.textContent = t('home_import_online_desc');
+cardOnline.appendChild(cardOnlineDesc);
+
+const cardNew = document.getElementById('cardNew');
+cardNew.textContent = t('home_new_pack');
+const cardNewDesc = document.createElement('small');
+cardNewDesc.textContent = t('home_new_pack_desc');
+cardNew.appendChild(cardNewDesc);
+  $('gSettings').textContent=t('settings_title');
+  $('lblLang').textContent=t('settings_lang');$('lblTheme').textContent=t('settings_theme');
+  $('lblStyle').textContent=t('settings_style');
+  $('langZhTxt').textContent=t('lang_zh');$('langEnTxt').textContent=t('lang_en');
+  $('btnThemeDark').textContent=t('theme_dark');$('btnThemeLight').textContent=t('theme_light');
+  $('styleClassicTxt').textContent=t('style_classic');$('styleWinuiTxt').textContent=t('style_winui');
+  $('langZh').classList.toggle('on',CURRENT_LANG==='zh_CN');
+  $('langEn').classList.toggle('on',CURRENT_LANG==='en_US');
+  $('styleClassic').classList.toggle('on',CURRENT_STYLE==='classic');
+  $('styleWinui').classList.toggle('on',CURRENT_STYLE==='winui');
+  const M={gFile:'file_label',lblPath:'path_label',
+  gInfo:'info_label',lblName:'info_name',lblVersion:'info_version',lblMc:'info_mc',
+  lblLoader:'info_loader',lblLoaderVer:'info_loader_ver',btnBackup:'backup_btn',
+  btnManageBackup:'manage_backup_btn',btnReload:'reload_btn',btnPack:'pack_btn',
+  btnExportZip:'export_zip_btn',gAdd:'add_mod_label',lblType:'type_label',
+  typeModTxt:'type_mod',typeRpTxt:'type_rp',typeSpTxt:'type_sp',
+  lblAddPlaceholder:'add_mod_placeholder',btnFetch:'fetch_btn',btnAddLocal:'add_local_file',
+  btnSearchProject:'search_project_btn',
+  gList:'modlist_label',btnRefresh:'refresh_btn',btnDelete:'delete_btn',btnFolder:'folder_btn',
+  btnCheckUpd:'check_update_btn',btnExport:'export_btn',btnImport:'import_btn',
+  btnSwitchVer:'switch_ver_btn',btnDiff:'diff_btn',btnDuplicate:'duplicate_btn',
+  btnCompat:'compat_btn',btnStats:'stats_btn',
+  btnPrePack:'pre_pack_btn',btnDlAll:'btn_dl_all',btnEasySwitch:'btn_easy_switch',gLog:'log_label',
+  lblShowLog:'settings_show_log'};
+  for(const id in M)$(id).textContent=t(M[id]);
+  $('urlEntry').placeholder=t('add_mod_placeholder');
+  $('projectSearchEntry').placeholder=t('search_project_placeholder');
+  apply_log_state();
+  $('infoToggle').textContent=EXPANDED?t('collapse_btn'):t('expand_btn');
+  $('typeMod').classList.toggle('on',ADD_TYPE==='mod');
+  $('typeRp').classList.toggle('on',ADD_TYPE==='rp');
+  $('typeSp').classList.toggle('on',ADD_TYPE==='sp');
+  const listHdr = document.getElementById('listHdr');
+listHdr.replaceChildren();
+const headers = [t('col_name'),t('col_filename'),t('col_version'),t('col_type'),t('col_path')];
+headers.forEach((header, index) => {
+    const div = document.createElement('div');
+    div.style.width = COL_WIDTHS[index];
+    div.textContent = header;
+    listHdr.appendChild(div);
+});
+  refresh_format_buttons();
+  render_rows();
+  if(!$('statusTxt').textContent||$('statusTxt').textContent==='Ready ✅'||$('statusTxt').textContent==='就绪 ✅')
+    set_status(t('status_ready'));}
+function show_page(p){const previous=CURRENT_PAGE;
+  if(previous==='edit'&&p!=='edit'&&ROW_RENDER_PENDING)ROW_RENDER_BATCH++;
+  CURRENT_PAGE=p;
+  const map={home:'pageHome',edit:'pageEdit',settings:'pageSettings'};
+  for(const k in map)$(map[k]).classList.toggle('show',k===p);
+  $('navHome').classList.toggle('on',p==='home');
+  $('navEdit').classList.toggle('on',p==='edit');
+  $('navSettings').classList.toggle('on',p==='settings');
+  if(p==='edit'&&previous!=='edit'&&ROW_RENDER_PENDING)apply_filter();}
+function set_lang(lang){if(CURRENT_LANG===lang)return;
+  CURRENT_LANG=lang;save_config();
+  log(trf('log_lang_switch',{lang:CURRENT_LANG}));
+  apply_texts();
+  log(tr('log_lang_rebuilt'),'SUCCESS');}
+function set_theme(theme){CURRENT_THEME=theme;
+  document.documentElement.setAttribute('data-theme',CURRENT_THEME);
+  if(window.applyFluentTheme)window.applyFluentTheme(CURRENT_THEME==='dark');
+  save_config();
+  log(trf('log_theme_switch',{theme:CURRENT_THEME}));
+  set_status(`Theme: ${CURRENT_THEME}`);}
+function set_add_type(t){ADD_TYPE=t;
+  $('typeMod').classList.toggle('on',t==='mod');
+  $('typeRp').classList.toggle('on',t==='rp');
+  $('typeSp').classList.toggle('on',t==='sp');}
+function refresh_format_buttons(){if($('btnPack'))$('btnPack').style.display=PACK_FORMAT==='curseforge'?'none':'';}
+function toggle_info(){EXPANDED=!EXPANDED;
+  $('infoContent').classList.toggle('open',EXPANDED);
+  $('infoToggle').textContent=EXPANDED?tr('collapse_btn'):tr('expand_btn');}
+function open_mrpack(){$('fileMrpack').click();}
+async function handle_open_file(f){
+  const batch=begin_pack_open();
+  log(trf('log_opening',{name:f.name}));set_status(tr('status_loading'));progress_show(true);
+  try{const zip=await(await loadJsZip()).loadAsync(f);
+    if(!is_current_pack_open(batch))return;
+    const idx=zip.file('modrinth.index.json');
+    let nextData,nextFormat='modrinth',nextCfPending=null;
+    if(idx)nextData=JSON.parse(await idx.async('string'));
+    else{
+      const man=zip.file('manifest.json');
+      if(!man)throw new Error(tr('dialog_open_mrpack_fail'));
+      let m=null;try{m=JSON.parse(await man.async('string'));}catch{}
+      if(!m||!m.minecraft)throw new Error(tr('dialog_open_cf_fail'));
+      nextData=cf_manifest_to_index(m);nextFormat='curseforge';
+      nextCfPending=(m.files||[]).map(x=>({projectID:+x.projectID||0,
+        fileID:+x.fileID||0,required:x.required!==false}));
+    }
+    // 扫描覆盖文件：overrides 与客户端专用目录合并到工作区（同名时客户端覆盖通用），server-overrides 原样保留
+    const ovFiles=new Map();
+    let nOv=0,nCli=0,nSrv=0;
+    const cut=p=>p.slice(p.indexOf('/')+1);
+    await Promise.all(Object.values(zip.files).filter(z=>!z.dir).map(async z=>{
+      const p=z.name;
+      if(p.startsWith('overrides/')){ovFiles.set(cut(p),await z.async('blob'));nOv++;}
+      else if(nextFormat==='curseforge'&&p.startsWith('clientoverrides/')){ovFiles.set(cut(p),await z.async('blob'));nCli++;}
+      else if(nextFormat==='modrinth'&&p.startsWith('client-overrides/')){ovFiles.set(cut(p),await z.async('blob'));nCli++;}
+      else if(nextFormat==='modrinth'&&p.startsWith('server-overrides/')){ovFiles.set(p,await z.async('blob'));nSrv++;}
+    }));
+    if(!is_current_pack_open(batch))return;
+    INDEX_DATA=nextData;PACK_FORMAT=nextFormat;
+    window._cfPending=nextCfPending;window._localJars=new Map();window._ovFiles=ovFiles;
+    if(nextCfPending)log(trf('log_cf_open',{count:nextCfPending.length}));
+    $('entryFile').value=f.name;
+    refresh_format_buttons();
+    apply_metadata(INDEX_DATA);refresh_mod_list();save_index_to_state();
+    progress_hide();
+    set_status(tr('status_ready'));
+    show_page('edit');
+    if(window._cfPending&&window._cfPending.length)resolve_cf_entries(window._cfPending);
+    if(nOv+nCli)log(trf('log_ov_applied',{n:nOv+nCli,c:nCli}),'SUCCESS');
+    if(nSrv)log(trf('log_ov_server',{n:nSrv}),'WARNING');
+    alert(trf('dialog_success_open',{file:f.name}));
+  }catch(e){if(!is_current_pack_open(batch))return;
+    log(trf('dialog_open_fail',{error:e.message}),'ERROR');
+    progress_hide();
+    alert(trf('dialog_open_fail',{error:e.message}));set_status(tr('status_ready'));}}
+$('fileMrpack').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  await handle_open_file(f);});
+function apply_metadata(data){try{
+  $('entryName').value=data.name||'';
+  $('entryVersion').value=data.versionId||'';
+  const deps=data.dependencies||{};
+  const mcSel=$('comboMc'),mcV=deps.minecraft||'';
+  /* 版本列表可能尚未异步加载完成：值不在选项中时补一个 option，避免被置空后回写覆盖 */
+  if(mcV&&![...mcSel.options].some(o=>o.value===mcV)){
+    const mo=document.createElement('option');mo.value=mo.textContent=mcV;mcSel.appendChild(mo);}
+  mcSel.value=mcV;
+  let loader='Fabric',lv='';
+  for(const ln of['Fabric','Forge','NeoForge']){const k=LOADER_KEYS[ln];
+    if(deps[k]){loader=ln;lv=deps[k];break;}}
+  $('comboLoaderType').value=loader;
+  const lsel=$('comboLoaderVer');
+  if(lv){if(![...lsel.options].some(o=>o.value===lv)){const o=document.createElement('option');o.value=o.textContent=lv;lsel.appendChild(o);}
+    lsel.value=lv;}
+  else fill_select(lsel,[]);  /* 新包无 loader 依赖时清空下拉，防止上一包的版本残留被写进 deps */
+  check_loader_compatibility();
+  log(trf('log_loaded_info',{name:data.name||'',mc:deps.minecraft||'',loader:loader,ver:lv}));
+}catch(e){if(data!==INDEX_DATA)return;
+  log(trf('dialog_parse_error',{error:e.message}),'ERROR');
+  progress_hide();set_status(tr('status_ready'));}}
+function reload_metadata(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  apply_metadata(INDEX_DATA);refresh_mod_list();}
+function save_index_to_state(){if(!INDEX_DATA)return false;
+  INDEX_DATA.name=$('entryName').value.trim();
+  INDEX_DATA.versionId=$('entryVersion').value.trim();
+  INDEX_DATA.dependencies=INDEX_DATA.dependencies||{};
+  INDEX_DATA.dependencies.minecraft=$('comboMc').value.trim();
+  const k=LOADER_KEYS[$('comboLoaderType').value];
+  ['fabric-loader','forge','neoforge'].forEach(key=>{if(key!==k)delete INDEX_DATA.dependencies[key];});
+  if($('comboLoaderVer').value)INDEX_DATA.dependencies[k]=$('comboLoaderVer').value.trim();
+  INDEX_DATA.files=ALL_MODS.map(m=>m.raw_entry);
+  return true;}
+let BACKUPS=[];
+function snapshot_to_backups(){if(!INDEX_DATA)return;
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const ts=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  BACKUPS.push({ts,name:$('entryFile').value||'modrinth.index.json',
+    data:JSON.parse(JSON.stringify(INDEX_DATA))});
+  if(BACKUPS.length>30)BACKUPS.shift();}
+function backup_silent(){if(!INDEX_DATA)return;
+  snapshot_to_backups();
+  log(tr('status_backup'),'SUCCESS');}
+function manual_backup(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  save_index_to_state();
+  snapshot_to_backups();
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const ts=`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  const name=`${$('entryFile').value||'modrinth.index.json'}.backup_${ts}`;
+  dl_blob(new Blob([JSON.stringify(INDEX_DATA,null,2)],{type:'application/json'}),name);
+  log(trf('dialog_backup_success',{path:name}),'SUCCESS');
+  set_status(tr('status_backup'));}
+function dl_blob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),1500);}
+function current_files(){return INDEX_DATA?INDEX_DATA.files||[]:[];}
+function refresh_mod_list(silent){if(!INDEX_DATA)return;
+  const batch=++NAME_BATCH,missingNames=new Map(),pathOccurrences=new Map();
+  ALL_MODS=[];
+  for(const entry of current_files()){
+    const p=entry.path||'';const filename=p.split(/[/\\]/).pop();
+    const version=extract_version(filename);
+    let project_id=null;
+    if(entry.downloads&&entry.downloads.length)
+      project_id=parse_project_id_from_url(entry.downloads[0]);
+    let display_name=project_id?(NAME_CACHE[project_id]||filename):filename;
+    if(entry.cf)display_name=CF_NAME_CACHE.get(entry.cf.projectID)||filename;
+    const occurrence=pathOccurrences.get(p)||0;pathOccurrences.set(p,occurrence+1);
+    const mod_entry={path:p,filename,version,display_name,project_id,
+      etype:entry_type(entry),raw_entry:entry,is_cf:!!entry.cf,_rowKey:`${p}\u0000${occurrence}`};
+    ALL_MODS.push(mod_entry);
+    if(project_id&&!NAME_CACHE[project_id]){
+      if(!missingNames.has(project_id))missingNames.set(project_id,[]);
+      missingNames.get(project_id).push(mod_entry);}}
+  const activeKeys=new Set(ALL_MODS.map(m=>m._rowKey));
+  for(const key of ROW_CACHE.keys())if(!activeKeys.has(key))ROW_CACHE.delete(key);
+  apply_filter();
+  if(missingNames.size)fetch_mod_names(missingNames,batch);
+  if(!silent)log(trf('log_refresh',{count:ALL_MODS.length}),'SUCCESS');}
+async function fetch_mod_names(missingNames,batch){
+  await pool_run([...missingNames.keys()],8,async pid=>{
+    const name=await api_fetch_project_name(pid);
+    (missingNames.get(pid)||[]).forEach(entry=>entry.display_name=name);});
+  if(NAME_BATCH===batch)apply_filter();}
+function debounce_filter(){clearTimeout(FILTER_TIMER);
+  FILTER_TIMER=setTimeout(apply_filter,300);}
+function clear_search(){$('searchEntry').value='';apply_filter();}
+function match_entry(e,kw){kw=(kw||'').trim().toLowerCase();
+  if(!kw)return true;
+  const f=[e.display_name,e.filename,e.path,e.version];
+  return f.some(v=>String(v||'').toLowerCase().includes(kw));
+}
+function apply_filter(){const kw=$('searchEntry').value.trim().toLowerCase();
+  render_rows(!kw?ALL_MODS:ALL_MODS.filter(e=>match_entry(e,kw)));}
+function render_rows(filtered){
+  if(filtered===undefined)filtered=ALL_MODS;
+  const tree=$('tree');
+  if(!tree)return;
+  tree.replaceChildren();ROWS=[];
+  const generation=++ROW_RENDER_BATCH;
+  ROW_RENDER_PENDING=false;
+  if(!INDEX_DATA){
+    tree.appendChild(el('div','empty-hint',tr('edit_empty_hint')));return;}
+  if(!filtered.length){
+    tree.appendChild(el('div','empty-hint',
+      $('searchEntry').value.trim()?tr('search_no_result'):tr('edit_empty_mods')));return;}
+  const chunkSize=60,unknownLabel=tr('unknown');
+  ROW_RENDER_PENDING=filtered.length>0;
+  function renderChunk(start=0){
+    if(generation!==ROW_RENDER_BATCH||!tree.isConnected)return;
+    const fragment=document.createDocumentFragment(),end=Math.min(start+chunkSize,filtered.length);
+    for(let idx=start;idx<end;idx++){
+      const entry=filtered[idx],key=entry._rowKey||`${entry.path||''}\u0000${idx}`;
+      let row=ROW_CACHE.get(key);
+      if(!row){row=el('div',null,null,'mrow');row._cells=[];
+        COL_WIDTHS.forEach(w=>{const cell=el('div','width:'+w);
+          row.appendChild(cell);row._cells.push(cell);});
+        ROW_CACHE.set(key,row);}
+      row._raw=entry;row._selected=false;
+      row.classList.toggle('zebra',idx%2===1);row.classList.remove('sel');
+      const vals=[entry.display_name||entry.filename||unknownLabel,entry.filename||'',
+        entry.version||'',type_label(entry.etype||'mod'),entry.path||''];
+      row._cells.forEach((cell,i)=>{if(cell.textContent!==String(vals[i]))cell.textContent=vals[i];});
+      fragment.appendChild(row);ROWS.push(row);}
+    tree.appendChild(fragment);
+    if(end<filtered.length)requestAnimationFrame(()=>renderChunk(end));
+    else ROW_RENDER_PENDING=false;}
+  renderChunk();}
+function toggle_row(row){row._selected=!row._selected;
+  row.classList.toggle('sel',row._selected);}
+function selected_rows(){return ROWS.filter(r=>r._selected);}
+function delete_selected(){const sel=selected_rows();
+  if(!sel.length){alert(tr('dialog_select_mod'));return;}
+  if(!confirm(trf('dialog_confirm_delete',{count:sel.length})))return;
+  const paths=new Set(sel.map(r=>r._raw.path));
+  paths.forEach(p=>{window._localJars&&window._localJars.delete(p);
+    window._ovFiles&&window._ovFiles.delete(p);});
+  INDEX_DATA.files=current_files().filter(f=>!paths.has(f.path));
+  log(trf('log_delete_mod',{count:sel.length}),'SUCCESS');
+  refresh_mod_list();save_index_to_state();reload_metadata();}
+function remove_duplicate_entry(pack,entry,local_jars,override_files){
+  const path=entry.path;
+  pack.files=(pack.files||[]).filter(f=>f!==entry);
+  if(!(pack.files||[]).some(f=>f.path===path)){
+    local_jars&&local_jars.delete(path);override_files&&override_files.delete(path);}
+  return pack.files.length;}
+function open_mods_folder(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  alert(tr('browser_no_folder'));}
+async function fetch_mc_versions(){log(tr('log_mc_fetching'));
+  set_status(tr('status_loading'));
+  try{const versions=await api_fetch_mc_versions();
+    const sel=$('comboMc');const cur=sel.value.trim();
+    sel.innerHTML = ''; // 清空现有内容
+    versions.forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});
+    /* 保留当前已选版本（打开整合包后后台加载列表不应覆盖包内版本） */
+    if(cur&&!versions.includes(cur)){
+      const o=document.createElement('option');o.value=o.textContent=cur;sel.appendChild(o);}
+    sel.value=cur||versions[0]||'1.20.1';
+    log(trf('log_mc_fetched',{count:versions.length}),'SUCCESS');
+    update_loader_dropdown_for_mc(sel.value.trim());
+  }catch(e){log(tr('log_mc_fetch_fail'),'ERROR');}
+  set_status(tr('status_ready'));}
+/* 按当前加载器获取版本表（Fabric 走 meta API，Forge/NeoForge 走各自 maven），避免把 Fabric 版本写进其他加载器的依赖 */
+async function fetch_loader_versions(force_refresh=false){
+  const loader=$('comboLoaderType').value||'Fabric';
+  log(trf('log_loader_fetching',{loader}));set_status(tr('status_loading'));
+  try{
+    if(loader==='Fabric'){
+      const[versions]=await api_fetch_fabric_versions(force_refresh);
+      const mc_ver=$('comboMc').value.trim();
+      let compatible=[];if(mc_ver)compatible=await api_fetch_fabric_for_mc(mc_ver,force_refresh);
+      if(!versions.length&&!compatible.length){
+        log(trf('log_loader_fetch_fail',{loader}),'ERROR');set_status(tr('status_ready'));return;}
+      apply_loader_versions(versions,compatible,mc_ver);
+    }else{
+      const mc_ver=$('comboMc').value.trim();
+      const compatible=mc_ver?await api_fetch_loader_versions_for_mc(loader,mc_ver):[];
+      if(!compatible.length){
+        log(trf('log_loader_fetch_fail',{loader}),'ERROR');set_status(tr('status_ready'));return;}
+      apply_loader_versions([],compatible,mc_ver);}
+  }catch(e){log(trf('log_loader_fetch_fail',{loader}),'ERROR');}
+  set_status(tr('status_ready'));}
+function apply_loader_versions(all_versions,compatible,mc_ver){
+  set_status(tr('status_ready'));
+  const loader=$('comboLoaderType').value||'Fabric';
+  const sel=$('comboLoaderVer'),cur=sel.value.trim();
+  if(mc_ver&&compatible.length){fill_select(sel,compatible);
+    sel.value=compatible.includes(cur)?cur:compatible[0];
+    log(trf('log_mc_compat',{mc:mc_ver,count:compatible.length,loader}));}
+  else{fill_select(sel,all_versions);
+    sel.value=all_versions.includes(cur)?cur:(all_versions[0]||'');
+    if(mc_ver&&!compatible.length)log(trf('log_mc_compat_none',{mc:mc_ver,count:all_versions.length}),'WARNING');
+    else log(trf('log_loader_fetched',{count:all_versions.length,loader}),'SUCCESS');}
+  check_loader_compatibility();}
+function fill_select(sel,list){sel.innerHTML = ''; // 清空现有内容
+  list.forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});}
+async function update_loader_dropdown_for_mc(mc_ver){
+  const loader=$('comboLoaderType').value||'Fabric';
+  const compatible=await api_fetch_loader_versions_for_mc(loader,mc_ver);
+  if(!compatible.length){log(trf('log_loader_compat_none',{mc:mc_ver,loader}),'WARNING');return;}
+  const sel=$('comboLoaderVer'),cur=sel.value.trim();
+  fill_select(sel,compatible);
+  sel.value=compatible.includes(cur)?cur:(compatible[0]||'');
+  check_loader_compatibility();}
+function loader_type_changed(){if(!INDEX_DATA)return;
+  /* 切换加载器：先清空版本下拉并保存（防止旧加载器版本串写进新依赖键），再按新加载器刷新 */
+  fill_select($('comboLoaderVer'),[]);
+  save_index_to_state();
+  fetch_loader_versions(true);}
+async function check_loader_compatibility(){
+  const mc_ver=$('comboMc').value.trim(),loader_name=$('comboLoaderType').value;
+  if(!mc_ver||!loader_name)return;
+  const lbl=$('compatLabel');
+  /* 只有 Fabric 有在线兼容元数据；Forge/NeoForge 不检测，避免误报 */
+  if(loader_name!=='Fabric'){lbl.textContent=tr('compat_skipped');lbl.className='compat';return;}
+  const compatible=await api_fetch_fabric_for_mc(mc_ver);
+  const current=$('comboLoaderVer').value.trim();
+  if(!compatible.length){lbl.textContent=tr('compat_unknown');lbl.className='compat warn';}
+  else if(!current){lbl.textContent=tr('compat_unsupported');lbl.className='compat warn';}
+  else if(compatible.includes(current)){lbl.textContent=tr('compat_compatible');lbl.className='compat ok';}
+  else{lbl.textContent=tr('compat_incompatible');lbl.className='compat bad';}}
+async function fetch_versions_from_url(){
+  const pack=INDEX_DATA;
+  const url=$('urlEntry').value.trim();
+  if(!url){alert(tr('warn_need_url'));return;}
+  const project_id=parse_project_id_from_url(url);
+  if(!project_id){alert(tr('err_parse_pid'));return;}
+  log(trf('log_fetch_versions',{pid:project_id}));set_status(tr('status_loading'));
+  const mc_ver=$('comboMc').value.trim();
+  let add_type=ADD_TYPE;
+  try{
+    const meta=await api_fetch_project_meta(project_id);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+    const mapped=project_type_to_add_type(meta?meta.project_type:'mod');
+    if(mapped!=='mod')add_type=mapped;
+    set_add_type(add_type);
+    const loader_api=add_type==='mod'?(LOADER_API[$('comboLoaderType').value]||'fabric'):null;
+    const all_v=await api_get_all_versions(project_id,mc_ver,loader_api);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+    if(!all_v.length){alert(tr('dialog_no_version'));set_status(tr('status_ready'));return;}
+    let default_v=all_v.filter(v=>v.featured);
+    if(!default_v.length)default_v=all_v.slice(0,1);
+    show_selector(default_v,all_v,project_id,mc_ver,loader_api,
+      version=>add_version(version,entry_prefix(add_type),pack));
+  }catch(e){alert(trf('dialog_version_fetch',{error:e.message}));}
+  set_status(tr('status_ready'));}
+function search_projects_to_add(){
+  const initialQuery=$('projectSearchEntry').value.trim();
+  build_win(tr('search_project_title'),'760px','600px',win=>{
+    win.bd.style.display='flex';win.bd.style.flexDirection='column';
+    const box=el('div','display:flex;gap:6px;padding:6px 10px;flex-shrink:0');
+    const inp=document.createElement('input');inp.style.flex='1';
+    inp.placeholder=tr('search_project_placeholder');
+    inp.value=initialQuery;
+    const st=el('div','text-align:center;padding:4px;flex-shrink:0','','hint');
+    const results=el('div','flex:1;overflow:auto;padding:4px 10px');
+    let requestId=0;
+    const search=async()=>{
+      const query=inp.value.trim();if(!query)return;
+      const id=++requestId,addType=ADD_TYPE,mc=$('comboMc').value.trim(),pack=INDEX_DATA;
+      const loader=addType==='mod'?(LOADER_API[$('comboLoaderType').value]||'fabric'):null;
+      st.textContent=tr('search_projecting');results.replaceChildren();
+      try{
+        const hits=await api_search_projects(query,addType,mc,loader);
+        if(id!==requestId||!win.bd.isConnected||INDEX_DATA!==pack)return;
+        st.textContent='';
+        if(!hits.length){st.textContent=tr('search_project_no_result');return;}
+        hits.forEach(h=>{
+          const row=el('div','padding:8px 10px;margin:4px 0;border-radius:6px','','sel-row');
+          row.appendChild(el('div','font-weight:600',h.title||'?'));
+          row.appendChild(el('div','font-size:11px;color:var(--muted)',
+            trf('online_by',{author:h.author||'?',dl:h.downloads||0})));
+          const desc=String(h.description||'').slice(0,140);
+          if(desc)row.appendChild(el('div','font-size:11px;color:var(--muted)',desc));
+          const pick=mkbtn(tr('search_project_select'),'btn-accent','140px',()=>{
+            if(!h.project_id)return;
+            if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');return;}
+            set_add_type(addType);
+            $('urlEntry').value=h.project_id;close_win();fetch_versions_from_url();});
+          pick.style.height='28px';pick.style.marginTop='5px';row.appendChild(pick);
+          results.appendChild(row);});
+      }catch(e){
+        if(id!==requestId||!win.bd.isConnected||INDEX_DATA!==pack)return;
+        st.textContent=trf('search_project_fail',{error:e.message});}}
+    const btn=mkbtn(tr('search_project_btn'),'btn-accent2','120px',search);
+    box.append(inp,btn);win.bd.append(box,st,results);
+    win.ft.appendChild(mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')search();});
+    inp.focus();if(initialQuery)search();});}
+function show_selector(default_versions,all_versions,project_id,mc_ver,loader_api,on_select_callback){
+  build_win(trf('selector_title',{id:project_id}),'1000px','650px',win=>{
+    const col_widths=['25%','25%','23%','18%','9%'];
+    const headers=[tr('col_version'),tr('col_game_version'),tr('col_loader'),tr('col_date'),tr('col_recommended')];
+    const hdr=el('div',null,null,'tbl-hdr');hdr.style.margin='10px 10px 4px';
+    headers.forEach((h,i)=>hdr.appendChild(el('div','width:'+col_widths[i],h)));
+    win.bd.parentNode.insertBefore(hdr,win.bd);
+    const rows_ref={cur:null,all:[]};
+    const scroll=win.bd;
+    function populate(vlist){
+      rows_ref.all.forEach(r=>r.remove());rows_ref.all=[];rows_ref.cur=null;
+      vlist.forEach(v=>{const row=el('div',null,null,'sel-row');
+        row._version=v;
+        const vals=[v.version_number||'N/A',(v.game_versions||[]).join(', '),
+          (v.loaders||[]).join(', '),(v.date_published||'').slice(0,10),v.featured?'⭐':''];
+        vals.forEach((val,i)=>{const c=el('div','width:'+col_widths[i],val);
+          c.style.textAlign=i<4?'left':'center';
+          c.onclick=()=>select(row);row.appendChild(c);});
+        row.onclick=()=>select(row);
+        scroll.appendChild(row);rows_ref.all.push(row);});
+      win.title.textContent=trf('selector_title_count',{id:project_id,count:vlist.length});}
+    function select(row){if(rows_ref.cur)rows_ref.cur.classList.remove('on');
+      rows_ref.cur=row;row.classList.add('on');}
+    function on_select(){if(!rows_ref.cur){alert(tr('dialog_select_version'));return;}
+      const ver=rows_ref.cur._version;
+      const matched=all_versions.find(v=>v.version_number===ver.version_number);
+      if(matched){close_win();
+        if(on_select_callback)on_select_callback(matched);
+        else add_version(matched);}
+      else alert(tr('data_error'));}
+    function toggle(){
+      if(toggle.state!=='all'){populate(all_versions);toggle.state='all';
+        win.btnToggle.textContent=tr('button_show_recommended');}
+      else{populate(default_versions);toggle.state='default';
+        win.btnToggle.textContent=tr('button_show_all');}}
+    toggle.state='default';
+    const ft=win.ft;
+    const b1=mkbtn(tr('button_select_this'),'btn-success','120px',on_select);
+    const b2=mkbtn(tr('button_show_all'),'btn-accent2','185px',toggle);win.btnToggle=b2;
+    const b3=mkbtn(tr('button_cancel'),'btn-gray','100px',close_win);
+    ft.append(b1,b2,b3);
+    if(mc_ver||loader_api){
+      const ftxt=trf('selector_filter',{filter:`Minecraft ${mc_ver}`+(loader_api?` + ${loader_api}`:'')});
+      const filterLbl=el('div','text-align:center;padding:2px 0',ftxt,'hint');
+      win.ft.parentNode.insertBefore(filterLbl,win.ft);}
+    populate(default_versions);});}
+function build_mod_entry(version_data,prefix='mods'){
+  const f=version_data.files[0],pre=prefix||'mods';
+  const e={path:`${pre}/${f.filename}`,
+    hashes:{sha1:(f.hashes&&f.hashes.sha1)||'',sha512:(f.hashes&&f.hashes.sha512)||''},
+    downloads:[f.url],fileSize:f.size||0};
+  if(f.env)e.env=f.env;  // 保留 Modrinth client/server 环境标记
+  return e;}
+function add_version(version_data,prefix='mods',expected_pack=INDEX_DATA){
+  try{const f=version_data.files[0];const filename=f.filename;
+    if(!expected_pack||INDEX_DATA!==expected_pack){
+      log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+    const entry=build_mod_entry(version_data,prefix);
+    if(current_files().some(fe=>fe.path===entry.path)){
+      if(!confirm(trf('dialog_version_exists',{filename}))){
+        log(trf('log_add_exists',{filename}),'WARNING');return;}}
+    if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+    backup_silent();
+    INDEX_DATA.files.push(entry);
+    log(trf('log_add_mod',{filename}),'SUCCESS');
+    refresh_mod_list();save_index_to_state();
+    const deps=(version_data.dependencies||[]).map(d=>d.project_id).filter(Boolean);
+    if(deps.length)show_dependency_dialog(deps,filename);
+  }catch(e){log(trf('log_add_version_fail',{error:String(e)}),'ERROR');
+    alert(trf('dialog_version_fetch',{error:String(e)}));}}
+function show_dependency_dialog(dep_ids,filename,expected_pack=INDEX_DATA){
+  build_win(tr('dialog_dep_prompt'),'700px','500px',win=>{
+    win.bd.before(el('div',null,trf('dialog_dep_prompt',{filename}),'bold-md'));
+    const installed_ids=new Set();
+    current_files().forEach(entry=>{
+      if(entry.downloads&&entry.downloads[0]){
+        const pid=parse_project_id_from_url(entry.downloads[0]);
+        if(pid)installed_ids.add(pid);}});
+    const dep_status=[];
+    dep_ids.forEach(dep_id=>{const installed=installed_ids.has(dep_id);
+      dep_status.push({id:dep_id,name:dep_id,installed});});
+    let cur_i=null;const rows=[];
+    function select_dep(i){if(cur_i!==null)rows[cur_i].classList.remove('on');
+      cur_i=i;rows[i].classList.add('on');}
+    function open_selected(){if(cur_i===null){alert(tr('dep_select_first'));return;}
+      window.open(`https://modrinth.com/mod/${dep_status[cur_i].id}`);}
+    function open_all(){dep_status.forEach(d=>window.open(`https://modrinth.com/mod/${d.id}`));}
+    async function install_missing(){
+      const missing=dep_status.filter(d=>!d.installed);
+      if(!missing.length){alert(tr('dialog_dep_no_missing'));return;}
+      if(!confirm(tr('dialog_dep_confirm')))return;
+      backup_silent();
+      const mc_ver=$('comboMc').value.trim();
+      const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+      let ok=0;progress_show();
+      for(let di=0;di<missing.length;di++){
+        if(INDEX_DATA!==expected_pack){
+          log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
+        const d=missing[di];progress_set(di+1,missing.length);
+        log(trf('log_dep_fetch',{name:d.name}));
+        try{const latest=await api_get_latest_version(d.id,mc_ver,loader_api);
+          if(INDEX_DATA!==expected_pack){
+            log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
+          if(!latest){log(trf('dialog_dep_fetch_fail',{name:d.name}),'WARNING');continue;}
+          const entry=build_mod_entry(latest,'mods');
+          if(current_files().some(fe=>fe.path===entry.path)){
+            log(trf('log_dep_exists',{name:d.name}),'WARNING');continue;}
+          INDEX_DATA.files.push(entry);ok++;
+          log(trf('log_dep_added',{name:d.name}),'SUCCESS');
+        }catch(e){log(trf('log_dep_add_fail',{name:d.name,error:String(e)}),'ERROR');}}
+      progress_hide();
+      if(INDEX_DATA!==expected_pack){
+        log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+      if(ok>0){alert(trf('dialog_dep_add_success',{count:ok}));
+        refresh_mod_list();save_index_to_state();close_win();}
+      else alert(tr('dep_none_added'));}
+    const ft=win.ft;
+    ft.append(mkbtn(tr('button_open_selected'),'btn-accent','120px',open_selected),
+      mkbtn(tr('button_open_all'),'btn-accent2','100px',open_all),
+      mkbtn(tr('button_install_missing'),'btn-success','120px',install_missing),
+      mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    dep_status.forEach((d,i)=>{
+      const row=el('div',null,null,'sel-row');
+      const c=el('div','flex:1',trf('dep_loading',{id:d.id})+' '+(d.installed?tr('dialog_dep_existing'):tr('dialog_dep_missing')));
+      c.style.color=d.installed?'var(--text)':'var(--warning)';
+      row.appendChild(c);row.onclick=()=>select_dep(i);
+      win.bd.appendChild(row);rows.push(row);});
+    (async()=>{for(const d of dep_status){
+      const name=await api_fetch_project_name(d.id);d.name=name;
+      rows.forEach((r,i)=>{
+        if(!r.isConnected)return;
+        const st=dep_status[i];
+        r.firstChild.textContent=`${st.name} (${st.id}) `+
+          (st.installed?tr('dialog_dep_existing'):tr('dialog_dep_missing'));});}})();});}
+function csv_escape(s){return `"${String(s??'').replace(/"/g,'""')}"`;}
+function export_mod_list(){if(!ALL_MODS.length){alert(tr('dialog_no_mods'));return;}
+  let csv='Display Name,Project ID,Filename,Version,Path\n';
+  ALL_MODS.forEach(m=>{csv+=[csv_escape(m.display_name),csv_escape(m.project_id||''),
+    csv_escape(m.filename),csv_escape(m.version),csv_escape(m.path)].join(',')+'\n';});
+  dl_blob(new Blob([csv],{type:'text/csv'}),'modlist.csv');
+  log(trf('log_export',{path:'modlist.csv'}),'SUCCESS');
+  alert(trf('dialog_export_success',{path:'modlist.csv'}));}
+async function import_mod_list(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  $('fileCsv').click();}
+$('fileCsv').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  log(trf('log_csv_import_start',{name:f.name}));set_status(tr('status_loading'));
+  const mc_ver=$('comboMc').value.trim();
+  const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+  const pack=INDEX_DATA;
+  progress_show();
+  try{const text=(await f.text()).replace(/^﻿/,'');
+    const lines=text.split(/\r?\n/).filter(l=>l.trim());
+    if(!lines.length){alert(tr('dialog_csv_empty'));progress_hide();set_status(tr('status_ready'));return;}
+    const headers=parse_csv_line(lines[0]);
+    const pidCol=headers.findIndex(h=>/project.?id/i.test(h));
+    const pathCol=headers.findIndex(h=>/^path$/i.test(h.trim()));
+    const rows=lines.slice(1).map(parse_csv_line);
+    const new_entries=[];let i=0;
+    for(const row of rows){i++;
+      set_status(trf('csv_importing',{i,count:rows.length}));progress_set(i,rows.length);
+      const pid=(row[pidCol>=0?pidCol:0]||'').trim();
+      if(!pid)continue;
+      const csvPath=(row[pathCol]||'').replace(/\\/g,'/');
+      const prefix=entry_prefix(entry_type({path:csvPath}));
+      const useLoader=prefix==='mods'?loader_api:null;
+      let latest=null;try{latest=await api_get_latest_version(pid,mc_ver,useLoader);}catch{}
+      if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
+      if(!latest){log(trf('log_no_compat_version',{pid}),'WARNING');continue;}
+      try{const entry=build_mod_entry(latest,prefix);
+        if(!new_entries.some(ne=>ne.path===entry.path))new_entries.push(entry);}
+      catch{log(trf('log_version_data_bad',{pid}),'WARNING');}}
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');progress_hide();set_status(tr('status_ready'));return;}
+    const existing=new Set(current_files().map(fe=>fe.path));
+    const to_add=new_entries.filter(ne=>!existing.has(ne.path));
+    if(to_add.length){manual_backup();INDEX_DATA.files.push(...to_add);}
+    log(trf('log_import',{path:f.name,count:to_add.length}),'SUCCESS');
+    refresh_mod_list();save_index_to_state();
+    alert(trf('dialog_import_success',{count:to_add.length}));
+  }catch(err){log(trf('dialog_import_fail',{error:err.message}),'ERROR');
+    alert(trf('dialog_import_fail',{error:err.message}));}
+  progress_hide();set_status(tr('status_ready'));});
+function parse_csv_line(line){const out=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){const c=line[i];
+    if(inQ){if(c==='"'){if(line[i+1]==='"'){cur+='"';i++;}else inQ=false;}else cur+=c;}
+    else if(c==='"')inQ=true;else if(c===','){out.push(cur);cur='';}else cur+=c;}
+  out.push(cur);return out;}
+function add_local_jar(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  $('fileJar').click();}
+async function handle_local_jar_file(f){
+  const pack=INDEX_DATA;
+  try{const buf=await f.arrayBuffer();
+    const s1=await sha1_hex(buf);
+    let prefix=entry_prefix(ADD_TYPE);
+    const latest=await api_lookup_version_by_hash(s1);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+    if(latest){
+      const meta=await api_fetch_project_meta(latest.project_id);
+      if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+      if(meta&&project_type_to_add_type(meta.project_type)!=='mod'){
+        const at=project_type_to_add_type(meta.project_type);
+        prefix=entry_prefix(at);set_add_type(at);
+      }
+      const entry=build_mod_entry(latest,prefix);
+      log(trf('log_jar_identified',{filename:f.name,
+        project:latest.project_id||'?',version:latest.version_number||'?'}),'SUCCESS');
+      backup_silent();
+      if(!current_files().some(fe=>fe.path===entry.path))INDEX_DATA.files.push(entry);
+      refresh_mod_list();save_index_to_state();return;}
+    log(trf('log_jar_unknown',{filename:f.name}),'WARNING');
+    const project_id=prompt(tr('dialog_local_jar_id'))||'';
+    const entry={path:`${prefix}/${f.name}`,
+      hashes:{sha1:s1,sha512:await sha512_hex(buf)},
+      downloads:[],fileSize:f.size};
+    if(project_id)entry.project_id=project_id;
+    if(!window._localJars)window._localJars=new Map();
+    window._localJars.set(entry.path,{file:f,name:f.name});
+    backup_silent();
+    if(!current_files().some(fe=>fe.path===entry.path))INDEX_DATA.files.push(entry);
+    log(trf('log_local_jar',{filename:f.name}),'SUCCESS');
+    refresh_mod_list();save_index_to_state();
+  }catch(err){log(trf('log_read_file_fail',{error:err.message}),'ERROR');}}
+$('fileJar').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  await handle_local_jar_file(f);});
+function show_mod_detail(row){const mod=row._raw;
+  const name=mod.display_name||tr('unknown');
+  log(trf('log_detail_view',{name}));
+  build_win(tr('dialog_detail_title'),'500px','400px',win=>{
+    const add=(txt,style='')=>win.bd.appendChild(el('div','padding:2px 20px;font-size:12px;'+style,txt));
+    win.bd.appendChild(el('div',null,`${tr('col_name')}: ${name}`,'bold-md'));
+    add(`${tr('col_filename')}: ${mod.filename}`);
+    add(`${tr('col_version')}: ${mod.version}`);
+    add(`${tr('col_path')}: ${mod.path}`);
+    if(mod.raw_entry&&mod.raw_entry.cf){
+      const cf=mod.raw_entry.cf;
+      add(`${tr('col_project_id')}: CF-${cf.projectID}`);
+      const loading=el('div','text-align:center;padding:6px',tr('detail_loading'));
+      win.bd.appendChild(loading);
+      cf_get_project(cf.projectID).then(pj=>{loading.remove();
+        if(!pj)return;
+        win.bd.appendChild(el('div','padding:5px 20px;font-size:12px;white-space:pre-wrap',
+          trf('detail_cf_info',{title:pj.title||'N/A',desc:String(pj.summary||'N/A').slice(0,200),downloads:pj.downloads||0})));}).catch(()=>loading.remove());
+    }else if(mod.project_id){
+      add(`${tr('col_project_id')}: ${mod.project_id}`);
+      const loading=el('div','text-align:center;padding:6px',tr('detail_loading'));
+      win.bd.appendChild(loading);
+      Promise.all([
+        api_get(`https://api.modrinth.com/v2/project/${mod.project_id}`,300000).catch(()=>null),
+        api_get(`https://api.modrinth.com/v2/project/${mod.project_id}/members`,300000).catch(()=>null)
+      ]).then(([data,members])=>{loading.remove();
+        if(!data)return;
+        const authors=members&&members.length
+          ?members.map(m=>(m.user&&m.user.username)||'?').join(', '):'N/A';
+        win.bd.appendChild(el('div','padding:5px 20px;font-size:12px;white-space:pre-wrap',
+          trf('detail_mr_info',{title:data.title||'N/A',author:authors,
+            desc:String(data.description||'N/A').slice(0,200),downloads:data.downloads||0,
+            updated:String(data.updated||'N/A').slice(0,10)})));})
+        .catch(()=>loading.remove());
+    }else{win.bd.appendChild(el('div','text-align:center;padding:6px;color:var(--warning);font-size:12px',tr('dialog_detail_no_id')));}
+    win.ft.appendChild(mkbtn(tr('button_close'),'btn-gray','100px',close_win));});}
+function check_updates(){
+  if(!confirm(tr('dialog_update_experimental'))){log(tr('log_update_cancel'),'WARNING');return;}
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const pack=INDEX_DATA,files=pack.files||[];
+  if(!files.length){alert(tr('update_no_mods'));return;}
+  const mc_ver=$('comboMc').value.trim();
+  const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+  const mods_to_check=[];
+  files.forEach(entry=>{
+    if(entry.cf){ /* CurseForge 条目：按 fileID 比较（cfwidget） */
+      mods_to_check.push({cf:true,entry,etype:entry_type(entry),
+        filename:(entry.path||'').split(/[/\\]/).pop()});return;}
+    let pid=null;
+    if(entry.downloads&&entry.downloads.length)
+      pid=parse_project_id_from_url(entry.downloads[0]);
+    if(pid)mods_to_check.push({project_id:pid,entry,etype:entry_type(entry),
+      filename:(entry.path||'').split(/[/\\]/).pop()});});
+  if(!mods_to_check.length){log(tr('log_update_no_pid'),'WARNING');
+    alert(tr('update_no_pid'));return;}
+  log(tr('log_update_start'));set_status(tr('status_checking'));progress_show();
+  const total=mods_to_check.length;let done=0;const updates=[];
+  pool_run(mods_to_check,20,async m=>{
+    const result=await check_single_mod(m,mc_ver,m.etype==='mod'?loader_api:null);
+    done++;set_status(`${tr('status_checking')}... ${done}/${total}`);progress_set(done,total);
+    if(result)updates.push(result);})
+    .then(()=>{if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');
+      progress_hide();set_status(tr('status_ready'));return;}on_check_done(updates,pack);})
+    .catch(()=>{if(INDEX_DATA===pack){progress_hide();set_status(tr('status_ready'));}});}
+async function check_single_mod(m,mc_ver,loader_api){
+  if(m.cf)return cf_check_single(m,mc_ver,loader_api);
+  try{const latest=await api_get_latest_version(m.project_id,mc_ver,loader_api);
+    if(!latest)return null;
+    const current_ver=extract_version(m.filename);
+    const latest_ver=latest.version_number||'';
+    if(current_ver===tr('ver_unknown')||!latest_ver)return null;
+    const current_url=(m.entry.downloads||[''])[0];
+    let latest_url='';
+    if(latest.files&&latest.files.length)latest_url=latest.files[0].url||'';
+    if(current_url&&latest_url&&current_url===latest_url)return null;
+    if(compare_simple(latest_ver,current_ver)>0){
+      const name=await api_fetch_project_name(m.project_id);
+      return{project_id:m.project_id,name,
+        current_ver:normalize_version(current_ver),
+        latest_ver:normalize_version(latest_ver),
+        current_entry:m.entry,latest_data:latest};}
+  }catch{}
+  return null;}
+async function cf_check_single(m,mc_ver,loader){
+  try{const cf=m.entry.cf;const pid=cf.projectID;
+    const versions=await cf_get_project_versions(pid,mc_ver,loader);
+    if(!versions.length)return null;
+    const cands=versions.filter(v=>v.file_id>cf.fileID);
+    if(!cands.length)return null;
+    const latest=cands.reduce((a,b)=>b.file_id>a.file_id?b:a);
+    const name=CF_NAME_CACHE.get(pid)||m.filename;
+    const latest_ver=extract_version(latest.name||'');
+    return{cf:true,project_id:pid,name,
+      current_ver:normalize_version(extract_version(m.filename)),
+      latest_ver:latest_ver===tr('ver_unknown')?`fileID ${latest.file_id}`:normalize_version(latest_ver),
+      current_entry:m.entry,
+      latest_data:{cfProjectID:pid,cfFileID:latest.file_id,
+        filename:latest.name||'',fileSize:latest.filesize||0}};}
+  catch(e){log(trf('log_cf_check_fail',{pid:m.entry.cf.projectID,error:e&&e.message||e}),'WARNING');return null;}}
+function on_check_done(updates,expected_pack=INDEX_DATA){progress_hide();set_status(tr('status_ready'));
+  if(!updates.length){alert(tr('dialog_no_update'));
+    log(tr('log_update_done'),'SUCCESS');return;}
+  show_update_dialog(updates,expected_pack);}
+function show_update_dialog(updates,expected_pack=INDEX_DATA){
+  build_win(trf('dialog_update_found',{count:updates.length}),'800px','520px',win=>{
+    win.bd.parentNode.insertBefore(el('div',null,tr('dialog_update_warning'),'italic-warn'),win.bd);
+    const col_widths=['32%','22%','22%','24%'];
+    const headers=[tr('column_mod_name'),tr('column_current_ver'),
+      tr('column_latest_ver'),tr('column_action')];
+    const hdr=el('div',null,null,'tbl-hdr');hdr.style.margin='10px 10px 4px';
+    headers.forEach((h,i)=>hdr.appendChild(el('div','width:'+col_widths[i],h)));
+    win.bd.parentNode.insertBefore(hdr,win.bd);
+    const countLbl=el('div','text-align:center;font-weight:600;color:var(--accent);padding:4px',null,'hint');
+    function refresh_count(){const n=rows.filter(r=>r._selected).length;
+      countLbl.textContent=trf('update_selected',{n,total:updates.length});}
+    win.bd.parentNode.insertBefore(countLbl,win.ft);
+    function toggle(row){row._selected=!row._selected;
+      row.classList.toggle('on',row._selected);
+      row.children[3].textContent=row._selected?tr('update_action'):'';
+      refresh_count();}
+    function select_all_toggle(){const target=!rows.every(r=>r._selected);
+      rows.forEach(r=>{r._selected=target;r.classList.toggle('on',target);
+        r.children[3].textContent=target?tr('update_action'):'';});
+      refresh_count();}
+    function apply_updates(){const to_update=rows.filter(r=>r._selected);
+      if(!to_update.length){alert(tr('dialog_update_select'));return;}
+      if(INDEX_DATA!==expected_pack){log(tr('log_async_pack_changed'),'WARNING');
+        close_win();return;}
+      if(!confirm(trf('dialog_update_apply',{count:to_update.length})))return;
+      if(to_update.some(r=>r._upd.cf))log(tr('log_cf_nohash'),'WARNING');
+      const files=current_files();
+      const path_to_idx={};files.forEach((f,i)=>path_to_idx[f.path]=i);
+      let replaced=0;
+      to_update.forEach(r=>{const upd=r._upd;
+        const idx=path_to_idx[upd.current_entry.path];
+        if(idx===undefined)return;
+        try{
+          if(upd.cf)files[idx]=build_cf_entry(upd);
+          else files[idx]=build_mod_entry(upd.latest_data,
+            (upd.current_entry.path||'mods/').split('/')[0]);
+          replaced++;
+        }catch(e){log(trf('log_update_entry_fail',
+          {filename:(upd.current_entry.path||'').split(/[/\\]/).pop(),error:String(e)}),'ERROR');}});
+      INDEX_DATA.files=files;
+      log(trf('log_update_success',{count:replaced}),'SUCCESS');
+      close_win();refresh_mod_list();save_index_to_state();reload_metadata();
+      alert(trf('dialog_update_success',{count:replaced}));}
+    win.ft.append(
+      mkbtn(tr('button_select_all'),'btn-accent2','140px',select_all_toggle),
+      mkbtn(tr('button_update_selected'),'btn-success','140px',apply_updates),
+      mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    const rows=[];
+    updates.forEach(upd=>{const wrap=el('div');
+      const row=el('div',null,null,'sel-row');
+      row._upd=upd;row._selected=false;
+      [upd.name,upd.current_ver,upd.latest_ver,''].forEach((val,i)=>{
+        const c=el('div','width:'+col_widths[i],val);
+        c.style.textAlign=i<3?'left':'center';
+        row.appendChild(c);});
+      row.onclick=()=>toggle(row);
+      const chg=el('div','width:60px;text-align:center;cursor:pointer;user-select:none','📄');
+      chg.onclick=ev=>{ev.stopPropagation();
+        const pre=wrap.querySelector('.chg-detail');
+        const open=pre.style.display==='none';
+        pre.style.display=open?'block':'none';
+        chg.textContent=open?'📑':'📄';};
+      row.appendChild(chg);
+      const pre=document.createElement('pre');pre.className='chg-detail';
+      pre.style.display='none';
+      const cl=(upd.latest_data&&upd.latest_data.changelog)||'';
+      pre.textContent=cl?cl.slice(0,3000):tr('dialog_changelog_none');
+      wrap.appendChild(row);wrap.appendChild(pre);
+      win.bd.appendChild(wrap);rows.push(row);});
+    refresh_count();});}
+function pick_pack_file(){return new Promise(res=>{
+  const i=document.createElement('input');i.type='file';
+  i.accept='.mrpack,.zip';let done=false;
+  const finish=v=>{if(done)return;done=true;
+    window.removeEventListener('focus',onfocus);res(v);};
+  const onfocus=()=>setTimeout(()=>{
+    if(!done&&(!i.files||!i.files.length))finish(null);},300);
+  i.onchange=()=>{finish(i.files[0]||null);};
+  setTimeout(()=>window.addEventListener('focus',onfocus),500);
+  i.click();});}
+async function load_pack_data(f){
+  const zip=await(await loadJsZip()).loadAsync(f);
+  const idx=zip.file('modrinth.index.json');
+  if(idx){const d=JSON.parse(await idx.async('string'));
+    return{name:d.name||f.name,files:(d.files||[]).slice()};}
+  const man=zip.file('manifest.json');
+  if(!man)throw new Error(tr('dialog_open_mrpack_fail'));
+  let m=null;try{m=JSON.parse(await man.async('string'));}catch{}
+  if(!m||!m.minecraft)throw new Error(tr('dialog_open_cf_fail'));
+  const index=cf_manifest_to_index(m);
+  const pending=(m.files||[]).map(x=>({projectID:+x.projectID||0,
+    fileID:+x.fileID||0,required:x.required!==false}));
+  index.files=await resolve_cf_files(pending);
+  return{name:index.name||f.name,files:index.files};}
+function entry_identity_key(e){
+  if(e.cf)return'cf:'+e.cf.projectID;
+  for(const d of e.downloads||[]){const pid=parse_project_id_from_url(d);
+    if(pid)return'mr:'+pid;}
+  return'path:'+(e.path||'');}
+function diff_pack_files(fa,fb){
+  const ma=new Map(),mb=new Map();
+  fa.forEach(e=>{if(!ma.has(entry_identity_key(e)))ma.set(entry_identity_key(e),e);});
+  fb.forEach(e=>{if(!mb.has(entry_identity_key(e)))mb.set(entry_identity_key(e),e);});
+  const only_a=[],only_b=[],changed=[];
+  for(const[k,e]of ma){if(!mb.has(k))only_a.push(e);
+    else{const eb=mb.get(k);
+      const sa=(e.cf&&e.cf.fileID)||(e.hashes&&e.hashes.sha1)||'';
+      const sb=(eb.cf&&eb.cf.fileID)||(eb.hashes&&eb.hashes.sha1)||'';
+      if(sa&&sb&&sa!==sb)changed.push([e,eb]);}}
+  for(const[k,e]of mb)if(!ma.has(k))only_b.push(e);
+  return{only_a,only_b,changed};}
+function diff_fname(e){return(e.path||'').split(/[/\\]/).pop()||'?';}
+async function diff_packs(){
+  const fa=await pick_pack_file();if(!fa)return;
+  const fb=await pick_pack_file();if(!fb)return;
+  set_status(tr('status_loading'));
+  try{
+    const[a,b]=await Promise.all([load_pack_data(fa),load_pack_data(fb)]);
+    const{only_a,only_b,changed}=diff_pack_files(a.files,b.files);
+    build_win(tr('diff_title'),'640px','560px',win=>{
+      win.bd.appendChild(el('div','text-align:center;font-weight:600;padding:4px',`A: ${a.name} ⇄ B: ${b.name}`));
+      const box=el('div','flex:1;overflow:auto;font-size:12px;padding:0 14px');
+      const sec=txt=>box.appendChild(el('div','font-weight:600;margin:6px 0 2px;color:var(--accent)',txt));
+      const item=(txt,color)=>box.appendChild(el('div','padding:1px 10px;color:'+color,txt));
+      if(!only_a.length&&!only_b.length&&!changed.length)
+        item(tr('diff_same'),'#2e7d32');
+      if(only_a.length){sec(trf('diff_only',{name:`${a.name} (A)`,count:only_a.length}));
+        only_a.forEach(e=>item(`- ${diff_fname(e)}  [${extract_version(diff_fname(e))}]`,'#c62828'));}
+      if(changed.length){sec(trf('diff_changed',{count:changed.length}));
+        changed.forEach(([ea,eb])=>item(
+          `~ ${diff_fname(ea)}: ${extract_version(diff_fname(ea))} → ${extract_version(diff_fname(eb))}`,'#ef6c00'));}
+      if(only_b.length){sec(trf('diff_only',{name:`${b.name} (B)`,count:only_b.length}));
+        only_b.forEach(e=>item(`+ ${diff_fname(e)}  [${extract_version(diff_fname(e))}]`,'#2e7d32'));}
+      win.bd.appendChild(box);
+      win.ft.append(mkbtn(tr('button_close'),'btn-gray','80px',close_win));});}
+  catch(err){log(trf('log_compare_fail',{error:err.message}),'ERROR');
+    alert(trf('log_compare_fail',{error:err.message}));}
+  finally{set_status(tr('status_ready'));}}
+const dropOverlay=el('div',null,tr('drop_hint'));dropOverlay.id='dropOverlay';
+document.body.appendChild(dropOverlay);
+let _dragDepth=0;
+window.addEventListener('dragenter',e=>{e.preventDefault();
+  const types=[...((e.dataTransfer||{}).types||[])];
+  if(types.includes('Files')){_dragDepth++;dropOverlay.classList.add('show');}});
+window.addEventListener('dragleave',e=>{e.preventDefault();
+  if(--_dragDepth<=0){_dragDepth=0;dropOverlay.classList.remove('show');}});
+window.addEventListener('dragover',e=>{e.preventDefault();});
+window.addEventListener('drop',async e=>{e.preventDefault();
+  _dragDepth=0;dropOverlay.classList.remove('show');
+  const files=[...((e.dataTransfer||{}).files||[])];
+  for(const f of files){
+    if(/\.mrpack$/i.test(f.name)){await handle_open_file(f);continue;}
+    if(/\.zip$/i.test(f.name)){
+      /* .zip 先按整合包识别（含 modrinth.index.json/manifest.json），否则作为本地文件添加 */
+      let isPack=false;
+      try{const z=await(await loadJsZip()).loadAsync(await f.arrayBuffer());
+        isPack=!!(z.file('modrinth.index.json')||z.file('manifest.json'));}catch{}
+      if(isPack){await handle_open_file(f);continue;}}
+    if(/\.(jar|zip)$/i.test(f.name)){
+      if(!INDEX_DATA){alert(tr('dialog_file_not_found'));continue;}
+      await handle_local_jar_file(f);}}});
+function ov_zip_path(k){
+  if(k.startsWith('server-overrides/'))return k;
+  if(PACK_FORMAT==='modrinth'&&k.startsWith('client-overrides/'))return k;
+  if(PACK_FORMAT==='curseforge'&&k.startsWith('clientoverrides/'))return k;
+  return 'overrides/'+k;}
+function pick_overrides(){return new Promise(res=>{
+  const inp=$('fileOverrides');let done=false;
+  const finish=v=>{if(done)return;done=true;
+    window.removeEventListener('focus',onfocus);
+    try{inp.value='';}catch{}res(v);};
+  const onfocus=()=>setTimeout(()=>{if(!done&&(!inp.files||!inp.files.length))finish(null);},300);
+  const SPECIAL=PACK_FORMAT==='curseforge'?['clientoverrides']:['client-overrides','server-overrides'];
+  inp.onchange=()=>{const files=[...inp.files].map(f=>{
+    const wp=f.webkitRelativePath||'';const i=wp.indexOf('/');
+    const top=i>0?wp.slice(0,i):'';
+    let rel=i>0?wp.slice(i+1):wp;
+    if(top&&SPECIAL.includes(top))rel=`${top}/${rel}`;  // 专用子目录保留包内根名
+    return [f,rel];});
+    finish(files);};
+  setTimeout(()=>window.addEventListener('focus',onfocus),500);
+  inp.click();});}
+async function pack_to_mrpack(as_zip=false){
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  save_index_to_state();
+  const data=JSON.parse(JSON.stringify(INDEX_DATA));
+  if(!(data.files||[]).length){
+    if(!confirm(tr('dialog_pack_empty')))return;}
+  log(trf('log_pack_start',{path:as_zip?'.zip':'.mrpack'}));set_status(tr('status_loading'));
+  try{
+    const pack_data=data;const extra={};const written=new Set();
+    const ovf=window._ovFiles||new Map();
+    const localJ=window._localJars||new Map();
+    if(localJ.size||ovf.size){
+      // 仅打包当前仍登记在 files 中的本地文件，避免已删除条目复活
+      const live=new Set((pack_data.files||[]).map(f=>f.path));
+      const dlset=new Set((pack_data.files||[]).filter(f=>(f.downloads||[]).length).map(f=>f.path));
+      let n=0;
+      for(const path of live){
+        if(dlset.has(path))continue;  // 带下载链接的由安装器下载，不打包
+        const o=localJ.get(path)||ovf.get(path);
+        if(o){extra[`overrides/${path}`]=o.file||o;written.add(path);n++;}}
+      // 其余包内覆盖文件（config、未登记本地文件、server-overrides 等）按目录路由
+      for(const[k,o]of ovf){
+        if(live.has(k)||written.has(k))continue;
+        extra[ov_zip_path(k)]=o.file||o;written.add(k);n++;}
+      if(n)log(trf('log_ov_added',{n:n}),'SUCCESS');}
+    let handle=null;
+    const ext=as_zip?'.zip':'.mrpack';
+    const suggested=`${pack_data.name||'modpack'}${ext}`;
+    if(window.showSaveFilePicker){
+      try{handle=await window.showSaveFilePicker({suggestedName:suggested,
+        types:[as_zip?{description:'Zip Archive',accept:{'application/zip':['.zip']}}
+          :{description:'Modrinth Modpack',accept:{'application/octet-stream':['.mrpack']}}]});}
+      catch{set_status(tr('status_ready'));return;}}
+    const name=handle?handle.name:suggested;
+    const include_overrides=confirm(`${tr('dialog_confirm_overrides')}\n\n${tr('dialog_overrides_prompt')}`);
+    let overrides_files=null;
+    if(include_overrides){
+      overrides_files=await pick_overrides();
+      if(!overrides_files)log(tr('log_no_overrides'),'WARNING');}
+    const zip=new(await loadJsZip())();
+    zip.file('modrinth.index.json',JSON.stringify(pack_data,null,2));
+    for(const[p,c]of Object.entries(extra))zip.file(p,c);
+    if(overrides_files){let n=0;for(const[f,rel]of overrides_files){zip.file(ov_zip_path(rel),f);n++;}
+      log(trf('log_ov_user_added',{n:n}),'SUCCESS');}
+    progress_show();
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'},
+      md=>progress_set(md.percent,100));
+    progress_hide();
+    if(handle){const w=await handle.createWritable();await w.write(blob);await w.close();}
+    else dl_blob(blob,name);
+    log(trf('log_pack',{path:name}),'SUCCESS');
+    set_status(tr('status_packed'));
+    alert(`${tr('status_packed')}\n${trf(as_zip?'dialog_pack_success_zip':'dialog_pack_success',{path:name})}`);
+  }catch(e){progress_hide();log(trf('dialog_pack_fail',{error:e.message}),'ERROR');
+    alert(trf('dialog_pack_fail',{error:e.message}));set_status(tr('status_ready'));}}
+function export_zip_dispatch(){if(PACK_FORMAT==='curseforge')export_cf_zip();else pack_to_mrpack(true);}
+async function export_cf_zip(){
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  save_index_to_state();
+  const data=JSON.parse(JSON.stringify(INDEX_DATA));
+  const include_overrides=confirm(`${tr('dialog_confirm_overrides')}\n\n${tr('dialog_overrides_prompt')}`);
+  let overrides_files=null;
+  if(include_overrides){overrides_files=await pick_overrides();
+    if(!overrides_files)log(tr('log_no_overrides'),'WARNING');}
+  log(tr('log_cf_pack_start'));set_status(tr('status_loading'));
+  try{
+    const deps=data.dependencies||{};const modLoaders=[];
+    for(const[key,prefix]of[['fabric-loader','fabric'],['forge','forge'],['neoforge','neoforge']])
+      if(deps[key])modLoaders.push({id:`${prefix}-${deps[key]}`,primary:true});
+    const manifest={minecraft:{version:deps.minecraft||'',modLoaders},
+      manifestType:'minecraftModpack',manifestVersion:1,
+      name:data.name||'modpack',version:data.versionId||'1.0.0',files:[],overrides:'overrides'};
+    const zip=new(await loadJsZip())();
+    const files=data.files||[];const total=files.length;let i=0;
+    const ovf=window._ovFiles||new Map();const usedRel=new Set();
+    progress_show();
+    for(const e of files){
+      i++;
+      if(e.cf){manifest.files.push({projectID:e.cf.projectID,fileID:e.cf.fileID,
+        required:e.cf.required!==false});progress_set(i,total);continue;}
+      const rel=String(e.path||'').replace(/\\/g,'/');
+      if(!rel)continue;
+      let buf=null;
+      const lo=(window._localJars&&window._localJars.get(rel))||ovf.get(rel);
+      if(lo){buf=await(lo.file?lo.file.arrayBuffer():lo.arrayBuffer());usedRel.add(rel);}
+      else{const url=(e.downloads||[])[0];
+        if(url){set_status(`${tr('status_downloading')} ${i}/${total}`);
+          try{const r=await fetch(url,fetch_to());if(r.ok)buf=await r.arrayBuffer();}catch{}}}
+      if(buf)zip.file(`overrides/${rel}`,buf);
+      else log(trf('log_download_fail',{filename:rel.split('/').pop(),error:'no source'}),'ERROR');
+      progress_set(i,total);}
+    let nx=0;  // 包内其余覆盖文件（config、clientoverrides 等）
+    for(const[k,o]of ovf){if(usedRel.has(k))continue;
+      zip.file(ov_zip_path(k),o.file||o);nx++;}
+    if(nx)log(trf('log_ov_added',{n:nx}),'SUCCESS');
+    if(overrides_files){let n=0;for(const[f,rel]of overrides_files){zip.file(ov_zip_path(rel),f);n++;}
+      log(trf('log_ov_user_added',{n:n}),'SUCCESS');}
+    zip.file('manifest.json',JSON.stringify(manifest,null,2));
+    /* 下载阶段 0-90%，压缩阶段 90-100% */
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'},
+      md=>{$('progress').firstElementChild.style.width=(90+md.percent*0.1)+'%';});
+    const suggested=`${data.name||'modpack'}.zip`;let name=suggested;
+    if(window.showSaveFilePicker){
+      let handle;
+      try{handle=await window.showSaveFilePicker({suggestedName:suggested,
+        types:[{description:'Zip Archive',accept:{'application/zip':['.zip']}}]});}
+      catch{progress_hide();set_status(tr('status_ready'));return;}
+      const w=await handle.createWritable();await w.write(blob);await w.close();name=handle.name;
+    }else dl_blob(blob,name);
+    log(trf('log_pack',{path:name}),'SUCCESS');
+    progress_hide();
+    alert(trf('cf_export_ok',{path:name}));
+  }catch(e){progress_hide();log(trf('dialog_pack_fail',{error:e.message}),'ERROR');
+    alert(trf('dialog_pack_fail',{error:e.message}));}
+  set_status(tr('status_ready'));}
+function online_import_pack(){
+  build_win(tr('online_search_title'),'780px','560px',win=>{
+    win.bd.style.display='flex';win.bd.style.flexDirection='column';
+    const box=el('div','display:flex;gap:6px;padding:6px 10px;flex-shrink:0');
+    const inp=document.createElement('input');inp.style.flex='1';
+    inp.placeholder=tr('online_search_placeholder');
+    const resBox=el('div','flex:1;overflow:auto;padding:4px 10px');
+    const stLbl=el('div','text-align:center;padding:4px;flex-shrink:0','','hint');
+    const btn=mkbtn(tr('online_search_btn'),'btn-accent2','100px',async()=>{
+      const q=inp.value.trim();if(!q)return;
+      stLbl.textContent=tr('online_searching');
+resBox.innerHTML = ''; // 清空现有内容
+      try{
+        const url=`https://api.modrinth.com/v2/search?query=${encodeURIComponent(q)}&limit=20&facets=${encodeURIComponent('[["project_type:modpack"]]')}`;
+        const d=await api_get(url,60000);const hits=d.hits||[];
+        stLbl.textContent='';
+resBox.innerHTML = ''; // 清空现有内容
+        if(!hits.length){stLbl.textContent=tr('online_no_results');return;}
+        hits.forEach(h=>{
+          const row=el('div','padding:6px 10px;border-radius:6px;cursor:default','','sel-row');
+          row.appendChild(el('div','font-weight:600',h.title||'?'));
+          row.appendChild(el('div','font-size:11px;color:var(--muted)',
+            trf('online_by',{author:h.author||'?',dl:h.downloads||0})));
+          const desc=(h.description||'').slice(0,90);
+          if(desc)row.appendChild(el('div','font-size:11px;color:var(--muted)',desc));
+          const pick=mkbtn(tr('online_select'),'btn-accent','120px',()=>{
+            close_win();online_pick_version(h.project_id,h.title||'?');});
+          pick.style.height='28px';pick.style.margin='4px 0 2px';
+          row.appendChild(pick);
+          row.onclick=()=>{[...resBox.children].forEach(c=>c.classList.remove('on'));row.classList.add('on');};
+          row.ondblclick=()=>{close_win();online_pick_version(h.project_id,h.title||'?');};
+          resBox.appendChild(row);});
+      }catch(e){stLbl.textContent='';log(trf('online_search_fail',{error:e.message}),'ERROR');}});
+    box.append(inp,btn);
+    win.bd.parentNode.insertBefore(box,win.bd);
+    win.bd.append(stLbl,resBox);
+    win.ft.appendChild(mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    inp.focus();inp.addEventListener('keydown',e=>{if(e.key==='Enter')btn.click();});});}
+async function online_pick_version(pid,title){
+  set_status(tr('status_loading'));
+  try{
+    const all_v=await api_get_all_versions(pid,null,null);
+    set_status(tr('status_ready'));
+    if(!all_v.length){alert(tr('online_no_results'));return;}
+    let def=all_v.filter(v=>v.featured);
+    if(!def.length)def=all_v.slice(0,5);
+    show_selector(def,all_v,pid,'',null,ver=>online_download(ver,title));
+  }catch(e){set_status(tr('status_ready'));
+    alert(trf('online_download_fail',{error:e.message}));}}
+async function online_download(ver,title){
+  const f=ver.files&&ver.files[0];
+  if(!f){alert(tr('online_no_results'));return;}
+  const fname=f.filename||`${title}.mrpack`;
+  set_status(tr('online_downloading'));
+  try{
+    const r=await fetch(f.url,fetch_to());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const blob=await r.blob();
+    if(window.showSaveFilePicker){
+      try{const h=await window.showSaveFilePicker({suggestedName:fname,
+        types:[{description:'Modrinth Modpack',accept:{'application/octet-stream':['.mrpack']}}]});
+        const w=await h.createWritable();await w.write(blob);await w.close();
+      }catch{/* 用户取消保存则不自动打开 */set_status(tr('status_ready'));return;}}
+    else dl_blob(blob,fname);
+    set_status(tr('status_ready'));
+    await handle_open_file(new File([blob],fname,{type:'application/octet-stream'}));
+  }catch(e){set_status(tr('status_ready'));
+    alert(trf('online_download_fail',{error:e.message}));}}
+function new_pack_wizard(){
+  build_win(tr('new_pack_title'),'500px','520px',win=>{
+    const mkrow=lbl=>{const r=el('div','display:flex;align-items:center;gap:8px;padding:5px 10px');
+      r.appendChild(el('span','width:90px;font-size:12px;flex-shrink:0',lbl));return r;};
+    const nameInp=document.createElement('input');nameInp.value=tr('new_pack_default_name');nameInp.style.flex='1';
+    const verInp=document.createElement('input');verInp.value='1.0.0';verInp.style.flex='1';
+    let fmt='modrinth';
+    const fmtRow=mkrow(tr('new_pack_format'));
+    [['fmt_modrinth','modrinth'],['fmt_curseforge','curseforge']].forEach(([k,v],idx)=>{
+      const item=el('span',null,null,'radio-item'+(idx===0?' on':''));
+      item.appendChild(el('span',null,null,'radio-dot'));
+      item.appendChild(el('span',null,tr(k)));
+      item.onclick=()=>{fmt=v;
+        fmtRow.querySelectorAll('.radio-item').forEach(x=>x.classList.remove('on'));
+        item.classList.add('on');};
+      fmtRow.appendChild(item);});
+    const mcSel=document.createElement('select');mcSel.style.flex='1';
+    mcSel.appendChild(new Option('1.20.1','1.20.1'));
+    const ltSel=document.createElement('select');ltSel.style.flex='1';
+    ['Fabric','Forge','NeoForge'].forEach(x=>ltSel.appendChild(new Option(x,x)));
+    const lvSel=document.createElement('select');
+    lvSel.style.width='100%';
+    const lvWrap=el('span','flex:1');lvWrap.append(lvSel);
+    /* 三种加载器均在线获取版本列表（Fabric/Forge/NeoForge） */
+    const fillLoader=async()=>{
+      const mc=mcSel.value.trim();
+      if(!mc)return;
+      lvSel.disabled=true;const cur=ltSel.value;
+      try{const vs=await api_fetch_loader_versions_for_mc(cur,mc);
+        if(ltSel.value!==cur)return;
+        fill_select(lvSel,vs);
+        lvSel.value=vs[0]||'';
+      }catch{}
+      lvSel.disabled=false;};
+    mcSel.onchange=fillLoader;ltSel.onchange=fillLoader;
+    api_fetch_mc_versions().then(vs=>{fill_select(mcSel,vs);
+      mcSel.value=vs[0]||'1.20.1';fillLoader();}).catch(()=>fillLoader());
+    const r1=mkrow(tr('new_pack_name'));r1.appendChild(nameInp);
+    const r2=mkrow(tr('new_pack_version'));r2.appendChild(verInp);
+    const r4=mkrow(tr('info_mc'));r4.appendChild(mcSel);
+    const r5=mkrow(tr('info_loader'));r5.appendChild(ltSel);
+    const r6=mkrow(tr('info_loader_ver'));r6.appendChild(lvWrap);
+    win.bd.append(r1,r2,fmtRow,r4,r5,r6);
+    win.ft.appendChild(mkbtn(tr('new_pack_create'),'btn-success','140px',async()=>{
+      const name=nameInp.value.trim()||tr('new_pack_default_name');
+      const ver=verInp.value.trim()||'1.0.0';
+      const mc=mcSel.value.trim()||'1.20.1';
+      const lt=ltSel.value;
+      const lvRaw=lvSel.value.trim();
+      const lv=lt==='Fabric'?(lvRaw||'0.15.11'):lvRaw;
+      if(!lv||lv==='...'){alert(tr('new_pack_loader_ver_required'));return;}
+      const loaderKey=LOADER_KEYS[lt]||'fabric-loader';
+      const ext=fmt==='modrinth'?'.mrpack':'.zip';
+      const fname=name+ext;
+      const zip=new(await loadJsZip())();
+      if(fmt==='modrinth'){
+        const idx={game:'minecraft',formatVersion:1,versionId:ver,name,summary:'',files:[],
+          dependencies:{minecraft:mc,[loaderKey]:lv}};
+        zip.file('modrinth.index.json',JSON.stringify(idx,null,2));}
+      else{
+        const prefix=loaderKey==='fabric-loader'?'fabric':loaderKey==='neoforge'?'neoforge':'forge';
+        const manifest={minecraft:{version:mc,modLoaders:[{id:`${prefix}-${lv}`,primary:true}]},
+          manifestType:'minecraftModpack',manifestVersion:1,name,version:ver,files:[],overrides:'overrides'};
+        zip.file('manifest.json',JSON.stringify(manifest,null,2));}
+      try{
+        const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+        let saved=fname;
+        if(window.showSaveFilePicker){
+          try{const h=await window.showSaveFilePicker({suggestedName:fname,
+            types:[{description:'Modpack',accept:{'application/octet-stream':[ext]}}]});
+            const w=await h.createWritable();await w.write(blob);await w.close();saved=h.name;
+          }catch{set_status(tr('status_ready'));return;}}
+        else dl_blob(blob,fname);
+        close_win();
+        log(trf('new_pack_created',{path:saved}),'SUCCESS');
+        await handle_open_file(new File([blob],saved,{type:'application/octet-stream'}));
+      }catch(e){log(trf('dialog_pack_fail',{error:String(e)}),'ERROR');
+        alert(trf('dialog_pack_fail',{error:String(e)}));}}));
+    win.ft.appendChild(mkbtn(tr('button_cancel'),'btn-gray','100px',close_win));});}
+function build_win(title,w,h,onbuild){
+  const ov=el('div',null,null,'win-ov');
+  const win=el('div',null,null,'win');
+  win.style.cssText=`width:${w};height:${h};max-width:95vw;max-height:92vh`;
+  const hd=el('div',null,null,'win-hd');
+  const tt=el('span',null,title);
+  const x=el('button',null,'✕','x');x.onclick=close_win;
+  hd.append(tt,x);
+  const bd=el('div',null,null,'win-bd');
+  const ft=el('div',null,null,'win-ft');
+  win.append(hd,bd,ft);ov.appendChild(win);document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('show'));
+  ov._win={title:tt,bd,ft};
+  onbuild({title:tt,bd,ft});
+  ov.addEventListener('click',e=>{if(e.target===ov)close_win();});}
+function close_win(){const ovs=document.querySelectorAll('.win-ov');
+  if(ovs.length){ovs[ovs.length-1].remove();}}
+function mkbtn(text,cls,width,onclick){const b=document.createElement('button');
+  b.className=cls;b.style.width=width;b.textContent=text;b.onclick=onclick;return b;}
+function el(tag,css,txt,cls){const e=document.createElement(tag);if(cls)e.className=cls;
+  if(css)e.style.cssText=css;if(txt!=null)e.textContent=txt;return e;}
+function detect_duplicates(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const pack=INDEX_DATA,files=pack.files||[];
+  const by_pid=new Map(),by_sha=new Map();
+  files.forEach((f,i)=>{
+    const pid=parse_project_id_from_url((f.downloads||[])[0]||'');
+    if(pid){if(!by_pid.has(pid))by_pid.set(pid,[]);by_pid.get(pid).push(i);}
+    const sha=f.hashes&&f.hashes.sha1;
+    if(sha){if(!by_sha.has(sha))by_sha.set(sha,[]);by_sha.get(sha).push(i);}});
+  const parent=files.map((_,i)=>i);
+  function find(x){while(parent[x]!==x){parent[x]=parent[parent[x]];x=parent[x];}return x;}
+  function union(a,b){const ra=find(a),rb=find(b);if(ra!==rb)parent[ra]=rb;}
+  by_pid.forEach(idx=>{for(let i=1;i<idx.length;i++)union(idx[0],idx[i]);});
+  by_sha.forEach(idx=>{for(let i=1;i<idx.length;i++)union(idx[0],idx[i]);});
+  const groups=new Map();
+  files.forEach((_,i)=>{const r=find(i);if(!groups.has(r))groups.set(r,[]);groups.get(r).push(i);});
+  const dups=[...groups.values()].filter(g=>g.length>1).map(g=>g.map(i=>files[i]));
+  if(!dups.length){alert(tr('dialog_dup_none'));log(tr('dialog_dup_none'),'SUCCESS');return;}
+  log(trf('log_dup_found',{count:dups.length}));
+  let removed=0;
+  build_win(tr('dialog_dup_title'),'700px','520px',win=>{
+    dups.forEach((g,gi)=>{
+      win.bd.appendChild(el('div','font-size:13px;padding:6px 10px 2px',
+        `${trf('dialog_dup_group',{count:g.length})} — ${(g[0].path||'').split(/[/\\]/).pop()}`,'bold-md'));
+      g.forEach((entry,i)=>{
+        const row=el('div',null,null,'sel-row');
+        const c=el('div','flex:1',`[${i===0?tr('dup_keep'):tr('dup_extra')}] ${entry.path||''}`);
+        row.appendChild(c);
+        if(i>0){const del=mkbtn(tr('dialog_dup_delete_extras'),'btn-danger','110px',()=>{
+          if(!confirm(trf('dialog_confirm_delete',{count:1})))return;
+          if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');
+            close_win();return;}
+          /* 按对象身份删除：同 path 的"保留"条目不受影响 */
+          remove_duplicate_entry(pack,entry,window._localJars,window._ovFiles);
+          row.remove();removed++;removedLbl.textContent=trf('log_delete_mod',{count:removed});
+          refresh_mod_list();save_index_to_state();});
+          row.appendChild(del);}
+        win.bd.appendChild(row);});});
+    const removedLbl=el('div','text-align:center;padding:6px',trf('log_delete_mod',{count:removed}),'hint');
+    win.bd.appendChild(removedLbl);
+    win.ft.append(mkbtn(tr('button_close'),'btn-gray','80px',close_win));});}
+async function compatibility_check(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const pack=INDEX_DATA,files=pack.files||[];if(!files.length){alert(tr('dialog_no_mods'));return;}
+  const mc=$('comboMc').value.trim();
+  const loader_api=LOADER_API[$('comboLoaderType').value]||'fabric';
+  const to_check=[];
+  files.forEach(f=>{
+    const pid=parse_project_id_from_url((f.downloads||[])[0]||'');
+    if(pid)to_check.push({pid,entry:f,etype:entry_type(f),
+      filename:(f.path||'').split(/[/\\]/).pop()});});
+  if(!to_check.length){alert(tr('dialog_no_mods'));return;}
+  let status;
+  build_win(tr('dialog_compat_title'),'700px','520px',win=>{
+    status=el('div','text-align:center;padding:6px',trf('dialog_compat_checking',{done:0,total:to_check.length}),'hint');
+    win.bd.appendChild(status);
+    win.ft.append(mkbtn(tr('button_close'),'btn-gray','80px',close_win));});
+  const total=to_check.length;let done=0;const bad=[];
+  set_status(tr('status_checking'));progress_show();
+  await pool_run(to_check,20,async m=>{
+    try{
+      const sha=m.entry.hashes&&m.entry.hashes.sha1;
+      let target=sha?await api_lookup_version_by_hash(sha):null;
+      if(!target){
+        const vs=await api_get_all_versions(m.pid,null,null);
+        const url0=(m.entry.downloads||[])[0]||'';
+        target=vs.find(v=>(v.files||[]).some(f=>f.url===url0))||vs[0]||null;}
+      if(!target){done++;return;}
+      const gv=target.game_versions||[];const ld=target.loaders||[];
+      const mc_ok=!mc||!gv.length||gv.includes(mc);
+      const ld_ok=m.etype!=='mod'||!ld.length||ld.includes(loader_api);
+      if(!mc_ok||!ld_ok){
+        const name=await api_fetch_project_name(m.pid);
+        bad.push({pid,name,filename:m.filename,mc_ok,ld_ok,
+          gv:gv.join(','),ld:ld.join(',')});}
+    }catch{}
+    done++;status.textContent=trf('dialog_compat_checking',{done,total});progress_set(done,total);});
+  if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');
+    progress_hide();set_status(tr('status_ready'));close_win();return;}
+  progress_hide();set_status(tr('status_ready'));
+  if(!bad.length){alert(tr('dialog_compat_none'));
+    log(trf('log_compat_done',{count:0}),'SUCCESS');close_win();return;}
+  log(trf('log_compat_done',{count:bad.length}),'WARNING');
+  close_win();
+  build_win(tr('dialog_compat_title'),'800px','520px',win=>{
+    win.bd.appendChild(el('div',null,tr('dialog_compat_incompat'),'italic-warn'));
+    const hdr=el('div',null,null,'tbl-hdr');hdr.style.margin='6px 0';
+    [{t:tr('column_mod_name'),w:240},{t:tr('dialog_compat_mc'),w:80},
+     {t:tr('dialog_compat_loader'),w:90},{t:'game_versions',w:180},{t:'loaders',w:160}]
+      .forEach(c=>hdr.appendChild(el('div','width:'+c.w+'px',c.t)));
+    win.bd.appendChild(hdr);
+    bad.forEach(b=>{
+      const row=el('div',null,null,'sel-row');
+      [{w:240,v:b.name||b.filename},{w:80,v:b.mc_ok?'✅':'❌'},
+       {w:90,v:b.ld_ok?'✅':'❌'},{w:180,v:b.gv||'-'},{w:160,v:b.ld||'-'}]
+        .forEach(x=>row.appendChild(el('div','width:'+x.w+'px',x.v)));
+      win.bd.appendChild(row);});
+    win.ft.append(mkbtn(tr('button_close'),'btn-gray','80px',close_win));});}
+function format_size(b){if(!b)return'0 B';
+  const u=['B','KB','MB','GB'];let i=0;
+  while(b>=1024&&i<u.length-1){b/=1024;i++;}return b.toFixed(2)+' '+u[i];}
+function easy_switch_selectable(res){return !!(res&&res.status==='ok');}
+async function easy_switch_check(){
+  try{await _easy_switch_run();}
+  catch(e){log(trf('log_easy_switch_fail',{error:e&&e.message||e}),'ERROR');}}
+async function _easy_switch_run(){
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const pack=INDEX_DATA;
+  if(!current_files().length){alert(tr('easy_switch_no_mods'));return;}
+  let mcList=[];
+  try{mcList=await api_fetch_mc_versions();}catch{}
+  const curMc=$('comboMc').value.trim();
+  if(curMc&&!mcList.includes(curMc))mcList=[curMc,...mcList];
+  if(!mcList.length)mcList=[curMc||'1.20.1'];
+  build_win(tr('easy_switch_title'),'760px','560px',win=>{
+    const form=el('div','padding:8px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap');
+    const mcInp=el('input','width:140px');mcInp.setAttribute('list','easySwitchMcList');
+    mcInp.value=curMc||mcList[0];
+    const dl=el('datalist');dl.id='easySwitchMcList';
+    mcList.forEach(v=>{const o=el('option');o.value=v;dl.appendChild(o);});
+    const ldSel=el('select','width:120px');
+    ['Fabric','Forge','NeoForge'].forEach(v=>{const o=el('option');o.value=v;o.textContent=v;ldSel.appendChild(o);});
+    ldSel.value=$('comboLoaderType').value||'Fabric';
+    const searchBtn=mkbtn(tr('easy_switch_search_btn'),'btn-accent2','150px',()=>startSearch());
+    form.append(
+      el('label','font-size:12px;color:var(--muted)',tr('easy_switch_target_mc')+':'),mcInp,dl,
+      el('label','font-size:12px;color:var(--muted)',tr('easy_switch_target_loader')+':'),ldSel,searchBtn);
+    win.bd.appendChild(form);
+    const statsLbl=el('div','text-align:center;padding:6px;font-weight:600;color:var(--accent)',null,'hint');
+    const statusLbl=el('div','text-align:center;padding:4px',null,'hint');
+    win.bd.append(statsLbl,statusLbl);
+    const scroll=el('div','overflow:auto;flex:1;background:var(--zebra);border-radius:var(--radius-card);margin:4px 10px');
+    win.bd.appendChild(scroll);
+    win.ft.append(
+      mkbtn(tr('button_select_all'),'btn-gray','140px',selectAll),
+      mkbtn(tr('easy_switch_upgrade_btn'),'btn-success','140px',doUpgrade),
+      mkbtn(tr('button_close'),'btn-gray','80px',close_win));
+    let rows=[],results=[],searching=false,searchTarget=null;
+    function resetLabels(){
+      statusLbl.textContent=trf('easy_switch_stats',{ok:'-',bad:'-',unk:'-',local:'-'});
+      statsLbl.textContent='';}
+    function updateStats(){
+      const ok=results.filter(r=>r.status==='ok').length;
+      const bad=results.filter(r=>r.status==='bad').length;
+      const unk=results.filter(r=>r.status==='unknown').length;
+      const loc=results.filter(r=>r.status==='local').length;
+      statusLbl.textContent=trf('easy_switch_stats',{ok,bad,unk,local:loc});
+      statsLbl.textContent=trf('update_selected',{n:rows.filter(r=>r._selected).length,total:ok});}
+    function selectAll(){
+      const up=rows.filter(r=>easy_switch_selectable(r._res));
+      const target=!up.every(r=>r._selected);
+      up.forEach(r=>{r._selected=target;r.classList.toggle('on',target);});
+      updateStats();}
+    function renderResults(){
+      scroll.replaceChildren();
+      const col_ws=['26%','8%','14%','18%','34%'];
+      const hdr=el('div',null,null,'tbl-hdr');hdr.style.margin='0 10px 2px';
+      [tr('easy_switch_col_name'),tr('easy_switch_col_type'),tr('easy_switch_col_status'),
+       tr('easy_switch_col_target_ver'),''].forEach((h,i)=>hdr.appendChild(el('div','width:'+col_ws[i],h)));
+      scroll.appendChild(hdr);
+      results.forEach(r=>{
+        const row=el('div',null,null,'sel-row');row._res=r;
+        row._selected=easy_switch_selectable(r);
+        const statusTxt=tr('easy_switch_status_'+r.status)||r.status;
+        row.append(
+          el('div','width:'+col_ws[0],r.name||r.filename),
+          el('div','width:'+col_ws[1],type_label(r.etype)),
+          el('div','width:'+col_ws[2],statusTxt),
+          el('div','width:'+col_ws[3],r.targetVer||'-'),
+          el('div','width:'+col_ws[4],r.entry.path||''));
+        if(easy_switch_selectable(r))
+          row.onclick=()=>{row._selected=!row._selected;
+            row.classList.toggle('on',row._selected);updateStats();};
+        if(row._selected)row.classList.add('on');
+        rows.push(row);scroll.appendChild(row);});
+      updateStats();}
+    async function startSearch(){
+      if(searching)return;
+      const targetMc=mcInp.value.trim();
+      const loaderName=ldSel.value||'Fabric';
+      const targetLoader=LOADER_API[loaderName]||'fabric';
+      if(!targetMc){alert(tr('easy_switch_select_mc'));return;}
+      searching=true;searchBtn.disabled=true;
+      rows=[];results=[];searchTarget=null;
+      scroll.replaceChildren();resetLabels();
+      log(trf('log_easy_switch_start',{mc:targetMc,loader:targetLoader}));
+      set_status(tr('status_loading'));progress_show();
+      try{
+        let loaderVers=[];
+        try{loaderVers=await api_fetch_loader_versions_for_mc(loaderName,targetMc);}catch{}
+        const todo=current_files().slice().map((f,i)=>{
+          const pid=parse_project_id_from_url((f.downloads||[])[0]||'');
+          return {i,pid,cf:f.cf,entry:f,etype:entry_type(f),
+            filename:(f.path||'').split(/[/\\]/).pop()};});
+        let done=0;const total=todo.length;
+        await pool_run(todo,20,async m=>{
+          let res={i:m.i,entry:m.entry,etype:m.etype,filename:m.filename,status:'local',targetVer:''};
+          try{
+            if(m.cf){
+              /* cf_get_project_versions 已按目标 mc/loader 过滤，有结果即兼容 */
+              const pid=m.cf.projectID;
+              const vs=await cf_get_project_versions(pid,targetMc,
+                m.etype==='mod'?targetLoader:null);
+              if(vs&&vs.length){
+                const latest=vs.reduce((a,b)=>b.file_id>a.file_id?b:a);
+                const pj=await cf_get_project(pid);
+                if(pj&&pj.title)CF_NAME_CACHE.set(pid,pj.title);
+                const name=(pj&&pj.title)||CF_NAME_CACHE.get(pid)||m.filename;
+                res={...res,status:'ok',targetVer:extract_version(latest.name||''),
+                  name,latestData:{cfProjectID:pid,cfFileID:latest.file_id,
+                    filename:latest.name||m.filename,fileSize:latest.filesize||0}};}
+              else{res.status='bad';}
+            }else if(m.pid){
+              const vs=await api_get_all_versions(m.pid,targetMc,m.etype==='mod'?targetLoader:null);
+              if(vs&&vs.length){
+                const latest=vs[0];
+                res={...res,status:'ok',
+                  targetVer:latest.version_number||extract_version(latest.name||''),
+                  latestData:latest,name:await api_fetch_project_name(m.pid)};}
+              else{res.status='bad';}}
+          }catch(e){res.status='unknown';}
+          results.push(res);
+          done++;progress_set(done,total);
+          set_status(trf('easy_switch_checking',{i:done,count:total}));});
+        if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');close_win();return;}
+        results.sort((a,b)=>a.i-b.i);
+        searchTarget={mc:targetMc,loaderName,
+          loaderKey:LOADER_KEYS[loaderName]||'fabric-loader',loaderVers};
+        log(trf('log_easy_switch_done',{ok:results.filter(r=>r.status==='ok').length,
+          bad:results.filter(r=>r.status==='bad').length,
+          unk:results.filter(r=>r.status==='unknown').length}));
+        renderResults();
+      }catch(e){
+        log(trf('log_easy_switch_fail',{error:e&&e.message||e}),'ERROR');
+      }finally{
+        searching=false;searchBtn.disabled=false;
+        progress_hide();set_status(tr('status_ready'));}}
+    function doUpgrade(){
+      const sel=results.filter(r=>r._selected&&easy_switch_selectable(r));
+      if(!sel.length){alert(tr('easy_switch_no_compatible'));return;}
+      if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');return;}
+      if(!searchTarget)return;
+      const deps=INDEX_DATA.dependencies||{};
+      const curLoaderKey=['fabric-loader','forge','neoforge'].find(k=>deps[k])||null;
+      let loaderVer='';
+      if(curLoaderKey===searchTarget.loaderKey&&deps.minecraft===searchTarget.mc)
+        loaderVer=deps[searchTarget.loaderKey]||'';
+      if(!loaderVer)loaderVer=searchTarget.loaderVers[0]||'';
+      if(!loaderVer){alert(tr('easy_switch_loader_ver_fail'));return;}
+      if(!confirm(trf('dialog_update_apply',{count:sel.length})))return;
+      const files=current_files();
+      const path_to_idx={};files.forEach((f,i)=>path_to_idx[f.path]=i);
+      let ok=0,fail=0,cfNoHash=false;
+      sel.forEach(r=>{
+        const res=r._res;const idx=path_to_idx[res.entry.path];
+        if(idx===undefined||!res.latestData){fail++;return;}
+        try{
+          let next;
+          if('cfProjectID' in res.latestData){
+            cfNoHash=true;
+            next=build_cf_entry({cf:true,current_entry:res.entry,latest_data:res.latestData});}
+          else next=build_mod_entry(res.latestData,(res.entry.path||'mods/').split('/')[0]);
+          files[idx]=next;
+          if(next.path!==res.entry.path){
+            window._localJars&&window._localJars.delete(res.entry.path);
+            window._ovFiles&&window._ovFiles.delete(res.entry.path);}
+          ok++;
+        }catch(e){fail++;log(trf('log_update_entry_fail',
+          {filename:(res.entry.path||'').split(/[/\\]/).pop(),error:e&&e.message||e}),'ERROR');}});
+      if(cfNoHash)log(tr('log_cf_nohash'),'WARNING');
+      INDEX_DATA.files=files;
+      ['fabric-loader','forge','neoforge'].forEach(k=>{if(k!==searchTarget.loaderKey)delete deps[k];});
+      deps.minecraft=searchTarget.mc;deps[searchTarget.loaderKey]=loaderVer;
+      INDEX_DATA.dependencies=deps;
+      log(trf('log_easy_switch_upgrade',{ok,fail}),ok?'SUCCESS':'ERROR');
+      log(trf('log_easy_switch_applied',{mc:searchTarget.mc,
+        loader:searchTarget.loaderKey,ver:loaderVer}));
+      close_win();reload_metadata();save_index_to_state();
+      alert(trf('dialog_update_success',{count:ok}));}
+    startSearch();});}
+function show_stats(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const files=current_files();
+  const total=files.length;let size=0,no_url=0;
+  const sources={};const types={mod:0,rp:0,sp:0};
+  files.forEach(f=>{
+    size+=f.fileSize||0;
+    types[entry_type(f)]++;
+    if(!f.downloads||!f.downloads.length)no_url++;
+    if(f.cf){sources['CurseForge']=(sources['CurseForge']||0)+1;}
+    else if(f.downloads&&f.downloads.length){
+      const pid=parse_project_id_from_url(f.downloads[0]);
+      const k=pid?'Modrinth':'local';
+      sources[k]=(sources[k]||0)+1;}
+    else sources['local']=(sources['local']||0)+1;});
+  const srcLbl={Modrinth:'Modrinth','CurseForge':'CurseForge',local:tr('source_local')};
+  build_win(tr('dialog_stats_title'),'500px','460px',win=>{
+    const add=(lbl,val)=>{const d=el('div','padding:6px 20px;font-size:13px');
+      d.textContent = `${lbl}: ${val}`; win.bd.appendChild(d);};
+    add(tr('dialog_stats_count'),total);
+    add(tr('dialog_stats_size'),format_size(size));
+    add(tr('dialog_stats_no_url'),no_url);
+    win.bd.appendChild(el('div','font-size:13px;padding:10px 0 2px',tr('dlg_stats_types'),'bold-md'));
+    add(type_label('mod'),types.mod);add(type_label('rp'),types.rp);add(type_label('sp'),types.sp);
+    win.bd.appendChild(el('div','font-size:13px;padding:10px 0 2px',tr('dialog_stats_sources'),'bold-md'));
+    Object.entries(sources).forEach(([k,v])=>add(srcLbl[k]||k,v));
+    win.ft.append(mkbtn(tr('button_close'),'btn-gray','80px',close_win));});}
+function manage_backups(){
+  build_win(tr('dialog_backup_title'),'600px','440px',win=>{
+    const head=el('div','text-align:center;padding:6px',
+      BACKUPS.length?trf('dialog_backup_count',{count:BACKUPS.length}):tr('dialog_backup_empty'),'hint');
+    win.bd.appendChild(head);
+    let cur=null;const rows=[];
+    BACKUPS.forEach((b,i)=>{
+      const row=el('div',null,null,'sel-row');
+      const c=el('div','flex:1',`${b.ts}  (${b.name})`);
+      row.appendChild(c);row.onclick=()=>{
+        if(cur!==null&&rows[cur])rows[cur].classList.remove('on');
+        cur=i;rows[i].classList.add('on');};
+      win.bd.appendChild(row);rows.push(row);});
+    const restore=()=>{if(cur===null){alert(tr('dialog_backup_no_select'));return;}
+      if(!confirm(tr('dialog_backup_restore')))return;
+      const b=BACKUPS[cur];
+      backup_silent();
+      INDEX_DATA=JSON.parse(JSON.stringify(b.data));
+      apply_metadata(INDEX_DATA);refresh_mod_list();save_index_to_state();
+      log(trf('log_backup_restore',{name:b.ts}),'SUCCESS');
+      close_win();};
+    const del=()=>{if(cur===null){alert(tr('dialog_backup_no_select'));return;}
+      const b=BACKUPS[cur];
+      BACKUPS.splice(cur,1);if(rows[cur])rows[cur].remove();cur=null;
+      head.textContent=BACKUPS.length?
+        trf('dialog_backup_count',{count:BACKUPS.length}):
+        tr('dialog_backup_empty');
+      log(trf('log_backup_delete',{name:b.ts}));};
+    win.ft.append(mkbtn(tr('dialog_backup_restore'),'btn-success','100px',restore),
+      mkbtn(tr('dialog_backup_delete'),'btn-danger','100px',del),
+      mkbtn(tr('button_close'),'btn-gray','80px',close_win));});}
+async function switch_mod_version(){const sel=selected_rows();
+  if(sel.length!==1){alert(tr('dialog_switch_select'));return;}
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const mod=sel[0]._raw;
+  const pack=INDEX_DATA;
+  const pid=mod.project_id||parse_project_id_from_url((mod.raw_entry.downloads||[])[0]||'');
+  if(!pid){alert(tr('dialog_detail_no_id'));return;}
+  const mc=$('comboMc').value.trim();
+  const loader=mod.etype==='mod'?(LOADER_API[$('comboLoaderType').value]||'fabric'):null;
+  log(trf('log_fetch_versions',{pid:pid}));set_status(tr('status_loading'));
+  try{
+    const all_v=await api_get_all_versions(pid,mc,loader);
+    if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');set_status(tr('status_ready'));return;}
+    if(!all_v.length){alert(tr('dialog_no_version'));set_status(tr('status_ready'));return;}
+    let def=all_v.filter(v=>v.featured);
+    if(!def.length)def=all_v.slice(0,1);
+    show_selector(def,all_v,pid,mc,loader,ver=>{
+      if(INDEX_DATA!==pack){log(tr('log_async_pack_changed'),'WARNING');return;}
+      const f=ver.files&&ver.files[0];
+      if(!f){alert(trf('log_version_data_bad',{pid:pid}));return;}
+      backup_silent();
+      const prefix=(mod.raw_entry.path||'mods/').replace(/\\/g,'/').split('/')[0]||'mods';
+      const new_entry=build_mod_entry(ver,prefix);
+      const idx=current_files().findIndex(fe=>fe.path===mod.raw_entry.path);
+      if(idx>=0)INDEX_DATA.files[idx]=new_entry;
+      else INDEX_DATA.files.push(new_entry);
+      log(trf('log_switch_ver',{name:mod.display_name||mod.filename,
+        version:ver.version_number||''}),'SUCCESS');
+      refresh_mod_list();save_index_to_state();});
+  }catch(e){alert(trf('dialog_version_fetch',{error:e.message}));}
+  set_status(tr('status_ready'));}
+function pre_pack_check(){if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const files=current_files();const no_url=[],no_path=[];
+  files.forEach(f=>{
+    if(!f.downloads||!f.downloads.length||!f.downloads[0])no_url.push(f);
+    if(!f.path)no_path.push(f);});
+  if(!no_url.length&&!no_path.length){alert(tr('dialog_prepack_ok'));
+    log(tr('dialog_prepack_ok'),'SUCCESS');return;}
+  log(tr('dialog_prepack_problems'),'WARNING');
+  build_win(tr('dialog_prepack_title'),'600px','440px',win=>{
+    const sec=txt=>win.bd.appendChild(el('div','font-weight:600;margin:6px 0 2px;color:var(--accent)',txt));
+    const item=txt=>win.bd.appendChild(el('div','padding:1px 14px;font-size:12px',txt));
+    if(no_url.length){sec(trf('dialog_prepack_no_url',{n:no_url.length}));
+      no_url.forEach(f=>item((f.path||'?').split(/[/\\]/).pop()));}
+    if(no_path.length){sec(trf('dialog_prepack_no_path',{n:no_path.length}));
+      no_path.forEach(f=>item(JSON.stringify(f).slice(0,80)));}
+    win.ft.append(mkbtn(tr('button_close'),'btn-gray','80px',close_win));});}
+async function download_all_mods(){
+  if(!INDEX_DATA){alert(tr('dialog_file_not_found'));return;}
+  const files=current_files();
+  if(!files.length){alert(tr('dialog_no_mods'));return;}
+  set_status(tr('status_downloading'));progress_show();
+  log(trf('log_dl_all_start',{count:files.length}));
+  let ok=0,fail=0;
+  for(let i=0;i<files.length;i++){
+    const e=files[i];
+    const fn=String(e.path||'').split(/[/\\]/).pop();
+    progress_set(i+1,files.length);
+    if(window._localJars&&window._localJars.has(e.path)){ok++;continue;}
+    if(window._ovFiles&&window._ovFiles.has(e.path)){ok++;continue;}
+    const url=(e.downloads||[])[0];
+    if(!url){fail++;log(trf('log_skip_nolink',{filename:fn}),'WARNING');continue;}
+    set_status(`${tr('status_downloading')} ${i+1}/${files.length}`);
+    try{const r=await fetch(url,fetch_to());
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const buf=await r.arrayBuffer();
+      if(e.hashes&&e.hashes.sha1){
+        const s1=await sha1_hex(buf);
+        if(s1!==e.hashes.sha1)throw new Error('SHA1 mismatch');}
+      dl_blob(new Blob([buf]),fn);ok++;
+      log(trf('log_download_done',{filename:fn}),'SUCCESS');
+    }catch(err){fail++;
+      log(trf('log_download_fail',{filename:fn,error:err.message}),'ERROR');}}
+  progress_hide();
+  set_status(tr('status_ready'));
+  log(trf('dlg_dl_all_done',{ok,fail}),fail?'WARNING':'SUCCESS');
+  alert(trf('dlg_dl_all_done',{ok,fail}));}
+['entryName','entryVersion','comboMc','comboLoaderType','comboLoaderVer'].forEach(id=>{
+  $(id).addEventListener('change',()=>{if(INDEX_DATA)save_index_to_state();});});
+$('urlEntry').addEventListener('keydown',e=>{if(e.key==='Enter')fetch_versions_from_url();});
+$('projectSearchEntry').addEventListener('keydown',e=>{if(e.key==='Enter')search_projects_to_add();});
+$('searchEntry').addEventListener('keydown',e=>{if(e.key==='Enter')apply_filter();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')close_win();
+  if(e.ctrlKey&&e.key==='s'){e.preventDefault();
+    if(INDEX_DATA){save_index_to_state();manual_backup();}}});
+document.documentElement.setAttribute('data-theme',CURRENT_THEME);
+apply_style();
+window.addEventListener('resize',()=>{if(SHOW_LOG)apply_log_state();});
+/* Fluent Web Components 主题对接（懒加载完成后挂接） */
+function _fluent_theme_hook(){
+  try{
+    const {setTheme,webLightTheme,webDarkTheme}=window.FluentUIWebComponents||{};
+    if(setTheme){
+      window.applyFluentTheme=(isDark)=>setTheme(isDark?webDarkTheme:webLightTheme);
+      window.applyFluentTheme(CURRENT_THEME==='dark');}
+  }catch(e){console.warn('Fluent theme init skipped:',e);}}
+loadFluentUI().then(_fluent_theme_hook).catch(()=>{});
+apply_texts();
+$('entryName').value=tr('new_pack_default_name');
+// 列表行点击委托到容器，避免每行闭包开销
+const treeEl=$('tree');
+treeEl.addEventListener('click',e=>{const row=e.target.closest('.mrow');if(row)toggle_row(row);});
+treeEl.addEventListener('dblclick',e=>{const row=e.target.closest('.mrow');if(row)show_mod_detail(row);});
+show_page('home');
+log(tr('status_ready'));
+setTimeout(fetch_mc_versions,100);
+setTimeout(()=>fetch_loader_versions(true),200);
+$('entryFile').focus();
+</script>
 </body>
 </html>
